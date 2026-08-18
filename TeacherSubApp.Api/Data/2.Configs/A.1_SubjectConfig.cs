@@ -25,7 +25,8 @@ namespace TeacherSubApp.Api.Data.Config
         {
             builder.Property(s => s.Name)
                    .IsRequired()
-                   .HasMaxLength(100);
+                   .HasMaxLength(100)
+                   .HasColumnType("citext");
         }
 
         private static void _ConfigureAuditProperties(EntityTypeBuilder<Subject> builder)

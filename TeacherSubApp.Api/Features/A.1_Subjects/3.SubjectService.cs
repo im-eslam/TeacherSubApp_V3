@@ -130,11 +130,11 @@ namespace TeacherSubApp.Api.Features.Subjects
         // Validation
         private async Task<Result> _CheckNameConflictAsync(string name, int? excludeId)
         {
-            string clean = name.Trim();
+            string normalizedName = name.Trim().ToLowerInvariant();
 
             bool nameTaken = await _db.Subjects
                 .AnyAsync(s => s.DeletedAt == null
-                            && EF.Functions.ILike(s.Name, clean)
+                            && s.Name.ToLower() == normalizedName
                             && (excludeId == null || s.Id != excludeId));
 
             return nameTaken

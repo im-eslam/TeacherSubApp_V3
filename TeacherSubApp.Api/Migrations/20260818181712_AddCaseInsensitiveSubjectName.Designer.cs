@@ -12,8 +12,8 @@ using TeacherSubApp.Api.Data;
 namespace TeacherSubApp.Api.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20260817175208_RemoveClassSlotUniqueConstraint")]
-    partial class RemoveClassSlotUniqueConstraint
+    [Migration("20260818181712_AddCaseInsensitiveSubjectName")]
+    partial class AddCaseInsensitiveSubjectName
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -23,6 +23,7 @@ namespace TeacherSubApp.Api.Migrations
                 .HasAnnotation("ProductVersion", "8.0.30")
                 .HasAnnotation("Relational:MaxIdentifierLength", 63);
 
+            NpgsqlModelBuilderExtensions.HasPostgresExtension(modelBuilder, "citext");
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
 
             modelBuilder.Entity("TeacherSubApp.Api.Data.Models.EventKey", b =>
@@ -157,7 +158,7 @@ namespace TeacherSubApp.Api.Migrations
                     b.Property<string>("Name")
                         .IsRequired()
                         .HasMaxLength(100)
-                        .HasColumnType("character varying(100)");
+                        .HasColumnType("citext");
 
                     b.Property<DateTime>("UpdatedAt")
                         .ValueGeneratedOnAdd()

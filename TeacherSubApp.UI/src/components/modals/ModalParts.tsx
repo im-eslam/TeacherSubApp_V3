@@ -13,7 +13,7 @@ const STYLES = {
   closeButton:
     "flex items-center justify-center w-8 h-8 min-w-[44px] min-h-[44px] -me-2 rounded-full text-neutral-400 hover:text-neutral-700 hover:bg-neutral-100 transition-all duration-300 ease-[cubic-bezier(0.25,1,0.5,1)] outline-none disabled:opacity-50",
 
-  body: "px-6 py-6 flex flex-col gap-4 overflow-flow",
+  body: "px-6 py-6 flex flex-col gap-4 overflow-y-auto",
 
   errorBanner:
     "flex items-start gap-2.5 px-4 py-3 bg-red-50 border border-red-100 rounded-xl text-xs text-red-600 leading-relaxed",

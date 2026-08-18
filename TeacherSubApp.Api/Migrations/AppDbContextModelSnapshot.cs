@@ -20,6 +20,7 @@ namespace TeacherSubApp.Api.Migrations
                 .HasAnnotation("ProductVersion", "8.0.30")
                 .HasAnnotation("Relational:MaxIdentifierLength", 63);
 
+            NpgsqlModelBuilderExtensions.HasPostgresExtension(modelBuilder, "citext");
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
 
             modelBuilder.Entity("TeacherSubApp.Api.Data.Models.EventKey", b =>
@@ -154,7 +155,7 @@ namespace TeacherSubApp.Api.Migrations
                     b.Property<string>("Name")
                         .IsRequired()
                         .HasMaxLength(100)
-                        .HasColumnType("character varying(100)");
+                        .HasColumnType("citext");
 
                     b.Property<DateTime>("UpdatedAt")
                         .ValueGeneratedOnAdd()
