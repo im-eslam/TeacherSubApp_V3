@@ -1,0 +1,9 @@
+EventName,IsSupport,IsStandby
+احتياطي,FALSE,TRUE
+دعم,TRUE,FALSE
+اجتماع النائب الاكاديمي,FALSE,FALSE
+اجتماع مع مدير مكتب التطوير,FALSE,FALSE
+اجتماع قيم,FALSE,FALSE
+اجتماع الجودة,FALSE,FALSE
+اجتماع القسم/الأسرة,FALSE,FALSE
+قيم,FALSE,FALSE
