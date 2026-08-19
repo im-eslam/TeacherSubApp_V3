@@ -147,10 +147,11 @@ namespace TeacherSubApp.Api.Features.EventKeys
         private async Task<Result> _CheckNameConflictAsync(string name, int? excludeId)
         {
             string clean = name.Trim();
+            string normalized = clean.ToLowerInvariant();
 
             bool exists = await _db.EventKeys
                 .AnyAsync(e => e.DeletedAt == null
-                && EF.Functions.ILike(e.EventName, clean)
+                && e.EventName.ToLower() == normalized
                 && (excludeId == null || e.Id != excludeId));
 
             return exists
