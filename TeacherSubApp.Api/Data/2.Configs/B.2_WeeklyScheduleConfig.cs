@@ -2,7 +2,7 @@
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using TeacherSubApp.Api.Data.Models;
 
-namespace TeacherSubApp.Api.Data._2.Configs
+namespace TeacherSubApp.Api.Data.Configs
 {
     public sealed class WeeklyScheduleConfig : IEntityTypeConfiguration<WeeklySchedule>
     {
@@ -60,11 +60,11 @@ namespace TeacherSubApp.Api.Data._2.Configs
             builder.ToTable(t =>
             {
                 t.HasCheckConstraint(
-                    "CK_Schedule_DayOfWeek", 
+                    "CK_Schedule_DayOfWeek",
                     "\"DayOfWeek\" >= 1 AND \"DayOfWeek\" <= 5");
 
                 t.HasCheckConstraint(
-                    "CK_Schedule_Period", 
+                    "CK_Schedule_Period",
                      "\"PeriodNumber\" >= 1 AND \"PeriodNumber\" <= 7");
 
                 t.HasCheckConstraint(

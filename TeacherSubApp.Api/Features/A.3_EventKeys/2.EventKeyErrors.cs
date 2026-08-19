@@ -8,7 +8,7 @@ namespace TeacherSubApp.Api.Features.EventKeys
         {
             public const string NameRequired = "The event name is required.|اسم الحدث مطلوب.";
             public const string NameMaxLength = "The event name cannot exceed 100 characters.|لا يمكن أن يتجاوز اسم الحدث 100 حرف.";
-        };
+        }
 
         public static readonly Error NotFound = Error.Create(
             "EVENTKEY_NOT_FOUND",

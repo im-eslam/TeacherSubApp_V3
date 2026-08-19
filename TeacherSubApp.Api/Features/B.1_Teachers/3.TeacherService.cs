@@ -9,7 +9,6 @@ namespace TeacherSubApp.Api.Features.Teachers
     public class TeacherService : ITeacherService
     {
         private readonly AppDbContext _db;
-
         public TeacherService(AppDbContext db)
         {
             _db = db;
@@ -34,7 +33,7 @@ namespace TeacherSubApp.Api.Features.Teachers
         {
             List<Func<Task<Result>>> rules =
             [
-                () => _CheckNameConflictAsync(dto.Name, null),
+                () => _CheckNameConflictAsync(dto.Name, excludeId: null),
                 () => _CheckSubjectValidAsync(dto.SubjectId)
             ];
 
@@ -128,10 +127,7 @@ namespace TeacherSubApp.Api.Features.Teachers
             if (query.IsSupervisor.HasValue)
                 q = q.Where(t => t.IsSupervisor == query.IsSupervisor.Value);
 
-            return await q
-                .OrderBy(t => t.Name)
-                .Select(TeacherReadDto.ToDtoProjection)
-                .ToListAsync();
+            return await q.OrderBy(t => t.Name).Select(TeacherReadDto.ToDtoProjection).ToListAsync();
         }
 
         private Task<Teacher?> _FindActiveByIdAsync(int id)
@@ -141,18 +137,17 @@ namespace TeacherSubApp.Api.Features.Teachers
 
         private Task<Teacher?> _FindActiveByIdWithSubjectAsync(int id)
         {
-            return _db.Teachers
-                .Include(t => t.Subject)
-                .FirstOrDefaultAsync(t => t.Id == id && t.DeletedAt == null);
+            return _db.Teachers.Include(t => t.Subject).FirstOrDefaultAsync(t => t.Id == id && t.DeletedAt == null);
         }
 
         // Validation
         private async Task<Result> _CheckNameConflictAsync(string name, int? excludeId)
         {
-            string clean = name.Trim().ToLower();
+            string normalizedName = name.Trim().ToLowerInvariant();
+
             bool nameTaken = await _db.Teachers
                 .AnyAsync(t => t.DeletedAt == null
-                            && t.Name.ToLower() == clean
+                            && t.Name.ToLower() == normalizedName
                             && (excludeId == null || t.Id != excludeId));
 
             return nameTaken
@@ -186,16 +181,12 @@ namespace TeacherSubApp.Api.Features.Teachers
         // Create / Update
         private async Task<Teacher> _PersistNewAsync(TeacherWriteDto dto)
         {
-            Teacher entity = TeacherWriteDto.ToEntity(dto);
+            Teacher entity = dto.ToEntity();
             _db.Teachers.Add(entity);
             await _db.SaveChangesAsync();
 
             if (entity.SubjectId.HasValue)
-            {
-                entity.Subject = await _db.Subjects
-                    .AsNoTracking()
-                    .FirstOrDefaultAsync(s => s.Id == entity.SubjectId.Value);
-            }
+                entity.Subject = await _db.Subjects.AsNoTracking().FirstOrDefaultAsync(s => s.Id == entity.SubjectId.Value);
 
             return entity;
         }
@@ -211,15 +202,9 @@ namespace TeacherSubApp.Api.Features.Teachers
             await _db.SaveChangesAsync();
 
             if (teacher.SubjectId.HasValue && (teacher.Subject == null || teacher.Subject.Id != teacher.SubjectId))
-            {
-                teacher.Subject = await _db.Subjects
-                    .AsNoTracking()
-                    .FirstOrDefaultAsync(s => s.Id == teacher.SubjectId.Value);
-            }
+                teacher.Subject = await _db.Subjects.AsNoTracking().FirstOrDefaultAsync(s => s.Id == teacher.SubjectId.Value);
             else if (!teacher.SubjectId.HasValue)
-            {
                 teacher.Subject = null;
-            }
 
             return teacher;
         }

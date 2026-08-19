@@ -1,6 +1,6 @@
 ﻿namespace TeacherSubApp.Api.Features.Teachers.Dtos
 {
-    public record TeacherQuery
+    public sealed record TeacherQuery
     {
         public string? Name { get; init; }
         public int? SubjectId { get; init; }

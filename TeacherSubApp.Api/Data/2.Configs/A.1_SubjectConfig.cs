@@ -2,7 +2,7 @@
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using TeacherSubApp.Api.Data.Models;
 
-namespace TeacherSubApp.Api.Data.Config
+namespace TeacherSubApp.Api.Data.Configs
 {
     public sealed class SubjectConfig : IEntityTypeConfiguration<Subject>
     {
