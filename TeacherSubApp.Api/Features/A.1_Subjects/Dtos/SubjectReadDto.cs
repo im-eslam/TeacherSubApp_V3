@@ -3,26 +3,12 @@ using TeacherSubApp.Api.Data.Models;
 
 namespace TeacherSubApp.Api.Features.Subjects.Dtos
 {
-    public record SubjectReadDto
+    public sealed record SubjectReadDto (int Id, string Name)
     {
-        public int Id { get; init; }
-
-        public string Name { get; init; } = string.Empty;
-
-        public static SubjectReadDto FromEntity(Subject subject)
-        {
-            return new SubjectReadDto
-            {
-                Id = subject.Id,
-                Name = subject.Name
-            };
-        }
+        public static SubjectReadDto FromEntity (Subject s) =>
+            new(s.Id, s.Name);
 
         public static readonly Expression<Func<Subject, SubjectReadDto>> ToDtoProjection =
-            subject => new SubjectReadDto
-            {
-                Id = subject.Id,
-                Name = subject.Name
-            };
+            s => new SubjectReadDto(s.Id, s.Name);
     }
 }

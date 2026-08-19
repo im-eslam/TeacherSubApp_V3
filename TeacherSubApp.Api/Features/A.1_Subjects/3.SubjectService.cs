@@ -116,10 +116,7 @@ namespace TeacherSubApp.Api.Features.Subjects
             if (!string.IsNullOrWhiteSpace(query.Name))
                 q = q.Where(s => EF.Functions.ILike(s.Name, $"%{query.Name.Trim()}%"));
 
-            return await q
-                .OrderBy(s => s.Name)
-                .Select(SubjectReadDto.ToDtoProjection)
-                .ToListAsync();
+            return await q.OrderBy(s => s.Name).Select(SubjectReadDto.ToDtoProjection).ToListAsync();
         }
 
         private async Task<Subject?> _FindActiveByIdAsync(int id)
@@ -151,7 +148,7 @@ namespace TeacherSubApp.Api.Features.Subjects
         // Create / Update
         private async Task<Subject> _PersistNewAsync(SubjectWriteDto dto)
         {
-            Subject entity = SubjectWriteDto.ToEntity(dto);
+            Subject entity = dto.ToEntity();
             _db.Subjects.Add(entity);
             await _db.SaveChangesAsync();
             return entity;

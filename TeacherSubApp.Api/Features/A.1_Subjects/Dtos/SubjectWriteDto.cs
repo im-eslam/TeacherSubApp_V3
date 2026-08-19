@@ -9,12 +9,11 @@ namespace TeacherSubApp.Api.Features.Subjects.Dtos
         [MaxLength(100, ErrorMessage = "The subject name cannot exceed 100 characters.|لا يمكن أن يتجاوز اسم المادة 100 حرف.")]
         public string Name { get; init; } = string.Empty;
 
-        public static Subject ToEntity(SubjectWriteDto dto)
+        public Subject ToEntity ( ) => new()
         {
-            return new Subject
-            {
-                Name = dto.Name.Trim()
-            };
-        }
+            Name = Name.Trim()
+        };
+
+        public static Subject ToEntity (SubjectWriteDto dto) => dto.ToEntity();
     }
 }
