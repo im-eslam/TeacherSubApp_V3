@@ -149,10 +149,10 @@ namespace TeacherSubApp.Api.Features.Teachers
         // Validation
         private async Task<Result> _CheckNameConflictAsync(string name, int? excludeId)
         {
-            string clean = name.Trim();
+            string clean = name.Trim().ToLower();
             bool nameTaken = await _db.Teachers
                 .AnyAsync(t => t.DeletedAt == null
-                            && EF.Functions.ILike(t.Name, clean)
+                            && t.Name.ToLower() == clean
                             && (excludeId == null || t.Id != excludeId));
 
             return nameTaken
