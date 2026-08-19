@@ -32,7 +32,7 @@ export const eventKeysApi = {
   },
 
   getById: (id: number, signal?: AbortSignal): Promise<EventKeyReadDto> => {
-    return apiClient.get<EventKeyReadDto>(`/event-keys/${id}`, signal);
+    return apiClient.get<EventKeyReadDto>(`/events/${id}`, signal);
   },
 
   create: (

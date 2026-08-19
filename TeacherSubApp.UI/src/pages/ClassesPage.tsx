@@ -130,6 +130,7 @@ export default function SchoolClassesPage() {
   // Only block on the very first load; after that data stays visible
   const showLoader = useDelayedLoading(isLoading, 200);
   const isAwaitingData = isLoading && allClasses.length === 0;
+  const isDisabled = isLoading;
 
   // ── Handlers ──
   const handleCreateSubmit = async (data: SchoolClassWriteDto) => {
@@ -162,7 +163,7 @@ export default function SchoolClassesPage() {
         description="تُستخدم الفصول لربط الطلاب بالمعلمين في الجدول الأسبوعي. تعتمد عليها خوارزمية الاستبدال كمعيار رئيسي لمنع تضارب الحصص وتأمين التغطية الفورية للغياب."
         addLabel="إضافة فصل"
         onAdd={() => setCreateOpen(true)}
-        isDisabled={isLoading}
+        isDisabled={isDisabled}
       />
 
       {isError && (
@@ -178,7 +179,7 @@ export default function SchoolClassesPage() {
           value={query}
           onChange={setQuery}
           placeholder="بحث عن فصل..."
-          isDisabled={isLoading}
+          isDisabled={isDisabled}
         />
 
         <div className="w-[160px]">
@@ -188,7 +189,7 @@ export default function SchoolClassesPage() {
             onChange={handleGradeFilterChange}
             options={gradeOptions}
             placeholder="كل الصفوف"
-            disabled={isLoading || isGradesLoading}
+            disabled={isDisabled || isGradesLoading}
           />
         </div>
 
@@ -199,7 +200,7 @@ export default function SchoolClassesPage() {
             onChange={setSectionFilter}
             options={sectionOptions}
             placeholder="كل الشعب"
-            disabled={isLoading || isSectionDisabled || isSectionsLoading}
+            disabled={isDisabled || isSectionDisabled || isSectionsLoading}
           />
         </div>
 
@@ -211,7 +212,7 @@ export default function SchoolClassesPage() {
               setGradeFilter(ALL_VALUE);
               setSectionFilter(ALL_VALUE);
             }}
-            isDisabled={isLoading}
+            isDisabled={isDisabled}
           >
             <X size={16} strokeWidth={2.5} />
             إلغاء التصفية
