@@ -78,6 +78,8 @@ namespace TeacherSubApp.Api.Data.Configs
         private static void _ConfigureRelationships(EntityTypeBuilder<SchoolClass> builder)
         {
             // Not using set null (there is no meaning in keeping a teacher weekly schedule slot that does not have a class assigned), but keeping it here as a fallback.
+            // (EventId = [value] && ClassId = Null) -> Slot gone completely.
+            // (EventId = [value] && ClassId = [value]) -> special class, also gone.
             // The service will handle the soft delete of related WeeklySchedules when a SchoolClass is soft deleted.
             builder.HasMany(c => c.WeeklySchedules)
                    .WithOne(ws => ws.SchoolClass)
