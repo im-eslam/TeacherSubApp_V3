@@ -31,7 +31,7 @@ namespace TeacherSubApp.Api.Features.SchoolClasses
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         public async Task<IActionResult> GetById(int id)
         {
-            var result = await _classesService.GetByIdAsync(id);
+            Result<SchoolClassReadDto> result = await _classesService.GetByIdAsync(id);
             return HandleResult(result);
         }
 

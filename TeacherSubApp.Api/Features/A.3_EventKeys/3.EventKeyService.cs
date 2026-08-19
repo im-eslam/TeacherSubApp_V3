@@ -34,10 +34,10 @@ namespace TeacherSubApp.Api.Features.EventKeys
         {
             List<Func<Task<Result>>> rules =
             [
-                () => _CheckNameConflictAsync(dto.EventName, null),
+                () => _CheckNameConflictAsync(dto.EventName, excludeId: null),
                 () => _CheckExclusiveFlagsAsync(dto.IsSupport, dto.IsStandby),
-                () => _CheckSupportConflictAsync(dto.IsSupport, null),
-                () => _CheckStandbyConflictAsync(dto.IsStandby, null)
+                () => _CheckSupportConflictAsync(dto.IsSupport, excludeId: null),
+                () => _CheckStandbyConflictAsync(dto.IsStandby, excludeId:null)
             ];
 
             foreach (Func<Task<Result>> rule in rules)
@@ -121,8 +121,7 @@ namespace TeacherSubApp.Api.Features.EventKeys
         // Read 
         private async Task<List<EventKeyReadDto>> _FetchAllActiveAsync(EventKeyQuery query)
         {
-            IQueryable<EventKey> q = _db.EventKeys.AsNoTracking()
-                                                  .Where(e => e.DeletedAt == null);
+            IQueryable<EventKey> q = _db.EventKeys.AsNoTracking().Where(e => e.DeletedAt == null);
 
             if (!string.IsNullOrWhiteSpace(query.EventName))
                 q = q.Where(e => EF.Functions.ILike(e.EventName, $"%{query.EventName.Trim()}%"));
@@ -133,9 +132,7 @@ namespace TeacherSubApp.Api.Features.EventKeys
             if (query.IsStandby.HasValue)
                 q = q.Where(e => e.IsStandby == query.IsStandby);
 
-            return await q.OrderBy(e => e.EventName)
-                          .Select(EventKeyReadDto.ToDtoProjection)
-                          .ToListAsync();
+            return await q.OrderBy(e => e.EventName).Select(EventKeyReadDto.ToDtoProjection).ToListAsync();
         }
 
         private Task<EventKey?> _FindActiveByIdAsync(int id)
@@ -146,12 +143,11 @@ namespace TeacherSubApp.Api.Features.EventKeys
         // Validation 
         private async Task<Result> _CheckNameConflictAsync(string name, int? excludeId)
         {
-            string clean = name.Trim();
-            string normalized = clean.ToLowerInvariant();
+            string normalizedName = name.Trim().ToLowerInvariant();
 
             bool exists = await _db.EventKeys
                 .AnyAsync(e => e.DeletedAt == null
-                && e.EventName.ToLower() == normalized
+                && e.EventName.ToLower() == normalizedName
                 && (excludeId == null || e.Id != excludeId));
 
             return exists
@@ -168,7 +164,7 @@ namespace TeacherSubApp.Api.Features.EventKeys
 
         private async Task<Result> _CheckSupportConflictAsync(bool isSupport, int? excludeId)
         {
-            if (!isSupport) 
+            if (!isSupport)
                 return Result.Success();
 
             bool taken = await _db.EventKeys
@@ -183,7 +179,8 @@ namespace TeacherSubApp.Api.Features.EventKeys
 
         private async Task<Result> _CheckStandbyConflictAsync(bool isStandby, int? excludeId)
         {
-            if (!isStandby) return Result.Success();
+            if (!isStandby)
+                return Result.Success();
 
             bool taken = await _db.EventKeys
                 .AnyAsync(e => e.DeletedAt == null
@@ -207,7 +204,7 @@ namespace TeacherSubApp.Api.Features.EventKeys
         // Create / Update
         private async Task<EventKey> _PersistNewAsync(EventKeyWriteDto dto)
         {
-            EventKey entity = EventKeyWriteDto.ToEntity(dto);
+            EventKey entity = dto.ToEntity();
             _db.EventKeys.Add(entity);
             await _db.SaveChangesAsync();
             return entity;

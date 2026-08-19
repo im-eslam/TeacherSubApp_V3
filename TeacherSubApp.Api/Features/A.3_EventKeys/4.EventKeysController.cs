@@ -43,10 +43,7 @@ namespace TeacherSubApp.Api.Features.EventKeys
         public async Task<IActionResult> Create([FromBody] EventKeyWriteDto dto)
         {
             Result<EventKeyReadDto> result = await _eventsService.CreateAsync(dto);
-            if (result.IsFailure)
-                return HandleResult(result);
-
-            return CreatedAtAction(nameof(GetById), new { id = result.Value!.Id }, result.Value);
+            return HandleResult(result, nameof(GetById), val => new { id = val.Id });
         }
 
         // PUT api/events/5
