@@ -12,8 +12,8 @@
 
         // Audit & Soft-Delete Timestamps
         public DateTime? DeletedAt { get; set; }
-        public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
-        public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;
+        public DateTime CreatedAt { get; set; }
+        public DateTime UpdatedAt { get; set; }
 
         // Navigation
         public Teacher Teacher { get; set; } = null!;

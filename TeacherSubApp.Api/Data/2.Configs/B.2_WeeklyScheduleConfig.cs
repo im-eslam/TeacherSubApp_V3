@@ -73,20 +73,21 @@ namespace TeacherSubApp.Api.Data.Configs
             });
         }
 
+        // Empty after the last update, we may assume data integrity so we do not complicate things (May implement later).
         private static void _ConfigureIndexes(EntityTypeBuilder<WeeklySchedule> builder)
         {
             // Event "Support" Must have a class id -> service implmented 
             // Event "StandBy" Can't have a class id -> service implemented
 
-            builder.HasIndex(ws => new { ws.TeacherId, ws.DayOfWeek, ws.PeriodNumber })
-                   .IsUnique()
-                   .HasDatabaseName("IX_WeeklySchedules_TeacherSlot_Active")
-                   .HasFilter("\"DeletedAt\" IS NULL");
+            // builder.HasIndex(ws => new { ws.TeacherId, ws.DayOfWeek, ws.PeriodNumber })
+            //        .IsUnique()
+            //        .HasDatabaseName("IX_WeeklySchedules_TeacherSlot_Active")
+            //        .HasFilter("\"DeletedAt\" IS NULL");
 
             // Removed: .IsUnique() - Handling this on service layer to allow "Support Bypass"
-            builder.HasIndex(ws => new { ws.ClassId, ws.DayOfWeek, ws.PeriodNumber })
-                   .HasDatabaseName("IX_WeeklySchedules_ClassSlot_Active")
-                   .HasFilter("\"ClassId\" IS NOT NULL AND \"DeletedAt\" IS NULL");
+            // builder.HasIndex(ws => new { ws.ClassId, ws.DayOfWeek, ws.PeriodNumber })
+            //        .HasDatabaseName("IX_WeeklySchedules_ClassSlot_Active")
+            //        .HasFilter("\"ClassId\" IS NOT NULL AND \"DeletedAt\" IS NULL");
         }
 
         private static void _ConfigurePerformanceIndexes(EntityTypeBuilder<WeeklySchedule> builder)
