@@ -4,6 +4,8 @@ import { EntityCreateModal } from "../../../components/modals/EntityCreateModal"
 import { EntityUpdateModal } from "../../../components/modals/EntityUpdateModal";
 import { EntityDeleteModal } from "../../../components/modals/EntityDeleteModal";
 import { TextField } from "../../../components/controls/TextField";
+import { Select, type SelectOption } from "../../../components/controls/Select";
+import { useGrades, useSectionsForGrade } from "../hooks";
 import type { SchoolClassReadDto, SchoolClassWriteDto } from "../types";
 
 // ════════════════════════════════════════════════════════════
@@ -15,6 +17,8 @@ type NullableNumberInput = number | "";
 interface GradeSectionFieldsProps {
   grade: NullableNumberInput;
   section: NullableNumberInput;
+  gradeOptions: SelectOption[];
+  sectionOptions: SelectOption[];
   onGradeChange: (v: NullableNumberInput) => void;
   onSectionChange: (v: NullableNumberInput) => void;
   disabled?: boolean;
@@ -29,30 +33,39 @@ function parseNumericInput(raw: string): NullableNumberInput {
 function GradeSectionFields({
   grade,
   section,
+  gradeOptions,
+  sectionOptions,
   onGradeChange,
   onSectionChange,
   disabled = false,
 }: GradeSectionFieldsProps) {
   const isPairInvalid = (grade === "") !== (section === "");
 
+  const handleGradeChange = (value: string) => {
+    onGradeChange(value === "none" ? "" : parseNumericInput(value));
+    onSectionChange("");
+  };
+
   return (
     <div className="flex flex-col gap-1.5">
       <div className="grid grid-cols-2 gap-3">
-        <TextField
-          label="الصف"
-          type="number"
-          value={grade === "" ? "" : String(grade)}
-          onChange={(v) => onGradeChange(parseNumericInput(v))}
-          placeholder="مثال: 10"
-          isDisabled={disabled}
+        <Select
+          value={grade === "" ? "none" : String(grade)}
+          onChange={handleGradeChange}
+          options={gradeOptions}
+          placeholder="اختر الصف"
+          disabled={disabled}
+          aria-label="الصف"
         />
-        <TextField
-          label="الشعبة"
-          type="number"
-          value={section === "" ? "" : String(section)}
-          onChange={(v) => onSectionChange(parseNumericInput(v))}
-          placeholder="مثال: 1"
-          isDisabled={disabled}
+        <Select
+          value={section === "" ? "none" : String(section)}
+          onChange={(value) =>
+            onSectionChange(value === "none" ? "" : parseNumericInput(value))
+          }
+          options={sectionOptions}
+          placeholder="اختر الشعبة"
+          disabled={disabled || grade === ""}
+          aria-label="الشعبة"
         />
       </div>
 
@@ -74,6 +87,30 @@ function isPairValid(grade: NullableNumberInput, section: NullableNumberInput) {
   return (grade === "") === (section === "");
 }
 
+function useGradeSectionOptions(selectedGrade: number | null) {
+  const { data: grades = [], isLoading: isGradesLoading } = useGrades();
+  const { data: sections = [], isLoading: isSectionsLoading } =
+    useSectionsForGrade(selectedGrade);
+
+  return {
+    gradeOptions: [
+      { value: "none", label: "بدون صف" },
+      ...grades.map((value) => ({
+        value: String(value),
+        label: `الصف ${value}`,
+      })),
+    ],
+    sectionOptions: [
+      { value: "none", label: "بدون شعبة" },
+      ...sections.map((value) => ({
+        value: String(value),
+        label: `الشعبة ${value}`,
+      })),
+    ],
+    isLoading: isGradesLoading || isSectionsLoading,
+  };
+}
+
 // ════════════════════════════════════════════════════════════
 // 1. CREATE MODAL
 // ════════════════════════════════════════════════════════════
@@ -92,6 +129,8 @@ export function SchoolClassCreateModal({
   const [displayName, setDisplayName] = useState("");
   const [grade, setGrade] = useState<NullableNumberInput>("");
   const [section, setSection] = useState<NullableNumberInput>("");
+  const { gradeOptions, sectionOptions, isLoading: isOptionsLoading } =
+    useGradeSectionOptions(grade === "" ? null : grade);
 
   const canSubmit = displayName.trim() !== "" && isPairValid(grade, section);
 
@@ -122,8 +161,11 @@ export function SchoolClassCreateModal({
       <GradeSectionFields
         grade={grade}
         section={section}
+        gradeOptions={gradeOptions}
+        sectionOptions={sectionOptions}
         onGradeChange={setGrade}
         onSectionChange={setSection}
+        disabled={isOptionsLoading}
       />
     </EntityCreateModal>
   );
@@ -155,6 +197,8 @@ export function SchoolClassEditModal({
   const [section, setSection] = useState<NullableNumberInput>(
     schoolClass?.section ?? "",
   );
+  const { gradeOptions, sectionOptions, isLoading: isOptionsLoading } =
+    useGradeSectionOptions(grade === "" ? null : grade);
 
   const canSubmit =
     displayName.trim() !== "" && isPairValid(grade, section) && !!schoolClass;
@@ -185,8 +229,11 @@ export function SchoolClassEditModal({
       <GradeSectionFields
         grade={grade}
         section={section}
+        gradeOptions={gradeOptions}
+        sectionOptions={sectionOptions}
         onGradeChange={setGrade}
         onSectionChange={setSection}
+        disabled={isOptionsLoading}
       />
     </EntityUpdateModal>
   );

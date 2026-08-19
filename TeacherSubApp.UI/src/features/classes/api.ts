@@ -10,6 +10,17 @@ export const classesApi = {
     return apiClient.get<SchoolClassReadDto>(`/classes/${id}`, signal);
   },
 
+  getGrades: (signal?: AbortSignal): Promise<number[]> => {
+    return apiClient.get<number[]>("/classes/grades", signal);
+  },
+
+  getSectionsForGrade: (
+    grade: number,
+    signal?: AbortSignal,
+  ): Promise<number[]> => {
+    return apiClient.get<number[]>(`/classes/grades/${grade}/sections`, signal);
+  },
+
   create: (
     dto: SchoolClassWriteDto,
     signal?: AbortSignal,
