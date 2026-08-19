@@ -73,7 +73,8 @@ namespace TeacherSubApp.Api.Data.Configs
             });
         }
 
-        // Empty after the last update, we may assume data integrity so we do not complicate things (May implement later).
+        /// Empty after the last meeting update, we may assume data integrity so we do not complicate things (May implement later).
+        /// Drop all the ideas in this methods this is only a draft.
         private static void _ConfigureIndexes(EntityTypeBuilder<WeeklySchedule> builder)
         {
             // Event "Support" Must have a class id -> service implmented 
