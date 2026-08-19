@@ -10,24 +10,24 @@ namespace TeacherSubApp.Api.Common.Controllers
     {
         protected readonly ILogger Logger;
 
-        protected AppControllerBase (ILogger logger)
+        protected AppControllerBase(ILogger logger)
         {
             Logger = logger;
         }
 
-        protected IActionResult HandleResult<T> (Result<T> result, string? actionName = null, object? routeValues = null)
+        protected IActionResult HandleResult<T>(Result<T> result, string? actionName = null, Func<T, object>? routeValuesFactory = null)
         {
-            if(result.IsFailure)
+            if (result.IsFailure)
                 return _ProcessFailure(result);
 
-            return actionName is not null
-                ? CreatedAtAction(actionName, routeValues, result.Value)
+            return actionName is not null && routeValuesFactory is not null
+                ? CreatedAtAction(actionName, routeValuesFactory(result.Value!), result.Value)
                 : Ok(result.Value);
         }
 
-        protected IActionResult HandleResult (Result result, string? actionName = null, object? routeValues = null)
+        protected IActionResult HandleResult(Result result, string? actionName = null, object? routeValues = null)
         {
-            if(result.IsFailure)
+            if (result.IsFailure)
                 return _ProcessFailure(result);
 
             return actionName is not null
@@ -37,7 +37,7 @@ namespace TeacherSubApp.Api.Common.Controllers
 
         #region ==== Helper Methods ====
 
-        private IActionResult _ProcessFailure (Result result)
+        private IActionResult _ProcessFailure(Result result)
         {
             _LogFailure(result);
 
@@ -45,11 +45,11 @@ namespace TeacherSubApp.Api.Common.Controllers
             return _MapErrorToActionResult(result.ErrorType, errorPayload);
         }
 
-        private void _LogFailure (Result result)
+        private void _LogFailure(Result result)
         {
             var path = HttpContext.Request.Path;
 
-            switch(result.ErrorType)
+            switch (result.ErrorType)
             {
                 case ErrorType.Validation:
                     Logger.LogInformation("Validation failure [{Code}]: {Message} | Path: {Path}", result.Error.Code, result.Error.MessageEn, path);
@@ -78,7 +78,7 @@ namespace TeacherSubApp.Api.Common.Controllers
             }
         }
 
-        private IActionResult _MapErrorToActionResult (ErrorType errorType, ErrorResponse payload)
+        private IActionResult _MapErrorToActionResult(ErrorType errorType, ErrorResponse payload)
         {
             return errorType switch
             {

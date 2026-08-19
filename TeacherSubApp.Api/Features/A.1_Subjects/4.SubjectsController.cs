@@ -42,7 +42,7 @@ namespace TeacherSubApp.Api.Features.Subjects
         public async Task<IActionResult> Create([FromBody] SubjectWriteDto dto)
         {
             Result<SubjectReadDto> result = await _subjectService.CreateAsync(dto);
-            return HandleResult(result, nameof(GetById), new { id = result.Value!.Id });
+            return HandleResult(result, nameof(GetById), val => new { id = val.Id });
         }
 
         // PUT api/subjects/5

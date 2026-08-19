@@ -14,13 +14,13 @@ namespace TeacherSubApp.Api.Common.Extensions
 {
     public static class ServiceCollectionExtensions
     {
-        public static IServiceCollection AddAppDatabase (this IServiceCollection services, IConfiguration configuration)
+        public static IServiceCollection AddAppDatabase(this IServiceCollection services, IConfiguration configuration)
         {
             services.AddDbContext<AppDbContext>(options => options.UseNpgsql(configuration.GetConnectionString("DefaultConnection")));
             return services;
         }
 
-        public static IServiceCollection AddAppInfrastructure (this IServiceCollection services)
+        public static IServiceCollection AddAppInfrastructure(this IServiceCollection services)
         {
             services.AddControllers().ConfigureApiBehaviorOptions(options =>
             {
@@ -37,7 +37,7 @@ namespace TeacherSubApp.Api.Common.Extensions
             return services;
         }
 
-        public static IServiceCollection AddAppFeatures (this IServiceCollection services)
+        public static IServiceCollection AddAppFeatures(this IServiceCollection services)
         {
             services.AddScoped<ISubjectService, SubjectService>();
             services.AddScoped<ISchoolClassService, SchoolClassService>();
@@ -52,7 +52,7 @@ namespace TeacherSubApp.Api.Common.Extensions
 
         #region === Helper Methods ===
 
-        private static IActionResult _HandleInvalidModelState (ActionContext context)
+        private static IActionResult _HandleInvalidModelState(ActionContext context)
         {
             Error validationError = _GetValidationError(context.ModelState);
 
@@ -62,14 +62,14 @@ namespace TeacherSubApp.Api.Common.Extensions
             return new BadRequestObjectResult(errorPayload);
         }
 
-        private static Error _GetValidationError (ModelStateDictionary modelState)
+        private static Error _GetValidationError(ModelStateDictionary modelState)
         {
             string? firstError = modelState.Values
                 .SelectMany(v => v.Errors)
                 .Select(e => e.ErrorMessage)
                 .FirstOrDefault(msg => !string.IsNullOrWhiteSpace(msg));
 
-            if(string.IsNullOrWhiteSpace(firstError))
+            if (string.IsNullOrWhiteSpace(firstError))
                 return ModelStateErrors.Default;
 
             string[] parts = firstError.Split('|');
@@ -79,7 +79,7 @@ namespace TeacherSubApp.Api.Common.Extensions
             return ModelStateErrors.Custom(msgEn, msgAr);
         }
 
-        private static void _LogValidationFailure (HttpContext httpContext, string messageEn)
+        private static void _LogValidationFailure(HttpContext httpContext, string messageEn)
         {
             ILogger<ActionContext> logger = httpContext.RequestServices.GetRequiredService<ILogger<ActionContext>>();
             PathString path = httpContext.Request.Path;

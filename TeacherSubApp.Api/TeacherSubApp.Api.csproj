@@ -6,6 +6,25 @@
     <ImplicitUsings>enable</ImplicitUsings>
   </PropertyGroup>
 
+  <ItemGroup>
+    <Compile Remove="Features\A.2_SchoolClasses\**" />
+    <Compile Remove="Features\A.3_EventKeys\**" />
+    <Compile Remove="Features\B.1_Teachers\**" />
+    <Compile Remove="Features\B.2_WeeklySchedules\**" />
+    <Content Remove="Features\A.2_SchoolClasses\**" />
+    <Content Remove="Features\A.3_EventKeys\**" />
+    <Content Remove="Features\B.1_Teachers\**" />
+    <Content Remove="Features\B.2_WeeklySchedules\**" />
+    <EmbeddedResource Remove="Features\A.2_SchoolClasses\**" />
+    <EmbeddedResource Remove="Features\A.3_EventKeys\**" />
+    <EmbeddedResource Remove="Features\B.1_Teachers\**" />
+    <EmbeddedResource Remove="Features\B.2_WeeklySchedules\**" />
+    <None Remove="Features\A.2_SchoolClasses\**" />
+    <None Remove="Features\A.3_EventKeys\**" />
+    <None Remove="Features\B.1_Teachers\**" />
+    <None Remove="Features\B.2_WeeklySchedules\**" />
+  </ItemGroup>
+
   <!-- Dependecies Packages -->
   <ItemGroup>
       <PackageReference Include="Swashbuckle.AspNetCore" Version="6.6.*" />
