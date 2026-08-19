@@ -10,7 +10,7 @@ namespace TeacherSubApp.Api.Data.Config
         {
             _ConfigureTableAndKey(builder);
             _ConfigureProperties(builder);
-            _ConfigureAuditProperties(builder); 
+            _ConfigureAuditProperties(builder);
             _ConfigureIndexes(builder);
             _ConfigureRelationships(builder);
         }
@@ -25,8 +25,7 @@ namespace TeacherSubApp.Api.Data.Config
         {
             builder.Property(s => s.Name)
                    .IsRequired()
-                   .HasMaxLength(100)
-                   .HasColumnType("citext");
+                   .HasMaxLength(100);
         }
 
         private static void _ConfigureAuditProperties(EntityTypeBuilder<Subject> builder)

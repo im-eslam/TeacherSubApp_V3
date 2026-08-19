@@ -1,26 +1,9 @@
 import { apiClient } from "../../lib/apiClient";
-import type { SubjectReadDto, SubjectWriteDto, SubjectQuery } from "./types";
-
-function buildQueryString(query: SubjectQuery): string {
-  const params = new URLSearchParams();
-
-  if (query.name && query.name.trim() !== "") {
-    params.set("name", query.name.trim());
-  }
-
-  const queryString = params.toString();
-  return queryString ? `?${queryString}` : "";
-}
+import type { SubjectReadDto, SubjectWriteDto } from "./types";
 
 export const subjectsApi = {
-  getAll: (
-    query: SubjectQuery = {},
-    signal?: AbortSignal,
-  ): Promise<SubjectReadDto[]> => {
-    return apiClient.get<SubjectReadDto[]>(
-      `/subjects${buildQueryString(query)}`,
-      signal,
-    );
+  getAll: (signal?: AbortSignal): Promise<SubjectReadDto[]> => {
+    return apiClient.get<SubjectReadDto[]>(`/subjects`, signal);
   },
 
   getById: (id: number, signal?: AbortSignal): Promise<SubjectReadDto> => {

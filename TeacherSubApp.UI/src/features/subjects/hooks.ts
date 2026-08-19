@@ -11,7 +11,7 @@ const subjectKeys = {
 export function useSubjects() {
   return useQuery({
     queryKey: subjectKeys.list(),
-    queryFn: ({ signal }) => subjectsApi.getAll({}, signal),
+    queryFn: ({ signal }) => subjectsApi.getAll(signal),
   });
 }
 
