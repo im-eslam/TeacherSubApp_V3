@@ -7,13 +7,9 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <Compile Remove="Features\B.1_Teachers\**" />
     <Compile Remove="Features\B.2_WeeklySchedules\**" />
-    <Content Remove="Features\B.1_Teachers\**" />
     <Content Remove="Features\B.2_WeeklySchedules\**" />
-    <EmbeddedResource Remove="Features\B.1_Teachers\**" />
     <EmbeddedResource Remove="Features\B.2_WeeklySchedules\**" />
-    <None Remove="Features\B.1_Teachers\**" />
     <None Remove="Features\B.2_WeeklySchedules\**" />
   </ItemGroup>
 
