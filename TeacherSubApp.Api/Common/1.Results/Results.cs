@@ -9,67 +9,63 @@ namespace TeacherSubApp.Api.Common
         NotFound = 2,
         Conflict = 3,
         Unauthorized = 4,
-        Forbidden = 5,   
+        Forbidden = 5,
         Failure = 6
     }
 
     public record Result
     {
-        public bool IsSuccess { get; init; }
+        public bool IsSuccess { get; }
         public bool IsFailure => !IsSuccess;
 
-        public ErrorType ErrorType { get; init; } = ErrorType.None;
-        public Error Error { get; init; } = Error.None;
+        public ErrorType ErrorType { get; }
+        public Error Error { get; }
 
-        public string ErrorCode => Error.Code;
-        public string ErrorMessageEn => Error.MessageEn;
-        public string ErrorMessageAr => Error.MessageAr;
-
-
-        public static Result Success()
+        protected Result (bool isSuccess, ErrorType errorType, Error error)
         {
-            return new Result { IsSuccess = true };
+            IsSuccess = isSuccess;
+            ErrorType = errorType;
+            Error = error;
         }
 
-        public static Result Failure(ErrorType errorType, Error error)
+        public static Result Success ( )
         {
-            if (error == Error.None)
-                throw new InvalidOperationException("Cannot pass Error.None to a failed Result.");
+            return new Result(true, ErrorType.None, Error.None());
+        }
 
-            return new Result
-            {
-                IsSuccess = false,
-                ErrorType = errorType,
-                Error = error,
-            };
+        public static Result Failure (ErrorType errorType, Error error)
+        {
+            if(errorType == ErrorType.None)
+                throw new InvalidOperationException("Cannot pass ErrorType.None to a failed Result. You must provide a valid ErrorType.");
+            if(error == Error.None())
+                throw new InvalidOperationException("Cannot pass Error.None to a failed Result. You must provide a valid Error.");
+
+            return new Result(false, errorType, error);
         }
     }
 
-    public record Result<T> : Result
+    public sealed record Result<T> : Result
     {
         public T? Value { get; init; }
 
-        public static Result<T> Success(T value)
+        private Result (bool isSuccess, ErrorType errorType, Error error, T? value) : base(isSuccess, errorType, error)
         {
-            return new Result<T>
-            {
-                IsSuccess = true,
-                Value = value,
-                ErrorType = ErrorType.None
-            };
+            Value = value;
         }
 
-        public static new Result<T> Failure(ErrorType errorType, Error error)
+        public static Result<T> Success (T value)
         {
-            if (error == Error.None)
+            return new Result<T>(true, ErrorType.None, Error.None(), value);
+        }
+
+        public static new Result<T> Failure (ErrorType errorType, Error error)
+        {
+            if(errorType == ErrorType.None)
+                throw new InvalidOperationException("Cannot pass ErrorType.None to a failed Result. You must provide a valid ErrorType.");
+            if(error == Error.None())
                 throw new InvalidOperationException("Cannot pass Error.None to a failed Result. You must provide a valid Error.");
 
-            return new Result<T>
-            {
-                IsSuccess = false,
-                ErrorType = errorType,
-                Error = error,
-            };
+            return new Result<T>(false, errorType, error, default);
         }
     }
 }

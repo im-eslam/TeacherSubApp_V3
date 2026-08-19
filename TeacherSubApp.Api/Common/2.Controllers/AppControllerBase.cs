@@ -10,66 +10,66 @@ namespace TeacherSubApp.Api.Common.Controllers
     {
         protected readonly ILogger Logger;
 
-        protected AppControllerBase(ILogger logger)
+        protected AppControllerBase (ILogger logger)
         {
             Logger = logger;
         }
 
-        protected IActionResult HandleResult<T>(Result<T> result)
+        protected IActionResult HandleResult<T> (Result<T> result, string? actionName = null, object? routeValues = null)
         {
-            if (result.IsSuccess)
-                return Ok(result.Value);
+            if(result.IsFailure)
+                return _ProcessFailure(result);
 
-            return _ProcessFailure(result);
+            return actionName is not null
+                ? CreatedAtAction(actionName, routeValues, result.Value)
+                : Ok(result.Value);
         }
 
-        protected IActionResult HandleResult(Result result)
+        protected IActionResult HandleResult (Result result, string? actionName = null, object? routeValues = null)
         {
-            if (result.IsSuccess)
-                return NoContent();
+            if(result.IsFailure)
+                return _ProcessFailure(result);
 
-            return _ProcessFailure(result);
-        }
-
-        private IActionResult _ProcessFailure(Result result)
-        {
-            ErrorResponse errorPayload = ErrorResponse.From(result.Error);
-
-            _LogFailure(result);
-
-            return _MapErrorToActionResult(result.ErrorType, errorPayload);
+            return actionName is not null
+                ? CreatedAtAction(actionName, routeValues)
+                : NoContent();
         }
 
         #region ==== Helper Methods ====
 
-        private void _LogFailure(Result result)
+        private IActionResult _ProcessFailure (Result result)
+        {
+            _LogFailure(result);
+
+            ErrorResponse errorPayload = ErrorResponse.FromError(result.Error);
+            return _MapErrorToActionResult(result.ErrorType, errorPayload);
+        }
+
+        private void _LogFailure (Result result)
         {
             var path = HttpContext.Request.Path;
 
-            switch (result.ErrorType)
+            switch(result.ErrorType)
             {
                 case ErrorType.Validation:
-                    Logger.LogInformation("Validation failure [{Code}]: {Message} | Path: {Path}",
-                        result.ErrorCode, result.ErrorMessageEn, path);
+                    Logger.LogInformation("Validation failure [{Code}]: {Message} | Path: {Path}", result.Error.Code, result.Error.MessageEn, path);
                     break;
 
                 case ErrorType.NotFound:
-                    Logger.LogInformation("Resource not found [{Code}]: {Message} | Path: {Path}",
-                        result.ErrorCode, result.ErrorMessageEn, path);
+                    Logger.LogInformation("Resource not found [{Code}]: {Message} | Path: {Path}", result.Error.Code, result.Error.MessageEn, path);
                     break;
 
                 case ErrorType.Conflict:
-                    Logger.LogWarning("Conflict [{Code}]: {Message} | Path: {Path}",
-                        result.ErrorCode, result.ErrorMessageEn, path);
+                    Logger.LogWarning("Conflict [{Code}]: {Message} | Path: {Path}", result.Error.Code, result.Error.MessageEn, path);
                     break;
 
                 case ErrorType.Unauthorized:
                 case ErrorType.Forbidden:
-                    Logger.LogWarning("Auth failure [{Code}]: {Message} | Path: {Path}", result.ErrorCode, result.ErrorMessageEn, path);
+                    Logger.LogWarning("Auth failure [{Code}]: {Message} | Path: {Path}", result.Error.Code, result.Error.MessageEn, path);
                     break;
 
                 case ErrorType.Failure:
-                    Logger.LogError("Business logic failure [{Code}]: {Message} | Path: {Path}", result.ErrorCode, result.ErrorMessageEn, path);
+                    Logger.LogError("Business logic failure [{Code}]: {Message} | Path: {Path}", result.Error.Code, result.Error.MessageEn, path);
                     break;
 
                 default:
@@ -78,15 +78,15 @@ namespace TeacherSubApp.Api.Common.Controllers
             }
         }
 
-        private IActionResult _MapErrorToActionResult(ErrorType errorType, ErrorResponse payload)
+        private IActionResult _MapErrorToActionResult (ErrorType errorType, ErrorResponse payload)
         {
             return errorType switch
             {
                 ErrorType.Validation => BadRequest(payload),
                 ErrorType.NotFound => NotFound(payload),
                 ErrorType.Conflict => Conflict(payload),
-                ErrorType.Unauthorized => Unauthorized(payload), 
-                ErrorType.Forbidden => StatusCode(StatusCodes.Status403Forbidden, payload), 
+                ErrorType.Unauthorized => Unauthorized(payload),
+                ErrorType.Forbidden => StatusCode(StatusCodes.Status403Forbidden, payload),
 
                 ErrorType.Failure => StatusCode(StatusCodes.Status500InternalServerError, payload),
                 _ => StatusCode(StatusCodes.Status500InternalServerError, payload)

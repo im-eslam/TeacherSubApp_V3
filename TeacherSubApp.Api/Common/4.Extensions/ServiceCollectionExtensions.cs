@@ -14,14 +14,13 @@ namespace TeacherSubApp.Api.Common.Extensions
 {
     public static class ServiceCollectionExtensions
     {
-        public static IServiceCollection AddAppDatabase(this IServiceCollection services, IConfiguration configuration)
+        public static IServiceCollection AddAppDatabase (this IServiceCollection services, IConfiguration configuration)
         {
-            services.AddDbContext<AppDbContext>(options =>
-                            options.UseNpgsql(configuration.GetConnectionString("DefaultConnection")));
+            services.AddDbContext<AppDbContext>(options => options.UseNpgsql(configuration.GetConnectionString("DefaultConnection")));
             return services;
         }
 
-        public static IServiceCollection AddAppInfrastructure(this IServiceCollection services)
+        public static IServiceCollection AddAppInfrastructure (this IServiceCollection services)
         {
             services.AddControllers().ConfigureApiBehaviorOptions(options =>
             {
@@ -35,11 +34,10 @@ namespace TeacherSubApp.Api.Common.Extensions
 
             services.AddProblemDetails();
 
-
             return services;
         }
 
-        public static IServiceCollection AddAppFeatures(this IServiceCollection services)
+        public static IServiceCollection AddAppFeatures (this IServiceCollection services)
         {
             services.AddScoped<ISubjectService, SubjectService>();
             services.AddScoped<ISchoolClassService, SchoolClassService>();
@@ -54,44 +52,40 @@ namespace TeacherSubApp.Api.Common.Extensions
 
         #region === Helper Methods ===
 
-        private static IActionResult _HandleInvalidModelState(ActionContext context)
+        private static IActionResult _HandleInvalidModelState (ActionContext context)
         {
-            (string msgEn, string msgAr) = _ExtractValidationMessages(context.ModelState);
+            Error validationError = _GetValidationError(context.ModelState);
 
-            _LogValidationFailure(context.HttpContext, msgEn);
+            _LogValidationFailure(context.HttpContext, validationError.MessageEn);
 
-            Error validationError = GlobalErrors.ValidationError(msgEn, msgAr);
-            ErrorResponse errorPayload = ErrorResponse.From(validationError);
-
+            ErrorResponse errorPayload = ErrorResponse.FromError(validationError);
             return new BadRequestObjectResult(errorPayload);
         }
 
-        private static (string MessageEn, string MessageAr) _ExtractValidationMessages(ModelStateDictionary modelState)
+        private static Error _GetValidationError (ModelStateDictionary modelState)
         {
             string? firstError = modelState.Values
                 .SelectMany(v => v.Errors)
                 .Select(e => e.ErrorMessage)
                 .FirstOrDefault(msg => !string.IsNullOrWhiteSpace(msg));
 
-            if (firstError is null)
-            {
-                return ("Validation failed.", "فشل التحقق من صحة البيانات.");
-            }
+            if(string.IsNullOrWhiteSpace(firstError))
+                return ModelStateErrors.Default;
 
             string[] parts = firstError.Split('|');
             string msgEn = parts[0].Trim();
             string msgAr = parts.Length > 1 ? parts[1].Trim() : msgEn;
 
-            return (msgEn, msgAr);
+            return ModelStateErrors.Custom(msgEn, msgAr);
         }
 
-        private static void _LogValidationFailure(HttpContext httpContext, string messageEn)
+        private static void _LogValidationFailure (HttpContext httpContext, string messageEn)
         {
             ILogger<ActionContext> logger = httpContext.RequestServices.GetRequiredService<ILogger<ActionContext>>();
             PathString path = httpContext.Request.Path;
 
             logger.LogInformation(
-                "Bouncer Validation failure [{Code}]: {Message} | Path: {Path}",
+                "ModelState Validation failure [{Code}]: {Message} | Path: {Path}",
                 "VALIDATION_ERROR", messageEn, path);
         }
 

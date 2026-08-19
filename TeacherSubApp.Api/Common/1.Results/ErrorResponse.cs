@@ -1,15 +1,30 @@
 ﻿namespace TeacherSubApp.Api.Common.Results
 {
-    public record ErrorResponse(
-        string ErrorCode,
-        string ErrorMessageEn,
-        string ErrorMessageAr,
-        string? TraceId = null
-    )
+    public sealed record ErrorResponse
     {
-        public static ErrorResponse From(Error error, string? traceId = null)
+        public string ErrorCode { get; }
+        public string ErrorMessageEn { get; }
+        public string ErrorMessageAr { get; }
+        public string? TraceId { get; }
+
+        private ErrorResponse (string errorCode, string errorMessageEn, string errorMessageAr, string? traceId)
         {
-            return new ErrorResponse(error.Code, error.MessageEn, error.MessageAr, traceId);
+            ErrorCode = errorCode;
+            ErrorMessageEn = errorMessageEn;
+            ErrorMessageAr = errorMessageAr;
+            TraceId = traceId;
+        }
+
+        public static ErrorResponse FromError (Error error, string? traceId = null)
+        {
+            ArgumentNullException.ThrowIfNull(error, nameof(error));
+
+            return new ErrorResponse(
+                error.Code,
+                error.MessageEn,
+                error.MessageAr,
+                string.IsNullOrWhiteSpace(traceId) ? null : traceId.Trim()
+            );
         }
     }
 }

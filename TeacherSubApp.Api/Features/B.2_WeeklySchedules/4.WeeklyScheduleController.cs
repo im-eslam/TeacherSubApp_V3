@@ -40,7 +40,7 @@ namespace TeacherSubApp.Api.Features.WeeklySchedules
                 result.ErrorMessageEn,
                 result.ErrorMessageAr,
                 HttpContext.TraceIdentifier,
-                result.Errors.Select(e => ErrorResponse.From(e)).ToList()
+                result.Errors.Select(e => ErrorResponse.FromError(e)).ToList()
             );
 
             Logger.LogWarning("Bulk Update Validation Failed. Errors: {Count} | Path: {Path}",
