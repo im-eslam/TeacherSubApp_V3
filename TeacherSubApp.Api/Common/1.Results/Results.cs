@@ -35,6 +35,7 @@ namespace TeacherSubApp.Api.Common
 
         public static Result Failure (ErrorType errorType, Error error)
         {
+            ArgumentNullException.ThrowIfNull(error, nameof(error));
             if(errorType == ErrorType.None)
                 throw new InvalidOperationException("Cannot pass ErrorType.None to a failed Result. You must provide a valid ErrorType.");
             if(error == Error.None())
@@ -46,7 +47,7 @@ namespace TeacherSubApp.Api.Common
 
     public sealed record Result<T> : Result
     {
-        public T? Value { get; init; }
+        public T? Value { get; }
 
         private Result (bool isSuccess, ErrorType errorType, Error error, T? value) : base(isSuccess, errorType, error)
         {
@@ -60,6 +61,7 @@ namespace TeacherSubApp.Api.Common
 
         public static new Result<T> Failure (ErrorType errorType, Error error)
         {
+            ArgumentNullException.ThrowIfNull(error, nameof(error));
             if(errorType == ErrorType.None)
                 throw new InvalidOperationException("Cannot pass ErrorType.None to a failed Result. You must provide a valid ErrorType.");
             if(error == Error.None())
