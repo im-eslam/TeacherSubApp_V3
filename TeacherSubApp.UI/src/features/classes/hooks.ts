@@ -5,6 +5,8 @@ import type { SchoolClassReadDto, SchoolClassWriteDto } from "./types";
 const classKeys = {
   all: ["classes"] as const,
   list: () => [...classKeys.all, "list"] as const,
+  grades: () => [...classKeys.all, "grades"] as const,
+  sections: (grade: number | null) => [...classKeys.all, "sections", grade] as const,
   detail: (id: number) => [...classKeys.all, "detail", id] as const,
 };
 
@@ -12,6 +14,21 @@ export function useSchoolClasses() {
   return useQuery({
     queryKey: classKeys.list(),
     queryFn: ({ signal }) => classesApi.getAll(signal),
+  });
+}
+
+export function useGrades() {
+  return useQuery({
+    queryKey: classKeys.grades(),
+    queryFn: ({ signal }) => classesApi.getGrades(signal),
+  });
+}
+
+export function useSectionsForGrade(grade: number | null) {
+  return useQuery({
+    queryKey: classKeys.sections(grade),
+    queryFn: ({ signal }) => classesApi.getSectionsForGrade(grade!, signal),
+    enabled: grade !== null,
   });
 }
 

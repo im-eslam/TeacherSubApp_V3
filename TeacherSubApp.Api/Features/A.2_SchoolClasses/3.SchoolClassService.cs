@@ -165,10 +165,10 @@ namespace TeacherSubApp.Api.Features.SchoolClasses
         // Validation 
         private async Task<Result> _CheckDisplayNameConflictAsync(string name, int? excludeId)
         {
-            string clean = name.Trim();
+            string clean = name.Trim().ToLower();
             bool taken = await _db.Classes
                 .AnyAsync(c => c.DeletedAt == null
-                && EF.Functions.ILike(c.DisplayName, clean)
+                && c.DisplayName.ToLower() == clean
                 && (excludeId == null || c.Id != excludeId));
 
             return taken

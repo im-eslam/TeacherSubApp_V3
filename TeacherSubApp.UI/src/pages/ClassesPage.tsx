@@ -1,4 +1,4 @@
-import { useState, useMemo, useEffect } from "react";
+import { useMemo, useState } from "react";
 import toast, { Toaster } from "react-hot-toast";
 import { X } from "lucide-react";
 import type { SortDescriptor } from "react-aria-components/Table";
@@ -13,6 +13,8 @@ import { Select } from "../components/controls/Select";
 import { Button } from "../components/controls/Button";
 import {
   useSchoolClasses,
+  useGrades,
+  useSectionsForGrade,
   useCreateSchoolClass,
   useUpdateSchoolClass,
   useDeleteSchoolClass,
@@ -39,21 +41,19 @@ export default function SchoolClassesPage() {
     error,
     refetch,
   } = useSchoolClasses();
+  const { data: grades = [], isLoading: isGradesLoading } = useGrades();
+  const [gradeFilter, setGradeFilter] = useState<string>(ALL_VALUE);
+  const [sectionFilter, setSectionFilter] = useState<string>(ALL_VALUE);
+  const selectedGrade = gradeFilter === ALL_VALUE ? null : Number(gradeFilter);
+  const { data: sections = [], isLoading: isSectionsLoading } =
+    useSectionsForGrade(selectedGrade);
+
   const createMutation = useCreateSchoolClass();
   const updateMutation = useUpdateSchoolClass();
   const deleteMutation = useDeleteSchoolClass();
 
   // ── Toolbar state ──
   const [query, setQuery] = useState("");
-  const [gradeFilter, setGradeFilter] = useState<string>(ALL_VALUE);
-  const [sectionFilter, setSectionFilter] = useState<string>(ALL_VALUE);
-
-  // Reset section whenever grade changes
-  useEffect(() => {
-    setTimeout(() => {
-      setSectionFilter(ALL_VALUE);
-    }, 0);
-  }, [gradeFilter]);
 
   // ── Sort state ──
   const [sortDescriptor, setSortDescriptor] = useState<SortDescriptor>({
@@ -69,42 +69,27 @@ export default function SchoolClassesPage() {
     null,
   );
 
-  // ── Derived filter options — built from the full list ──
-  const gradeOptions = useMemo(() => {
-    const unique = [
-      ...new Set(
-        allClasses.map((c) => c.grade).filter((g): g is number => g !== null),
-      ),
-    ].sort((a, b) => a - b);
+  // ── Dropdown options — loaded from the backend ──
+  const gradeOptions = [
+    { value: ALL_VALUE, label: "كل الصفوف" },
+    ...grades.map((grade) => ({
+      value: String(grade),
+      label: `الصف ${grade}`,
+    })),
+  ];
 
-    return [
-      { value: ALL_VALUE, label: "كل الصفوف" },
-      ...unique.map((g) => ({ value: String(g), label: `الصف ${g}` })),
-    ];
-  }, [allClasses]);
+  const sectionOptions = [
+    { value: ALL_VALUE, label: "كل الشعب" },
+    ...sections.map((section) => ({
+      value: String(section),
+      label: `الشعبة ${section}`,
+    })),
+  ];
 
-  const sectionOptions = useMemo(() => {
-    const selectedGrade =
-      gradeFilter === ALL_VALUE ? null : Number(gradeFilter);
-
-    if (selectedGrade === null) {
-      return [{ value: ALL_VALUE, label: "كل الشعب" }];
-    }
-
-    const unique = [
-      ...new Set(
-        allClasses
-          .filter((c) => c.grade === selectedGrade)
-          .map((c) => c.section)
-          .filter((s): s is number => s !== null),
-      ),
-    ].sort((a, b) => a - b);
-
-    return [
-      { value: ALL_VALUE, label: "كل الشعب" },
-      ...unique.map((s) => ({ value: String(s), label: `الشعبة ${s}` })),
-    ];
-  }, [allClasses, gradeFilter]);
+  const handleGradeFilterChange = (value: string) => {
+    setGradeFilter(value);
+    setSectionFilter(ALL_VALUE);
+  };
 
   // ── All filter + sort in one memo — instant, no network ──
   const displayedClasses = useMemo(() => {
@@ -200,10 +185,10 @@ export default function SchoolClassesPage() {
           <Select
             isFilter
             value={gradeFilter}
-            onChange={setGradeFilter}
+            onChange={handleGradeFilterChange}
             options={gradeOptions}
             placeholder="كل الصفوف"
-            disabled={isLoading}
+            disabled={isLoading || isGradesLoading}
           />
         </div>
 
@@ -214,7 +199,7 @@ export default function SchoolClassesPage() {
             onChange={setSectionFilter}
             options={sectionOptions}
             placeholder="كل الشعب"
-            disabled={isLoading || isSectionDisabled}
+            disabled={isLoading || isSectionDisabled || isSectionsLoading}
           />
         </div>
 
