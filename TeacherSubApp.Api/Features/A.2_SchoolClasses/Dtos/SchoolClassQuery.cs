@@ -1,6 +1,6 @@
 ﻿namespace TeacherSubApp.Api.Features.SchoolClasses.Dtos
 {
-    public record SchoolClassQuery
+    public sealed record SchoolClassQuery
     {
         public string? DisplayName { get; init; }
         public int? Grade { get; init; }

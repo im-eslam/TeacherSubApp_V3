@@ -77,7 +77,7 @@ namespace TeacherSubApp.Api.Data.Configs
 
         private static void _ConfigureRelationships(EntityTypeBuilder<SchoolClass> builder)
         {
-            // Cascading soft delete in my service - not using set null here, but keeping it for reference.
+            // Not using set null (there is no meaning in keeping a teacher weekly schedule slot that does not have a class assigned), but keeping it here as a fallback.
             // The service will handle the soft delete of related WeeklySchedules when a SchoolClass is soft deleted.
             builder.HasMany(c => c.WeeklySchedules)
                    .WithOne(ws => ws.SchoolClass)

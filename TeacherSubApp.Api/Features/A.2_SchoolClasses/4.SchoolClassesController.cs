@@ -43,10 +43,7 @@ namespace TeacherSubApp.Api.Features.SchoolClasses
         public async Task<IActionResult> Create([FromBody] SchoolClassWriteDto dto)
         {
             Result<SchoolClassReadDto> result = await _classesService.CreateAsync(dto);
-            if (result.IsFailure)
-                return HandleResult(result);
-
-            return CreatedAtAction(nameof(GetById), new { id = result.Value!.Id }, result.Value);
+            return HandleResult(result, nameof(GetById), val => new { id = val.Id });
         }
 
         // PUT api/classes/5

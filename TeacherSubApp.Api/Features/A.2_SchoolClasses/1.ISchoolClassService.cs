@@ -14,7 +14,7 @@ namespace TeacherSubApp.Api.Features.SchoolClasses
         Task<Result<SchoolClassReadDto>> UpdateAsync(int id, SchoolClassWriteDto dto);
         Task<Result> DeleteAsync(int id);
 
-        // DROP DOWNs
+        // DROP DOWNS
         Task<Result<List<int>>> GetUniqueGradesAsync();
         Task<Result<List<int>>> GetUniqueSectionsForGradeAsync(int grade);
     }

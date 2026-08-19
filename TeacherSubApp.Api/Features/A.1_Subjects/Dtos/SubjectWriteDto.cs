@@ -3,10 +3,10 @@ using TeacherSubApp.Api.Data.Models;
 
 namespace TeacherSubApp.Api.Features.Subjects.Dtos
 {
-    public record SubjectWriteDto
+    public sealed record SubjectWriteDto
     {
-        [Required(ErrorMessage = "The subject name is required.|اسم المادة مطلوب.")]
-        [MaxLength(100, ErrorMessage = "The subject name cannot exceed 100 characters.|لا يمكن أن يتجاوز اسم المادة 100 حرف.")]
+        [Required(ErrorMessage = SubjectErrors.Validation.NameRequired)]
+        [MaxLength(100, ErrorMessage = SubjectErrors.Validation.NameMaxLength)]
         public string Name { get; init; } = string.Empty;
 
         public Subject ToEntity() => new()

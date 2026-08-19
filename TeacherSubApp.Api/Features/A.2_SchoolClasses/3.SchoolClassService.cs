@@ -16,26 +16,26 @@ namespace TeacherSubApp.Api.Features.SchoolClasses
 
         public async Task<Result<List<SchoolClassReadDto>>> GetAllAsync(SchoolClassQuery query)
         {
-            var list = await _FetchAllActiveAsync(query);
-            return Result<List<SchoolClassReadDto>>.Success(list);
+            List<SchoolClassReadDto> schoolClasses = await _FetchAllActiveAsync(query);
+            return Result<List<SchoolClassReadDto>>.Success(schoolClasses);
         }
 
         public async Task<Result<SchoolClassReadDto>> GetByIdAsync(int id)
         {
-            SchoolClass? entity = await _FindActiveByIdAsync(id);
+            SchoolClass? schoolClass = await _FindActiveByIdAsync(id);
 
-            return (entity is null) 
+            return (schoolClass is null)
                 ? Result<SchoolClassReadDto>.Failure(ErrorType.NotFound, SchoolClassErrors.NotFound)
-                : Result<SchoolClassReadDto>.Success(SchoolClassReadDto.FromEntity(entity));
+                : Result<SchoolClassReadDto>.Success(SchoolClassReadDto.FromEntity(schoolClass));
         }
 
         public async Task<Result<SchoolClassReadDto>> CreateAsync(SchoolClassWriteDto dto)
         {
             List<Func<Task<Result>>> rules =
             [
-                () => _CheckDisplayNameConflictAsync(dto.DisplayName, null),
+                () => _CheckDisplayNameConflictAsync(dto.DisplayName, excludeId: null),
                 () => _CheckGradeSectionPairRuleAsync(dto.Grade, dto.Section),
-                () => _CheckGradeSectionConflictAsync(dto.Grade, dto.Section, null)
+                () => _CheckGradeSectionConflictAsync(dto.Grade, dto.Section, excludeId: null)
             ];
 
             foreach (Func<Task<Result>> rule in rules)
@@ -53,16 +53,16 @@ namespace TeacherSubApp.Api.Features.SchoolClasses
 
         public async Task<Result<SchoolClassReadDto>> UpdateAsync(int id, SchoolClassWriteDto dto)
         {
-            SchoolClass? entity = await _FindActiveByIdAsync(id);
-            if (entity is null)
+            SchoolClass? schoolClass = await _FindActiveByIdAsync(id);
+            if (schoolClass is null)
             {
                 return Result<SchoolClassReadDto>.Failure(ErrorType.NotFound, SchoolClassErrors.NotFound);
             }
 
-            (bool nameChanged, bool gradeSecChanged) = _DetectChanges(entity, dto);
+            (bool nameChanged, bool gradeSecChanged) = _DetectChanges(schoolClass, dto);
             if (!nameChanged && !gradeSecChanged)
             {
-                return Result<SchoolClassReadDto>.Success(SchoolClassReadDto.FromEntity(entity));
+                return Result<SchoolClassReadDto>.Success(SchoolClassReadDto.FromEntity(schoolClass));
             }
 
             List<Func<Task<Result>>> rules = [];
@@ -85,15 +85,15 @@ namespace TeacherSubApp.Api.Features.SchoolClasses
                 }
             }
 
-            SchoolClass updated = await _ApplyUpdateAsync(entity, dto);
+            SchoolClass updated = await _ApplyUpdateAsync(schoolClass, dto);
             return Result<SchoolClassReadDto>.Success(SchoolClassReadDto.FromEntity(updated));
         }
 
         public async Task<Result> DeleteAsync(int id)
         {
-            SchoolClass? entity = await _FindActiveByIdAsync(id);
-            if (entity is null)
-            { 
+            SchoolClass? schoolClass = await _FindActiveByIdAsync(id);
+            if (schoolClass is null)
+            {
                 return Result.Failure(ErrorType.NotFound, SchoolClassErrors.NotFound);
             }
 
@@ -101,7 +101,7 @@ namespace TeacherSubApp.Api.Features.SchoolClasses
             try
             {
                 await _CascadeSoftDeleteWeeklySchedulesAsync(id);
-                await _SoftDeleteAsync(entity);
+                await _SoftDeleteAsync(schoolClass);
 
                 await tx.CommitAsync();
                 return Result.Success();
@@ -142,8 +142,7 @@ namespace TeacherSubApp.Api.Features.SchoolClasses
         // Read 
         private async Task<List<SchoolClassReadDto>> _FetchAllActiveAsync(SchoolClassQuery query)
         {
-            IQueryable<SchoolClass> q = _db.Classes.AsNoTracking()
-                                                   .Where(c => c.DeletedAt == null);
+            IQueryable<SchoolClass> q = _db.Classes.AsNoTracking().Where(c => c.DeletedAt == null);
 
             if (!string.IsNullOrWhiteSpace(query.DisplayName))
                 q = q.Where(c => EF.Functions.ILike(c.DisplayName, $"%{query.DisplayName.Trim()}%"));
@@ -154,22 +153,23 @@ namespace TeacherSubApp.Api.Features.SchoolClasses
             if (query.Section.HasValue)
                 q = q.Where(c => c.Section == query.Section);
 
-            return await q.OrderBy(c => c.DisplayName)
-                          .Select(SchoolClassReadDto.ToDtoProjection)
-                          .ToListAsync();
+            return await q.OrderBy(c => c.DisplayName).Select(SchoolClassReadDto.ToDtoProjection).ToListAsync();
         }
 
-        private Task<SchoolClass?> _FindActiveByIdAsync(int id) =>
-            _db.Classes.FirstOrDefaultAsync(c => c.Id == id && c.DeletedAt == null);
+        private Task<SchoolClass?> _FindActiveByIdAsync(int id)
+        {
+            return _db.Classes.FirstOrDefaultAsync(c => c.Id == id && c.DeletedAt == null);
+        }
 
         // Validation 
         private async Task<Result> _CheckDisplayNameConflictAsync(string name, int? excludeId)
         {
-            string clean = name.Trim().ToLower();
+            string normalizedName = name.Trim().ToLowerInvariant();
+
             bool taken = await _db.Classes
                 .AnyAsync(c => c.DeletedAt == null
-                && c.DisplayName.ToLower() == clean
-                && (excludeId == null || c.Id != excludeId));
+                            && c.DisplayName.ToLower() == normalizedName
+                            && (excludeId == null || c.Id != excludeId));
 
             return taken
                 ? Result.Failure(ErrorType.Conflict, SchoolClassErrors.NameExists)
@@ -178,8 +178,7 @@ namespace TeacherSubApp.Api.Features.SchoolClasses
 
         private Task<Result> _CheckGradeSectionPairRuleAsync(int? grade, int? section)
         {
-            bool pairValid = (grade is null && section is null) ||
-                             (grade is not null && section is not null);
+            bool pairValid = (grade is null && section is null) || (grade is not null && section is not null);
 
             return pairValid
                 ? Task.FromResult(Result.Success())
@@ -193,9 +192,9 @@ namespace TeacherSubApp.Api.Features.SchoolClasses
 
             bool taken = await _db.Classes
                 .AnyAsync(c => c.DeletedAt == null
-                && c.Grade == grade
-                && c.Section == section
-                && (excludeId == null || c.Id != excludeId));
+                            && c.Grade == grade
+                            && c.Section == section
+                            && (excludeId == null || c.Id != excludeId));
 
             return taken
                 ? Result.Failure(ErrorType.Conflict, SchoolClassErrors.GradeSectionExists)
@@ -214,7 +213,7 @@ namespace TeacherSubApp.Api.Features.SchoolClasses
         // Persistence 
         private async Task<SchoolClass> _PersistNewAsync(SchoolClassWriteDto dto)
         {
-            var entity = SchoolClassWriteDto.ToEntity(dto);
+            SchoolClass entity = dto.ToEntity();
             _db.Classes.Add(entity);
             await _db.SaveChangesAsync();
             return entity;
