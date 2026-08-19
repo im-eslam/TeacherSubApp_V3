@@ -23,6 +23,14 @@ namespace TeacherSubApp.Api.Common
 
         protected Result (bool isSuccess, ErrorType errorType, Error error)
         {
+            ArgumentNullException.ThrowIfNull(error, nameof(error));
+
+            if(isSuccess && (errorType != ErrorType.None || error != Error.None()))
+                throw new InvalidOperationException("A successful Result must use ErrorType.None and Error.None().");
+
+            if(!isSuccess && (errorType == ErrorType.None || error == Error.None()))
+                throw new InvalidOperationException("A failed Result must use a valid ErrorType and a valid Error.");
+
             IsSuccess = isSuccess;
             ErrorType = errorType;
             Error = error;
@@ -35,12 +43,6 @@ namespace TeacherSubApp.Api.Common
 
         public static Result Failure (ErrorType errorType, Error error)
         {
-            ArgumentNullException.ThrowIfNull(error, nameof(error));
-            if(errorType == ErrorType.None)
-                throw new InvalidOperationException("Cannot pass ErrorType.None to a failed Result. You must provide a valid ErrorType.");
-            if(error == Error.None())
-                throw new InvalidOperationException("Cannot pass Error.None to a failed Result. You must provide a valid Error.");
-
             return new Result(false, errorType, error);
         }
     }
@@ -56,18 +58,12 @@ namespace TeacherSubApp.Api.Common
 
         public static Result<T> Success (T value)
         {
-            return new Result<T>(true, ErrorType.None, Error.None(), value);
+            return new Result<T>(isSuccess: true, errorType: ErrorType.None, error: Error.None(), value);
         }
 
         public static new Result<T> Failure (ErrorType errorType, Error error)
         {
-            ArgumentNullException.ThrowIfNull(error, nameof(error));
-            if(errorType == ErrorType.None)
-                throw new InvalidOperationException("Cannot pass ErrorType.None to a failed Result. You must provide a valid ErrorType.");
-            if(error == Error.None())
-                throw new InvalidOperationException("Cannot pass Error.None to a failed Result. You must provide a valid Error.");
-
-            return new Result<T>(false, errorType, error, default);
+            return new Result<T>(isSuccess: false, errorType, error, value: default);
         }
     }
 }
