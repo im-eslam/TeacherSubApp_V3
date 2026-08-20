@@ -183,10 +183,10 @@ namespace TeacherSubApp.Api.Features.Teachers
         {
             Teacher entity = dto.ToEntity();
             _db.Teachers.Add(entity);
+
             await _db.SaveChangesAsync();
 
-            if (entity.SubjectId.HasValue)
-                entity.Subject = await _db.Subjects.AsNoTracking().FirstOrDefaultAsync(s => s.Id == entity.SubjectId.Value);
+            await _LoadSubjectNavigationAsync(entity);
 
             return entity;
         }
@@ -201,12 +201,23 @@ namespace TeacherSubApp.Api.Features.Teachers
 
             await _db.SaveChangesAsync();
 
-            if (teacher.SubjectId.HasValue && (teacher.Subject == null || teacher.Subject.Id != teacher.SubjectId))
-                teacher.Subject = await _db.Subjects.AsNoTracking().FirstOrDefaultAsync(s => s.Id == teacher.SubjectId.Value);
-            else if (!teacher.SubjectId.HasValue)
-                teacher.Subject = null;
+            await _LoadSubjectNavigationAsync(teacher);
 
             return teacher;
+        }
+
+        private async Task _LoadSubjectNavigationAsync(Teacher teacher)
+        {
+            if (teacher.SubjectId.HasValue && (teacher.Subject == null || teacher.Subject.Id != teacher.SubjectId))
+            {
+                teacher.Subject = await _db.Subjects
+                    .AsNoTracking()
+                    .FirstOrDefaultAsync(s => s.Id == teacher.SubjectId.Value);
+            }
+            else if (!teacher.SubjectId.HasValue)
+            {
+                teacher.Subject = null;
+            }
         }
 
         // Delete

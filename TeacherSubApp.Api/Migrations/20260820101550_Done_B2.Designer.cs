@@ -12,8 +12,8 @@ using TeacherSubApp.Api.Data;
 namespace TeacherSubApp.Api.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20260819155920_TestMigration")]
-    partial class TestMigration
+    [Migration("20260820101550_Done_B2")]
+    partial class Done_B2
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -375,15 +375,6 @@ namespace TeacherSubApp.Api.Migrations
 
                     b.HasIndex("DayOfWeek", "PeriodNumber")
                         .HasDatabaseName("IX_WeeklySchedules_DayPeriod_Active")
-                        .HasFilter("\"DeletedAt\" IS NULL");
-
-                    b.HasIndex("ClassId", "DayOfWeek", "PeriodNumber")
-                        .HasDatabaseName("IX_WeeklySchedules_ClassSlot_Active")
-                        .HasFilter("\"ClassId\" IS NOT NULL AND \"DeletedAt\" IS NULL");
-
-                    b.HasIndex("TeacherId", "DayOfWeek", "PeriodNumber")
-                        .IsUnique()
-                        .HasDatabaseName("IX_WeeklySchedules_TeacherSlot_Active")
                         .HasFilter("\"DeletedAt\" IS NULL");
 
                     b.ToTable("WeeklySchedules", null, t =>

@@ -15,6 +15,7 @@ namespace TeacherSubApp.Api.Data.Configs
             _ConfigureIndexes(builder);
             _ConfigurePerformanceIndexes(builder);
             _ConfigureRelationships(builder);
+            _ConfigureMirrorRelationships(builder);
         }
 
         private static void _ConfigureTableAndKey(EntityTypeBuilder<WeeklySchedule> builder)
@@ -73,26 +74,26 @@ namespace TeacherSubApp.Api.Data.Configs
             });
         }
 
-        /// Empty after the last meeting update, we may assume data integrity so we do not complicate things (May implement later).
-        /// Drop all the ideas in this methods this is only a draft.
+        // Intentionally empty. Double-booking / slot-uniqueness constraints
+        // (teacher, class, or event occupying the same DayOfWeek/PeriodNumber
+        // more than once) are NOT implemented at the DB level, NOT implemented
+        // at the service level, and are explicitly out of scope for this
+        // iteration. Do not add uniqueness logic here without an explicit,
+        // separate product decision to do so.
+        // [ We just trust the data :) ]
         private static void _ConfigureIndexes(EntityTypeBuilder<WeeklySchedule> builder)
         {
-            // Event "Support" Must have a class id -> service implmented 
-            // Event "StandBy" Can't have a class id -> service implemented
-
-            // builder.HasIndex(ws => new { ws.TeacherId, ws.DayOfWeek, ws.PeriodNumber })
-            //        .IsUnique()
-            //        .HasDatabaseName("IX_WeeklySchedules_TeacherSlot_Active")
-            //        .HasFilter("\"DeletedAt\" IS NULL");
-
-            // Removed: .IsUnique() - Handling this on service layer to allow "Support Bypass"
-            // builder.HasIndex(ws => new { ws.ClassId, ws.DayOfWeek, ws.PeriodNumber })
-            //        .HasDatabaseName("IX_WeeklySchedules_ClassSlot_Active")
-            //        .HasFilter("\"ClassId\" IS NOT NULL AND \"DeletedAt\" IS NULL");
         }
 
         private static void _ConfigurePerformanceIndexes(EntityTypeBuilder<WeeklySchedule> builder)
         {
+            builder.HasIndex(ws => ws.TeacherId)
+                   .HasDatabaseName("IX_WeeklySchedules_TeacherId");
+
+            builder.HasIndex(ws => ws.ClassId)
+                   .HasDatabaseName("IX_WeeklySchedules_ClassId")
+                   .HasFilter("\"ClassId\" IS NOT NULL");
+
             builder.HasIndex(ws => ws.EventId)
                    .HasDatabaseName("IX_WeeklySchedules_EventId")
                    .HasFilter("\"EventId\" IS NOT NULL");
@@ -100,13 +101,6 @@ namespace TeacherSubApp.Api.Data.Configs
             builder.HasIndex(ws => new { ws.DayOfWeek, ws.PeriodNumber })
                    .HasDatabaseName("IX_WeeklySchedules_DayPeriod_Active")
                    .HasFilter("\"DeletedAt\" IS NULL");
-
-            builder.HasIndex(ws => ws.TeacherId)
-                   .HasDatabaseName("IX_WeeklySchedules_TeacherId");
-
-            builder.HasIndex(ws => ws.ClassId)
-                   .HasDatabaseName("IX_WeeklySchedules_ClassId")
-                   .HasFilter("\"ClassId\" IS NOT NULL");
         }
 
         private static void _ConfigureRelationships(EntityTypeBuilder<WeeklySchedule> builder)
@@ -116,6 +110,27 @@ namespace TeacherSubApp.Api.Data.Configs
                    .HasForeignKey(s => s.WeeklyScheduleId)
                    .HasConstraintName("FK_Substitutions_WeeklySchedule")
                    .OnDelete(DeleteBehavior.Restrict);
+        }
+
+        private static void _ConfigureMirrorRelationships(EntityTypeBuilder<WeeklySchedule> builder)
+        {
+            builder.HasOne(ws => ws.Teacher)
+                   .WithMany(t => t.WeeklySchedules)
+                   .HasForeignKey(ws => ws.TeacherId)
+                   .HasConstraintName("FK_WeeklySchedules_Teachers")
+                   .OnDelete(DeleteBehavior.Cascade);
+
+            builder.HasOne(ws => ws.SchoolClass)
+                   .WithMany(c => c.WeeklySchedules)
+                   .HasForeignKey(ws => ws.ClassId)
+                   .HasConstraintName("FK_WeeklySchedules_Classes")
+                   .OnDelete(DeleteBehavior.Cascade);
+
+            builder.HasOne(ws => ws.EventKey)
+                   .WithMany(e => e.WeeklySchedules)
+                   .HasForeignKey(ws => ws.EventId)
+                   .HasConstraintName("FK_WeeklySchedules_EventKeys")
+                   .OnDelete(DeleteBehavior.Cascade);
         }
     }
 }

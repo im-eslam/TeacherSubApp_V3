@@ -14,6 +14,7 @@ namespace TeacherSubApp.Api.Data.Configs
             _ConfigureIndexes(builder);
             _ConfigurePerformanceIndexes(builder);
             _ConfigureRelationships(builder);
+            _ConfigureMirrorRelationships(builder);
         }
 
         private static void _ConfigureTableAndKey(EntityTypeBuilder<Teacher> builder)
@@ -84,6 +85,15 @@ namespace TeacherSubApp.Api.Data.Configs
                    .HasForeignKey(s => s.SubstituteTeacherId)
                    .HasConstraintName("FK_Substitutions_SubstituteTeacher")
                    .OnDelete(DeleteBehavior.Restrict);
+        }
+
+        private static void _ConfigureMirrorRelationships(EntityTypeBuilder<Teacher> builder)
+        {
+            builder.HasOne(t => t.Subject)
+                   .WithMany(s => s.Teachers)
+                   .HasForeignKey(t => t.SubjectId)
+                   .HasConstraintName("FK_Teachers_Subjects")
+                   .OnDelete(DeleteBehavior.SetNull);
         }
     }
 }

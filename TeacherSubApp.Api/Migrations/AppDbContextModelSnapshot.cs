@@ -374,15 +374,6 @@ namespace TeacherSubApp.Api.Migrations
                         .HasDatabaseName("IX_WeeklySchedules_DayPeriod_Active")
                         .HasFilter("\"DeletedAt\" IS NULL");
 
-                    b.HasIndex("ClassId", "DayOfWeek", "PeriodNumber")
-                        .HasDatabaseName("IX_WeeklySchedules_ClassSlot_Active")
-                        .HasFilter("\"ClassId\" IS NOT NULL AND \"DeletedAt\" IS NULL");
-
-                    b.HasIndex("TeacherId", "DayOfWeek", "PeriodNumber")
-                        .IsUnique()
-                        .HasDatabaseName("IX_WeeklySchedules_TeacherSlot_Active")
-                        .HasFilter("\"DeletedAt\" IS NULL");
-
                     b.ToTable("WeeklySchedules", null, t =>
                         {
                             t.HasCheckConstraint("CK_Schedule_ClassOrEvent", "\"ClassId\" IS NOT NULL OR \"EventId\" IS NOT NULL");
