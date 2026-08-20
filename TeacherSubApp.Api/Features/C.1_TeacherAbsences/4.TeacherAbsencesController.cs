@@ -5,19 +5,17 @@ using TeacherSubApp.Api.Features.TeacherAbsences.Dtos;
 
 namespace TeacherSubApp.Api.Features.TeacherAbsences
 {
-    [Route("api/teacher-absences")]
+    [Route("api/absences")]
     public class TeacherAbsencesController : AppControllerBase
     {
         private readonly ITeacherAbsenceService _teacherAbsenceService;
-
-        public TeacherAbsencesController(
-            ITeacherAbsenceService service,
-            ILogger<TeacherAbsencesController> logger) : base(logger)
+        public TeacherAbsencesController(ITeacherAbsenceService service, ILogger<TeacherAbsencesController> logger) : base(logger)
         {
             _teacherAbsenceService = service;
         }
 
-        // GET api/teacher-absences?teacherId=1&fromDate=2026-01-01&toDate=2026-01-31
+        // GET api/absences
+        // GET api/absences?teacherId=1&fromDate=2026-01-01&toDate=2026-01-31
         [HttpGet]
         [ProducesResponseType<List<TeacherAbsenceReadDto>>(StatusCodes.Status200OK)]
         public async Task<IActionResult> GetAll([FromQuery] TeacherAbsenceQuery query)
@@ -26,7 +24,7 @@ namespace TeacherSubApp.Api.Features.TeacherAbsences
             return HandleResult(result);
         }
 
-        // GET api/teacher-absences/5
+        // GET api/absences/5
         [HttpGet("{id:int}")]
         [ProducesResponseType<TeacherAbsenceReadDto>(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
@@ -36,7 +34,7 @@ namespace TeacherSubApp.Api.Features.TeacherAbsences
             return HandleResult(result);
         }
 
-        // POST api/teacher-absences
+        // POST api/absences
         [HttpPost]
         [ProducesResponseType<TeacherAbsenceReadDto>(StatusCodes.Status201Created)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
@@ -47,7 +45,7 @@ namespace TeacherSubApp.Api.Features.TeacherAbsences
             return HandleResult(result, nameof(GetById), val => new { id = val.Id });
         }
 
-        // PUT api/teacher-absences/5
+        // PUT api/absences/5
         [HttpPut("{id:int}")]
         [ProducesResponseType<TeacherAbsenceReadDto>(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
@@ -59,7 +57,7 @@ namespace TeacherSubApp.Api.Features.TeacherAbsences
             return HandleResult(result);
         }
 
-        // DELETE api/teacher-absences/5
+        // DELETE api/absences/5
         [HttpDelete("{id:int}")]
         [ProducesResponseType(StatusCodes.Status204NoContent)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]

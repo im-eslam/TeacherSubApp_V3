@@ -8,7 +8,7 @@ namespace TeacherSubApp.Api.Features.SchoolClasses.Dtos
         public static SchoolClassReadDto FromEntity(SchoolClass c) =>
             new(c.Id, c.Grade, c.Section, c.DisplayName);
 
-        public static readonly Expression<Func<SchoolClass, SchoolClassReadDto>> ToDtoProjection =
-            c => new SchoolClassReadDto(c.Id, c.Grade, c.Section, c.DisplayName);
+        public static readonly Expression<Func<SchoolClass, SchoolClassReadDto>> ToDtoProjection = c =>
+            new SchoolClassReadDto(c.Id, c.Grade, c.Section, c.DisplayName);
     }
 }

@@ -27,8 +27,8 @@ namespace TeacherSubApp.Api.Features.WeeklySchedules.Dtos
                 ws.EventKey?.EventName
             );
 
-        public static readonly Expression<Func<WeeklySchedule, WeeklyScheduleReadDto>> ToDtoProjection =
-            ws => new WeeklyScheduleReadDto(
+        public static readonly Expression<Func<WeeklySchedule, WeeklyScheduleReadDto>> ToDtoProjection = ws =>
+            new WeeklyScheduleReadDto(
                 ws.Id,
                 ws.TeacherId,
                 ws.Teacher.Name,

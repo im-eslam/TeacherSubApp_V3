@@ -154,7 +154,7 @@ namespace TeacherSubApp.Api.Features.WeeklySchedules
 
         private async Task<Result<WeeklyScheduleReadDto>> _UpdateCoreAsync(int id, WeeklyScheduleWriteDto dto)
         {
-            WeeklySchedule? schedule = await _FindActiveByIdAsync(id);
+            WeeklySchedule? schedule = await _FindActiveByIdWithIncludesAsync(id);
             if (schedule is null)
             {
                 return Result<WeeklyScheduleReadDto>.Failure(ErrorType.NotFound, WeeklyScheduleErrors.NotFound);

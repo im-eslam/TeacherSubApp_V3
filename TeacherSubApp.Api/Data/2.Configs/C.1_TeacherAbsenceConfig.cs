@@ -12,7 +12,9 @@ namespace TeacherSubApp.Api.Data.Configs
             _ConfigureProperties(builder);
             _ConfigureAuditProperties(builder);
             _ConfigureIndexes(builder);
+            _ConfigurePerformanceIndexes(builder);
             _ConfigureRelationships(builder);
+            _ConfigureMirrorRelationships(builder);
         }
 
         private static void _ConfigureTableAndKey(EntityTypeBuilder<TeacherAbsence> builder)
@@ -54,12 +56,28 @@ namespace TeacherSubApp.Api.Data.Configs
                    .IsUnique()
                    .HasDatabaseName("IX_TeacherAbsences_TeacherId_Date_Active")
                    .HasFilter("\"DeletedAt\" IS NULL");
+        }
 
+        private static void _ConfigurePerformanceIndexes(EntityTypeBuilder<TeacherAbsence> builder)
+        {
             builder.HasIndex(a => a.TeacherId)
                    .HasDatabaseName("IX_TeacherAbsences_TeacherId");
+
+            builder.HasIndex(a => a.AbsenceDate)
+                   .HasDatabaseName("IX_TeacherAbsences_AbsenceDate_Active")
+                   .HasFilter("\"DeletedAt\" IS NULL");
         }
 
         private static void _ConfigureRelationships(EntityTypeBuilder<TeacherAbsence> builder)
+        {
+            builder.HasMany(a => a.Substitutions)
+                   .WithOne(s => s.TeacherAbsence)
+                   .HasForeignKey(s => s.AbsenceId)
+                   .HasConstraintName("FK_Substitutions_TeacherAbsences")
+                   .OnDelete(DeleteBehavior.Cascade);
+        }
+
+        private static void _ConfigureMirrorRelationships(EntityTypeBuilder<TeacherAbsence> builder)
         {
             builder.HasOne(a => a.Teacher)
                    .WithMany(t => t.Absences)

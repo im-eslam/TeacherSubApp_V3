@@ -9,7 +9,6 @@ namespace TeacherSubApp.Api.Features.TeacherAbsences
     public class TeacherAbsenceService : ITeacherAbsenceService
     {
         private readonly AppDbContext _db;
-
         public TeacherAbsenceService(AppDbContext db)
         {
             _db = db;
@@ -53,7 +52,7 @@ namespace TeacherSubApp.Api.Features.TeacherAbsences
 
         public async Task<Result<TeacherAbsenceReadDto>> UpdateAsync(int id, TeacherAbsenceWriteDto dto)
         {
-            TeacherAbsence? absence = await _FindActiveByIdAsync(id);
+            TeacherAbsence? absence = await _FindActiveByIdWithTeacherAsync(id);
             if (absence is null)
             {
                 return Result<TeacherAbsenceReadDto>.Failure(ErrorType.NotFound, TeacherAbsenceErrors.NotFound);
@@ -62,7 +61,6 @@ namespace TeacherSubApp.Api.Features.TeacherAbsences
             (bool teacherChanged, bool dateChanged, bool reasonChanged) = _DetectChanges(absence, dto);
             if (!teacherChanged && !dateChanged && !reasonChanged)
             {
-                await _LoadTeacherNavigationAsync(absence);
                 return Result<TeacherAbsenceReadDto>.Success(TeacherAbsenceReadDto.FromEntity(absence));
             }
 
@@ -118,9 +116,7 @@ namespace TeacherSubApp.Api.Features.TeacherAbsences
         // Read
         private async Task<List<TeacherAbsenceReadDto>> _FetchAllActiveAsync(TeacherAbsenceQuery query)
         {
-            IQueryable<TeacherAbsence> q = _db.TeacherAbsences
-                .AsNoTracking()
-                .Where(a => a.DeletedAt == null);
+            IQueryable<TeacherAbsence> q = _db.TeacherAbsences.AsNoTracking().Where(a => a.DeletedAt == null);
 
             if (query.TeacherId.HasValue)
                 q = q.Where(a => a.TeacherId == query.TeacherId.Value);
@@ -140,8 +136,7 @@ namespace TeacherSubApp.Api.Features.TeacherAbsences
 
         private Task<TeacherAbsence?> _FindActiveByIdAsync(int id)
         {
-            return _db.TeacherAbsences
-                .FirstOrDefaultAsync(a => a.Id == id && a.DeletedAt == null);
+            return _db.TeacherAbsences.FirstOrDefaultAsync(a => a.Id == id && a.DeletedAt == null);
         }
 
         private Task<TeacherAbsence?> _FindActiveByIdWithTeacherAsync(int id)
@@ -176,9 +171,7 @@ namespace TeacherSubApp.Api.Features.TeacherAbsences
         }
 
         // State
-        private static (bool TeacherChanged, bool DateChanged, bool ReasonChanged) _DetectChanges(
-            TeacherAbsence absence,
-            TeacherAbsenceWriteDto dto)
+        private static (bool TeacherChanged, bool DateChanged, bool ReasonChanged) _DetectChanges(TeacherAbsence absence, TeacherAbsenceWriteDto dto)
         {
             bool teacherChanged = absence.TeacherId != dto.TeacherId;
             bool dateChanged = absence.AbsenceDate != dto.AbsenceDate;
@@ -207,6 +200,7 @@ namespace TeacherSubApp.Api.Features.TeacherAbsences
             absence.TeacherId = dto.TeacherId;
             absence.AbsenceDate = dto.AbsenceDate;
             absence.Reason = dto.Reason?.Trim();
+
             absence.UpdatedAt = DateTime.UtcNow;
 
             await _db.SaveChangesAsync();
@@ -219,9 +213,7 @@ namespace TeacherSubApp.Api.Features.TeacherAbsences
         {
             if (absence.Teacher == null || absence.Teacher.Id != absence.TeacherId)
             {
-                absence.Teacher = (await _db.Teachers
-                    .AsNoTracking()
-                    .FirstOrDefaultAsync(t => t.Id == absence.TeacherId))!;
+                absence.Teacher = (await _db.Teachers.AsNoTracking().FirstOrDefaultAsync(t => t.Id == absence.TeacherId))!;
             }
         }
 
