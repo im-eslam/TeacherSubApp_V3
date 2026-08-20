@@ -8,10 +8,23 @@ namespace TeacherSubApp.Api.Data.Configurations
     {
         public void Configure(EntityTypeBuilder<Substitution> builder)
         {
+            _ConfigureTableAndKey(builder);
+            _ConfigureProperties(builder);
+            _ConfigureSnapshotProperties(builder);
+            _ConfigureAuditProperties(builder);
+            _ConfigureIndexes(builder);
+            _ConfigurePerformanceIndexes(builder);
+            _ConfigureMirrorRelationships(builder);
+        }
+
+        private static void _ConfigureTableAndKey(EntityTypeBuilder<Substitution> builder)
+        {
             builder.ToTable("Substitutions");
-
             builder.HasKey(s => s.Id);
+        }
 
+        private static void _ConfigureProperties(EntityTypeBuilder<Substitution> builder)
+        {
             builder.Property(s => s.AbsenceId)
                 .IsRequired();
 
@@ -25,8 +38,12 @@ namespace TeacherSubApp.Api.Data.Configurations
                 .IsRequired();
 
             builder.Property(s => s.IsAlgorithmMatch)
-                .IsRequired();
+                .IsRequired()
+                .HasDefaultValue(true);
+        }
 
+        private static void _ConfigureSnapshotProperties(EntityTypeBuilder<Substitution> builder)
+        {
             builder.Property(s => s.AbsentTeacherNameAtTimeOfService)
                 .IsRequired()
                 .HasMaxLength(100);
@@ -44,12 +61,15 @@ namespace TeacherSubApp.Api.Data.Configurations
                 .HasMaxLength(100);
 
             builder.Property(s => s.ClassNameAtTimeOfService)
-                .IsRequired(false)
+                .IsRequired()
                 .HasMaxLength(100);
 
             builder.Property(s => s.PeriodNumberAtTimeOfService)
                 .IsRequired();
+        }
 
+        private static void _ConfigureAuditProperties(EntityTypeBuilder<Substitution> builder)
+        {
             builder.Property(s => s.DeletedAt)
                 .IsRequired(false);
 
@@ -58,7 +78,36 @@ namespace TeacherSubApp.Api.Data.Configurations
 
             builder.Property(s => s.UpdatedAt)
                 .HasDefaultValueSql("now()");
+        }
 
+        private static void _ConfigureIndexes(EntityTypeBuilder<Substitution> builder)
+        {
+            builder.HasIndex(s => new { s.SubstituteTeacherId, s.ServiceDate, s.PeriodNumberAtTimeOfService })
+                   .IsUnique()
+                   .HasDatabaseName("IX_Substitutions_Teacher_Date_Period_Active")
+                   .HasFilter("\"DeletedAt\" IS NULL");
+
+            builder.HasIndex(s => new { s.WeeklyScheduleId, s.ServiceDate })
+                   .IsUnique()
+                   .HasDatabaseName("IX_Substitutions_Slot_Date_Active")
+                   .HasFilter("\"DeletedAt\" IS NULL");
+        }
+
+        private static void _ConfigurePerformanceIndexes(EntityTypeBuilder<Substitution> builder)
+        {
+            builder.HasIndex(s => s.AbsenceId)
+                   .HasDatabaseName("IX_Substitutions_AbsenceId")
+                   .HasFilter("\"DeletedAt\" IS NULL");
+
+            builder.HasIndex(s => s.SubstituteTeacherId)
+                .HasFilter("\"DeletedAt\" IS NULL");
+
+            builder.HasIndex(s => s.ServiceDate)
+                .HasFilter("\"DeletedAt\" IS NULL");
+        }
+
+        private static void _ConfigureMirrorRelationships(EntityTypeBuilder<Substitution> builder)
+        {
             builder.HasOne(s => s.TeacherAbsence)
                 .WithMany(a => a.Substitutions)
                 .HasForeignKey(s => s.AbsenceId)
@@ -76,12 +125,6 @@ namespace TeacherSubApp.Api.Data.Configurations
                 .HasForeignKey(s => s.SubstituteTeacherId)
                 .OnDelete(DeleteBehavior.Restrict)
                 .HasConstraintName("FK_Substitutions_SubstituteTeacher");
-
-            builder.HasIndex(s => s.SubstituteTeacherId)
-                .HasFilter("\"DeletedAt\" IS NULL");
-
-            builder.HasIndex(s => s.ServiceDate)
-                .HasFilter("\"DeletedAt\" IS NULL");
         }
     }
 }

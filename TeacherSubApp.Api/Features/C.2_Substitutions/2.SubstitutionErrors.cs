@@ -27,6 +27,11 @@ namespace TeacherSubApp.Api.Features.Substitutions
             "The specified weekly schedule slot does not exist or is not active.",
             "حصة الجدول الأسبوعي المحددة غير موجودة أو غير نشطة.");
 
+        public static readonly Error WeeklyScheduleEventOnlyNotAllowed = Error.Create(
+            "SUBSTITUTION_WEEKLY_SCHEDULE_EVENT_ONLY_NOT_ALLOWED",
+            "A substitution cannot be created for a schedule slot that is an event only, with no class assigned.",
+            "لا يمكن إنشاء مناوبة لحصة في الجدول تكون مخصصة لفعالية فقط بدون تحديد فصل.");
+
         public static readonly Error SubstituteTeacherInvalid = Error.Create(
             "SUBSTITUTION_SUBSTITUTE_TEACHER_INVALID",
             "The specified substitute teacher does not exist or is not active.",

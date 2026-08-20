@@ -30,7 +30,8 @@ namespace TeacherSubApp.Api.Features.Substitutions.Dtos
                 substitution.SubstituteTeacherNameAtTimeOfService,
                 substitution.SubstituteTeacherSubjectAtTimeOfService,
                 substitution.ClassNameAtTimeOfService,
-                substitution.PeriodNumberAtTimeOfService);
+                substitution.PeriodNumberAtTimeOfService
+            );
 
         public static readonly Expression<Func<Substitution, SubstitutionReadDto>> ToDtoProjection = s =>
             new SubstitutionReadDto(
@@ -45,6 +46,7 @@ namespace TeacherSubApp.Api.Features.Substitutions.Dtos
                 s.SubstituteTeacherNameAtTimeOfService,
                 s.SubstituteTeacherSubjectAtTimeOfService,
                 s.ClassNameAtTimeOfService,
-                s.PeriodNumberAtTimeOfService);
+                s.PeriodNumberAtTimeOfService
+            );
     }
 }
