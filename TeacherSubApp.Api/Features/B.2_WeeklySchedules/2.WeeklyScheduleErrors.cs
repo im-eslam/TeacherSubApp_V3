@@ -42,12 +42,6 @@ namespace TeacherSubApp.Api.Features.WeeklySchedules
             "الحدث المعين غير موجود أو غير نشط."
         );
 
-        public static readonly Error HasActiveSubstitutions = Error.Create(
-            "WEEKLY_SCHEDULE_HAS_ACTIVE_SUBSTITUTIONS",
-            "This slot cannot be removed because it has active substitution history.",
-            "لا يمكن حذف هذه الحصة لوجود سجل استبدال نشط مرتبط بها."
-        );
-
         public static readonly Error BulkOperationInvalid = Error.Create(
             "WEEKLY_SCHEDULE_BULK_OPERATION_INVALID",
             "One or more items in the batch failed and the entire batch was rolled back.",
