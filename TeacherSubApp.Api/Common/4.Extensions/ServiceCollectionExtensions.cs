@@ -9,6 +9,7 @@ using TeacherSubApp.Api.Features.SchoolClasses;
 using TeacherSubApp.Api.Features.Subjects;
 using TeacherSubApp.Api.Features.Teachers;
 using TeacherSubApp.Api.Features.TeacherAbsences;
+using TeacherSubApp.Api.Features.Substitutions;
 using TeacherSubApp.Api.Features.WeeklySchedules;
 
 namespace TeacherSubApp.Api.Common.Extensions
@@ -46,7 +47,7 @@ namespace TeacherSubApp.Api.Common.Extensions
             services.AddScoped<ITeacherService, TeacherService>();
             services.AddScoped<IWeeklyScheduleService, WeeklyScheduleService>();
             services.AddScoped<ITeacherAbsenceService, TeacherAbsenceService>();
-            //services.AddScoped<ISubstitutionService, SubstitutionService>();
+            services.AddScoped<ISubstitutionService, SubstitutionService>();
 
             return services;
         }
