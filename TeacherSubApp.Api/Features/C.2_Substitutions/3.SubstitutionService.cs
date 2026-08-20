@@ -279,15 +279,15 @@ namespace TeacherSubApp.Api.Features.Substitutions
         }
 
         // State
-        private static SubstitutionChangeSet _DetectChanges(Substitution substitution, SubstitutionWriteDto dto) =>
-            new SubstitutionChangeSet
-            {
-                AbsenceChanged = substitution.AbsenceId != dto.AbsenceId,
-                WeeklyScheduleChanged = substitution.WeeklyScheduleId != dto.WeeklyScheduleId,
-                SubstituteTeacherChanged = substitution.SubstituteTeacherId != dto.SubstituteTeacherId,
-                ServiceDateChanged = substitution.ServiceDate != dto.ServiceDate,
-                AlgorithmMatchChanged = substitution.IsAlgorithmMatch != dto.IsAlgorithmMatch
-            };
+        private static SubstitutionChangeSet _DetectChanges(Substitution substitution, SubstitutionWriteDto dto)
+        {
+            return new SubstitutionChangeSet(
+                absenceChanged: substitution.AbsenceId != dto.AbsenceId,
+                weeklyScheduleChanged: substitution.WeeklyScheduleId != dto.WeeklyScheduleId,
+                substituteTeacherChanged: substitution.SubstituteTeacherId != dto.SubstituteTeacherId,
+                serviceDateChanged: substitution.ServiceDate != dto.ServiceDate,
+                algorithmMatchChanged: substitution.IsAlgorithmMatch != dto.IsAlgorithmMatch);
+        }
 
         // Create / Update
         private async Task<Substitution> _PersistNewAsync(SubstitutionWriteDto dto, SubstitutionSnapshot snapshot)

@@ -2,13 +2,13 @@
 {
     public class SubstitutionSnapshot
     {
-        public string AbsentTeacherName { get; set; } = string.Empty;
-        public string AbsentTeacherSubject { get; set; } = string.Empty;
+        public string AbsentTeacherName { get; }
+        public string AbsentTeacherSubject { get; }
 
-        public string SubstituteTeacherName { get; set; } = string.Empty;
-        public string SubstituteTeacherSubject { get; set; } = string.Empty;
+        public string SubstituteTeacherName { get; }
+        public string SubstituteTeacherSubject { get; }
 
-        public string ClassName { get; set; } = string.Empty;
+        public string ClassName { get; }
         public int PeriodNumber { get; set; }
 
         public SubstitutionSnapshot(

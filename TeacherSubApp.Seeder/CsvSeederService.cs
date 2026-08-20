@@ -7,7 +7,6 @@ using TeacherSubApp.Api.Features.EventKeys.Dtos;
 using TeacherSubApp.Api.Features.SchoolClasses.Dtos;
 using TeacherSubApp.Api.Features.Subjects.Dtos;
 using TeacherSubApp.Api.Features.Teachers.Dtos;
-using static TeacherSubApp.Api.Features.WeeklySchedules.Dtos.WeeklyScheduleWriteDtos;
 
 namespace TeacherSubApp.Seeder
 {
@@ -56,7 +55,8 @@ namespace TeacherSubApp.Seeder
                 string name = row.Name;
                 var dto = new SubjectWriteDto { Name = name.Trim() };
                 int? id = await PostAndGetIdAsync("/subjects", dto);
-                if (id.HasValue) _subjectMap[name.Trim()] = id.Value;
+                if (id.HasValue)
+                    _subjectMap[name.Trim()] = id.Value;
             }
         }
 
@@ -74,7 +74,8 @@ namespace TeacherSubApp.Seeder
                     Section = int.Parse((string)row.Section)
                 };
                 int? id = await PostAndGetIdAsync("/classes", dto);
-                if (id.HasValue) _classMap[displayName.Trim()] = id.Value;
+                if (id.HasValue)
+                    _classMap[displayName.Trim()] = id.Value;
             }
         }
 
@@ -92,7 +93,8 @@ namespace TeacherSubApp.Seeder
                     IsStandby = bool.Parse((string)row.IsStandby)
                 };
                 int? id = await PostAndGetIdAsync("/events", dto);
-                if (id.HasValue) _eventMap[eventName.Trim()] = id.Value;
+                if (id.HasValue)
+                    _eventMap[eventName.Trim()] = id.Value;
             }
         }
 
@@ -118,7 +120,8 @@ namespace TeacherSubApp.Seeder
                     IsSupervisor = bool.Parse((string)row.IsSupervisor)
                 };
                 int? id = await PostAndGetIdAsync("/teachers", dto);
-                if (id.HasValue) _teacherMap[name.Trim()] = id.Value;
+                if (id.HasValue)
+                    _teacherMap[name.Trim()] = id.Value;
             }
         }
 
@@ -132,7 +135,8 @@ namespace TeacherSubApp.Seeder
             foreach (var row in rows)
             {
                 string teacherName = row.TeacherName;
-                if (string.IsNullOrWhiteSpace(teacherName)) continue;
+                if (string.IsNullOrWhiteSpace(teacherName))
+                    continue;
 
                 string className = row.ClassDisplayName;
                 string eventName = row.EventName;
@@ -177,7 +181,8 @@ namespace TeacherSubApp.Seeder
                 Console.WriteLine($"\n[HTTP ERROR] BULK FAIL on {url}");
                 Console.WriteLine($"   Raw Response: {responseBody}");
 
-                if (_config.StopOnError) throw new Exception($"Bulk HTTP Error on {url}");
+                if (_config.StopOnError)
+                    throw new Exception($"Bulk HTTP Error on {url}");
             }
             else
             {
@@ -203,7 +208,8 @@ namespace TeacherSubApp.Seeder
             if (!response.IsSuccessStatusCode)
             {
                 Console.WriteLine($"\n[HTTP ERROR] {url} \n   Data: {payloadString} \n   Raw Response: {responseBody}");
-                if (_config.StopOnError) throw new Exception($"HTTP Error on {url}");
+                if (_config.StopOnError)
+                    throw new Exception($"HTTP Error on {url}");
                 return null;
             }
 
@@ -221,7 +227,8 @@ namespace TeacherSubApp.Seeder
 
                         if (id != 0)
                         {
-                            if (_config.PrintSuccessMessages) Console.WriteLine($"[SUCCESS] {url} -> Inserted ID: {id}");
+                            if (_config.PrintSuccessMessages)
+                                Console.WriteLine($"[SUCCESS] {url} -> Inserted ID: {id}");
                             return id;
                         }
                     }
@@ -230,14 +237,16 @@ namespace TeacherSubApp.Seeder
                 {
                     string error = root.TryGetProperty("errorMessage", out var err) ? err.GetString() : "Unknown API Error";
                     Console.WriteLine($"\n[API REJECTED] {url} \n   Data: {payloadString} \n   Error: {error}");
-                    if (_config.StopOnError) throw new Exception($"API Rejected: {error}");
+                    if (_config.StopOnError)
+                        throw new Exception($"API Rejected: {error}");
                     return null;
                 }
             }
             else if (root.TryGetProperty("id", out var idProp) || root.TryGetProperty("Id", out idProp))
             {
                 int id = idProp.GetInt32();
-                if (_config.PrintSuccessMessages) Console.WriteLine($"[SUCCESS] {url} -> Inserted ID: {id}");
+                if (_config.PrintSuccessMessages)
+                    Console.WriteLine($"[SUCCESS] {url} -> Inserted ID: {id}");
                 return id;
             }
 
