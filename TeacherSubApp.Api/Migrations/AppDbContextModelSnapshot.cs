@@ -220,9 +220,6 @@ namespace TeacherSubApp.Api.Migrations
                         .IsRequired()
                         .HasColumnType("text");
 
-                    b.Property<int>("TeacherAbsenceId")
-                        .HasColumnType("integer");
-
                     b.Property<DateTime>("UpdatedAt")
                         .HasColumnType("timestamp with time zone");
 
@@ -231,9 +228,9 @@ namespace TeacherSubApp.Api.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("SubstituteTeacherId");
+                    b.HasIndex("AbsenceId");
 
-                    b.HasIndex("TeacherAbsenceId");
+                    b.HasIndex("SubstituteTeacherId");
 
                     b.HasIndex("WeeklyScheduleId");
 
@@ -300,25 +297,40 @@ namespace TeacherSubApp.Api.Migrations
                         .HasColumnType("date");
 
                     b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("timestamp with time zone");
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("timestamp with time zone")
+                        .HasDefaultValueSql("now()");
 
                     b.Property<DateTime?>("DeletedAt")
                         .HasColumnType("timestamp with time zone");
 
                     b.Property<string>("Reason")
-                        .HasColumnType("text");
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)");
 
                     b.Property<int>("TeacherId")
                         .HasColumnType("integer");
 
                     b.Property<DateTime>("UpdatedAt")
-                        .HasColumnType("timestamp with time zone");
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("timestamp with time zone")
+                        .HasDefaultValueSql("now()");
 
                     b.HasKey("Id");
 
-                    b.HasIndex("TeacherId");
+                    b.HasIndex("AbsenceDate")
+                        .HasDatabaseName("IX_TeacherAbsences_AbsenceDate_Active")
+                        .HasFilter("\"DeletedAt\" IS NULL");
 
-                    b.ToTable("TeacherAbsences");
+                    b.HasIndex("TeacherId")
+                        .HasDatabaseName("IX_TeacherAbsences_TeacherId");
+
+                    b.HasIndex("TeacherId", "AbsenceDate")
+                        .IsUnique()
+                        .HasDatabaseName("IX_TeacherAbsences_TeacherId_Date_Active")
+                        .HasFilter("\"DeletedAt\" IS NULL");
+
+                    b.ToTable("TeacherAbsences", (string)null);
                 });
 
             modelBuilder.Entity("TeacherSubApp.Api.Data.Models.WeeklySchedule", b =>
@@ -386,18 +398,19 @@ namespace TeacherSubApp.Api.Migrations
 
             modelBuilder.Entity("TeacherSubApp.Api.Data.Models.Substitution", b =>
                 {
+                    b.HasOne("TeacherSubApp.Api.Data.Models.TeacherAbsence", "TeacherAbsence")
+                        .WithMany("Substitutions")
+                        .HasForeignKey("AbsenceId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("FK_Substitutions_TeacherAbsences");
+
                     b.HasOne("TeacherSubApp.Api.Data.Models.Teacher", "SubstituteTeacher")
                         .WithMany("Substitutions")
                         .HasForeignKey("SubstituteTeacherId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired()
                         .HasConstraintName("FK_Substitutions_SubstituteTeacher");
-
-                    b.HasOne("TeacherSubApp.Api.Data.Models.TeacherAbsence", "TeacherAbsence")
-                        .WithMany("Substitutions")
-                        .HasForeignKey("TeacherAbsenceId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
 
                     b.HasOne("TeacherSubApp.Api.Data.Models.WeeklySchedule", "WeeklySchedule")
                         .WithMany("Substitutions")

@@ -9,7 +9,7 @@
         public int SubstituteTeacherId { get; set; }
         public DateOnly ServiceDate { get; set; }
 
-        public bool IsAlgorithmMatch { get; set; } = true;
+        public bool IsAlgorithmMatch { get; set; }
 
         // Snapshoots
         public string AbsentTeacherNameAtTimeOfService { get; set; } = string.Empty;

@@ -7,7 +7,7 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace TeacherSubApp.Api.Migrations
 {
     /// <inheritdoc />
-    public partial class Done_B2 : Migration
+    public partial class C1_Done : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -100,10 +100,10 @@ namespace TeacherSubApp.Api.Migrations
                         .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
                     TeacherId = table.Column<int>(type: "integer", nullable: false),
                     AbsenceDate = table.Column<DateOnly>(type: "date", nullable: false),
-                    Reason = table.Column<string>(type: "text", nullable: true),
+                    Reason = table.Column<string>(type: "character varying(500)", maxLength: 500, nullable: true),
                     DeletedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
-                    CreatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
-                    UpdatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false)
+                    CreatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false, defaultValueSql: "now()"),
+                    UpdatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false, defaultValueSql: "now()")
                 },
                 constraints: table =>
                 {
@@ -176,8 +176,7 @@ namespace TeacherSubApp.Api.Migrations
                     PeriodNumberAtTimeOfService = table.Column<int>(type: "integer", nullable: false),
                     DeletedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
                     CreatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
-                    UpdatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
-                    TeacherAbsenceId = table.Column<int>(type: "integer", nullable: false)
+                    UpdatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -189,8 +188,8 @@ namespace TeacherSubApp.Api.Migrations
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Restrict);
                     table.ForeignKey(
-                        name: "FK_Substitutions_TeacherAbsences_TeacherAbsenceId",
-                        column: x => x.TeacherAbsenceId,
+                        name: "FK_Substitutions_TeacherAbsences",
+                        column: x => x.AbsenceId,
                         principalTable: "TeacherAbsences",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
@@ -245,14 +244,14 @@ namespace TeacherSubApp.Api.Migrations
                 filter: "\"DeletedAt\" IS NULL");
 
             migrationBuilder.CreateIndex(
+                name: "IX_Substitutions_AbsenceId",
+                table: "Substitutions",
+                column: "AbsenceId");
+
+            migrationBuilder.CreateIndex(
                 name: "IX_Substitutions_SubstituteTeacherId",
                 table: "Substitutions",
                 column: "SubstituteTeacherId");
-
-            migrationBuilder.CreateIndex(
-                name: "IX_Substitutions_TeacherAbsenceId",
-                table: "Substitutions",
-                column: "TeacherAbsenceId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_Substitutions_WeeklyScheduleId",
@@ -260,9 +259,22 @@ namespace TeacherSubApp.Api.Migrations
                 column: "WeeklyScheduleId");
 
             migrationBuilder.CreateIndex(
+                name: "IX_TeacherAbsences_AbsenceDate_Active",
+                table: "TeacherAbsences",
+                column: "AbsenceDate",
+                filter: "\"DeletedAt\" IS NULL");
+
+            migrationBuilder.CreateIndex(
                 name: "IX_TeacherAbsences_TeacherId",
                 table: "TeacherAbsences",
                 column: "TeacherId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_TeacherAbsences_TeacherId_Date_Active",
+                table: "TeacherAbsences",
+                columns: new[] { "TeacherId", "AbsenceDate" },
+                unique: true,
+                filter: "\"DeletedAt\" IS NULL");
 
             migrationBuilder.CreateIndex(
                 name: "IX_Teachers_Name_Active",
