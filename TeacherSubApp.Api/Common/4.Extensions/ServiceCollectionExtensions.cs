@@ -7,6 +7,7 @@ using TeacherSubApp.Api.Data;
 using TeacherSubApp.Api.Features.EventKeys;
 using TeacherSubApp.Api.Features.SchoolClasses;
 using TeacherSubApp.Api.Features.Subjects;
+using TeacherSubApp.Api.Features.SubstituteMatching;
 using TeacherSubApp.Api.Features.Substitutions;
 using TeacherSubApp.Api.Features.TeacherAbsences;
 using TeacherSubApp.Api.Features.Teachers;
@@ -50,6 +51,8 @@ namespace TeacherSubApp.Api.Common.Extensions
 
             services.AddScoped<ITeacherAbsenceService, TeacherAbsenceService>();
             services.AddScoped<ISubstitutionService, SubstitutionService>();
+
+            services.AddScoped<ISubstituteMatchingService, SubstituteMatchingService>();
 
             return services;
         }

@@ -20,7 +20,6 @@ namespace TeacherSubApp.Api.Features.SubstituteMatching.Internal
         }
 
         // ==== Tier Classification ====
-
         public CandidateTier DetermineTier(TeacherContext candidate)
         {
             if (candidate.IsSupervisor())
@@ -28,14 +27,14 @@ namespace TeacherSubApp.Api.Features.SubstituteMatching.Internal
                 return CandidateTier.C3;
             }
 
-            if (candidate.IsSupportAt(_query.PeriodNumber))
+            if (candidate.IsInMeetingAt(_query.PeriodNumber))
             {
                 return CandidateTier.C2;
             }
 
-            if (candidate.IsInMeetingAt(_query.PeriodNumber))
+            if (candidate.IsSupportAt(_query.PeriodNumber))
             {
-                return CandidateTier.C3;
+                return CandidateTier.C1;
             }
 
             return candidate.WeeklyLoad() >= _settings.OvertimeThreshold
@@ -65,34 +64,6 @@ namespace TeacherSubApp.Api.Features.SubstituteMatching.Internal
                  + (earlyLeaveScore * _settings.EarlyLeaveWeight);
 
             return Math.Round(totalScore, 2);
-        }
-
-        public (List<string> Pros, List<string> Cons) BuildProsAndCons(TeacherContext candidate, CandidateTier tier)
-        {
-            List<string> pros = new();
-            List<string> cons = new();
-
-            if (candidate.IsSubjectMatch(_absentTeacherContext.Teacher.SubjectId))
-                pros.Add("Subject Match|تطابق المادة");
-            else
-                cons.Add("Different Subject|مادة مختلفة");
-
-            if (candidate.IsStandbyAt(_query.PeriodNumber))
-                pros.Add("On Standby|في الاحتياط");
-
-            if (_IsEarlyLeaveRisk(candidate))
-                cons.Add("May Leave Early|قد ينصرف مبكرًا");
-
-            if (candidate.SubbedYesterday())
-                cons.Add("Subbed Yesterday|قام بالتغطية أمس");
-
-            if (_CausesThreeInARow(candidate))
-                cons.Add("Causes 3-in-a-row|يسبب 3 حصص متتالية");
-
-            if (tier == CandidateTier.B)
-                cons.Add("Overtime Load|حمل إضافي");
-
-            return (pros, cons);
         }
 
         public List<SubstituteCandidateDto> RankByTierThenScore(List<SubstituteCandidateDto> scoredCandidates)

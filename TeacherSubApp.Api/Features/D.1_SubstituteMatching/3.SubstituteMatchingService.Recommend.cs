@@ -20,7 +20,7 @@ namespace TeacherSubApp.Api.Features.SubstituteMatching
         {
             _query = query;
 
-            // ---- Phase 0 ----
+            // ---- Phase 0 - Validate ----
             Result validationResult = _ValidateQuery();
             if (validationResult.IsFailure)
                 return Result<List<SubstituteCandidateDto>>.Failure(validationResult.ErrorType, validationResult.Error);
@@ -29,17 +29,17 @@ namespace TeacherSubApp.Api.Features.SubstituteMatching
             if (settingsResult.IsFailure)
                 return Result<List<SubstituteCandidateDto>>.Failure(settingsResult.ErrorType, settingsResult.Error);
 
-            // ---- Phase 1 ----
+            // ---- Phase 1 - Fetch ----
             await _LoadAllTeacherContextsAsync();
 
             Result absentTeacherResult = _ResolveAbsentTeacherContext();
             if (absentTeacherResult.IsFailure)
                 return Result<List<SubstituteCandidateDto>>.Failure(absentTeacherResult.ErrorType, absentTeacherResult.Error);
 
-            // ---- Phase 2 ----
+            // ---- Phase 2 - Hard Drop ----
             _FilterToEligibleCandidates();
 
-            // ---- Phases 3-5 ----
+            // ---- Phases 3:5 - Rank and Sort ----
             List<SubstituteCandidateDto> rankedCandidates = _ScoreAndRankEligibleCandidates();
 
             return Result<List<SubstituteCandidateDto>>.Success(rankedCandidates);
@@ -154,7 +154,6 @@ namespace TeacherSubApp.Api.Features.SubstituteMatching
         {
             CandidateTier tier = scoringEngine.DetermineTier(candidate);
             double totalScore = scoringEngine.CalculateTotalScore(candidate);
-            (List<string> pros, List<string> cons) = scoringEngine.BuildProsAndCons(candidate, tier);
 
             return new SubstituteCandidateDto
             {
@@ -162,9 +161,7 @@ namespace TeacherSubApp.Api.Features.SubstituteMatching
                 TeacherName = candidate.Teacher.Name,
                 SubjectName = candidate.Teacher.Subject?.Name ?? string.Empty,
                 Tier = tier,
-                TotalScore = totalScore,
-                Pros = pros,
-                Cons = cons
+                TotalScore = totalScore
             };
         }
 
