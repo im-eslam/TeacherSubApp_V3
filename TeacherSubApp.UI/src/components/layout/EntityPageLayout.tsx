@@ -116,15 +116,15 @@ export function EntityErrorBanner({
     <div role="alert" className={STYLES.errorBanner}>
       <AlertCircle size={18} strokeWidth={2} className="shrink-0" />
       <span className={STYLES.errorMessage}>{getErrorMessage(error)}</span>
-      <button
-        type="button"
-        onClick={onRetry}
-        disabled={isRetrying}
+      <Button
+        variant="quiet"
+        onPress={onRetry}
+        isDisabled={isRetrying}
         className={STYLES.errorRetryButton}
       >
         <RefreshCw size={14} className={isRetrying ? "animate-spin" : ""} />
         إعادة المحاولة
-      </button>
+      </Button>
     </div>
   );
 }
