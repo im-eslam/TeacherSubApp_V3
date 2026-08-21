@@ -157,9 +157,7 @@ namespace TeacherSubApp.Api.Features.Subjects
         private async Task<Subject> _ApplyUpdateAsync(Subject subject, SubjectWriteDto dto)
         {
             subject.Name = dto.Name.Trim();
-
             subject.UpdatedAt = DateTime.UtcNow;
-
             await _db.SaveChangesAsync();
             return subject;
         }

@@ -24,15 +24,15 @@ namespace TeacherSubApp.Api.Data.Configs
 
         private static void _ConfigureProperties(EntityTypeBuilder<SchoolClass> builder)
         {
-            builder.Property(c => c.DisplayName)
-                   .IsRequired()
-                   .HasMaxLength(100);
-
             builder.Property(c => c.Grade)
-                   .IsRequired(false);
+                    .IsRequired(false);
 
             builder.Property(c => c.Section)
                     .IsRequired(false);
+
+            builder.Property(c => c.DisplayName)
+                    .IsRequired()
+                    .HasMaxLength(100);
         }
 
         private static void _ConfigureAuditProperties(EntityTypeBuilder<SchoolClass> builder)

@@ -5,7 +5,6 @@
         public int Id { get; set; }
 
         public string EventName { get; set; } = string.Empty;
-
         public bool IsSupport { get; set; }
         public bool IsStandby { get; set; }
 

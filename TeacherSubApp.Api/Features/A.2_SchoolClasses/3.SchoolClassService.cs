@@ -224,9 +224,7 @@ namespace TeacherSubApp.Api.Features.SchoolClasses
             entity.DisplayName = dto.DisplayName.Trim();
             entity.Grade = dto.Grade;
             entity.Section = dto.Section;
-
             entity.UpdatedAt = DateTime.UtcNow;
-
             await _db.SaveChangesAsync();
             return entity;
         }

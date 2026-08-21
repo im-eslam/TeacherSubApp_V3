@@ -183,11 +183,8 @@ namespace TeacherSubApp.Api.Features.Teachers
         {
             Teacher entity = dto.ToEntity();
             _db.Teachers.Add(entity);
-
             await _db.SaveChangesAsync();
-
             await _LoadSubjectNavigationAsync(entity);
-
             return entity;
         }
 
@@ -196,28 +193,26 @@ namespace TeacherSubApp.Api.Features.Teachers
             teacher.Name = dto.Name.Trim();
             teacher.SubjectId = dto.SubjectId;
             teacher.IsSupervisor = dto.IsSupervisor;
-
             teacher.UpdatedAt = DateTime.UtcNow;
-
             await _db.SaveChangesAsync();
-
             await _LoadSubjectNavigationAsync(teacher);
-
             return teacher;
         }
 
         private async Task _LoadSubjectNavigationAsync(Teacher teacher)
         {
-            if (teacher.SubjectId.HasValue && (teacher.Subject == null || teacher.Subject.Id != teacher.SubjectId))
-            {
-                teacher.Subject = await _db.Subjects
-                    .AsNoTracking()
-                    .FirstOrDefaultAsync(s => s.Id == teacher.SubjectId.Value);
-            }
-            else if (!teacher.SubjectId.HasValue)
+            if (!teacher.SubjectId.HasValue)
             {
                 teacher.Subject = null;
+                return;
             }
+
+            if (teacher.Subject != null && teacher.Subject.Id == teacher.SubjectId.Value)
+            {
+                return;
+            }
+
+            teacher.Subject = await _db.Subjects.AsNoTracking().FirstOrDefaultAsync(s => s.Id == teacher.SubjectId.Value);
         }
 
         // Delete

@@ -5,9 +5,10 @@
         public string ErrorCode { get; }
         public string ErrorMessageEn { get; }
         public string ErrorMessageAr { get; }
+
         public string? TraceId { get; }
 
-        private ErrorResponse (string errorCode, string errorMessageEn, string errorMessageAr, string? traceId)
+        private ErrorResponse(string errorCode, string errorMessageEn, string errorMessageAr, string? traceId)
         {
             ErrorCode = errorCode;
             ErrorMessageEn = errorMessageEn;
@@ -15,7 +16,7 @@
             TraceId = traceId;
         }
 
-        public static ErrorResponse FromError (Error error, string? traceId = null)
+        public static ErrorResponse FromError(Error error, string? traceId = null)
         {
             ArgumentNullException.ThrowIfNull(error, nameof(error));
 

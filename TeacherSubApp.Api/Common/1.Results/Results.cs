@@ -21,14 +21,14 @@ namespace TeacherSubApp.Api.Common
         public ErrorType ErrorType { get; }
         public Error Error { get; }
 
-        protected Result (bool isSuccess, ErrorType errorType, Error error)
+        protected Result(bool isSuccess, ErrorType errorType, Error error)
         {
             ArgumentNullException.ThrowIfNull(error, nameof(error));
 
-            if(isSuccess && (errorType != ErrorType.None || error != Error.None()))
+            if (isSuccess && (errorType != ErrorType.None || error != Error.None()))
                 throw new InvalidOperationException("A successful Result must use ErrorType.None and Error.None().");
 
-            if(!isSuccess && (errorType == ErrorType.None || error == Error.None()))
+            if (!isSuccess && (errorType == ErrorType.None || error == Error.None()))
                 throw new InvalidOperationException("A failed Result must use a valid ErrorType and a valid Error.");
 
             IsSuccess = isSuccess;
@@ -36,12 +36,12 @@ namespace TeacherSubApp.Api.Common
             Error = error;
         }
 
-        public static Result Success ( )
+        public static Result Success()
         {
             return new Result(true, ErrorType.None, Error.None());
         }
 
-        public static Result Failure (ErrorType errorType, Error error)
+        public static Result Failure(ErrorType errorType, Error error)
         {
             return new Result(false, errorType, error);
         }
@@ -51,17 +51,17 @@ namespace TeacherSubApp.Api.Common
     {
         public T? Value { get; }
 
-        private Result (bool isSuccess, ErrorType errorType, Error error, T? value) : base(isSuccess, errorType, error)
+        private Result(bool isSuccess, ErrorType errorType, Error error, T? value) : base(isSuccess, errorType, error)
         {
             Value = value;
         }
 
-        public static Result<T> Success (T value)
+        public static Result<T> Success(T value)
         {
             return new Result<T>(isSuccess: true, errorType: ErrorType.None, error: Error.None(), value);
         }
 
-        public static new Result<T> Failure (ErrorType errorType, Error error)
+        public static new Result<T> Failure(ErrorType errorType, Error error)
         {
             return new Result<T>(isSuccess: false, errorType, error, value: default);
         }
