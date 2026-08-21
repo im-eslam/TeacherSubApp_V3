@@ -48,5 +48,11 @@ namespace TeacherSubApp.Api.Features.SubstituteMatching
             "Period number must be greater than 0.",
             "يجب أن يكون رقم الحصة أكبر من 0."
         );
+
+        public static readonly Error ServiceDateRequired = Error.Create(
+            "ServiceDateRequired",
+            "Service Date Required",
+            "تاريخ التغطيه/الغياب مطلوب"
+        );
     }
 }

@@ -49,7 +49,12 @@ namespace TeacherSubApp.Api.Features.SubstituteMatching
 
         private Result _ValidateQuery()
         {
-            int dayOfWeek = _query.ServiceDate.DayOfWeek == DayOfWeek.Sunday ? 7 : (int)_query.ServiceDate.DayOfWeek;
+            if (_query.ServiceDate == DateOnly.MinValue)
+            {
+                return Result.Failure(ErrorType.Validation, SubstituteMatchingErrors.ServiceDateRequired);
+            }
+
+            int dayOfWeek = (int)_query.ServiceDate.DayOfWeek + 1;
 
             if (dayOfWeek is < 1 or > 5)
             {
