@@ -2,10 +2,6 @@ import type { ReactNode } from "react";
 import { Heading, Button } from "react-aria-components";
 import { AlertCircle, X } from "lucide-react";
 
-// ════════════════════════════════════════════════════════════
-// Styles
-// ════════════════════════════════════════════════════════════
-
 const STYLES = {
   header:
     "flex items-center justify-between px-6 py-4 border-b border-neutral-200/60 shrink-0",

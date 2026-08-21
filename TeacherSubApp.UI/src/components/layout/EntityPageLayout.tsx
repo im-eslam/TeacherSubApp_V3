@@ -21,7 +21,7 @@ const STYLES = {
 
 // ════════════════════════════════════════════════════════════
 // 1. EntityPageHeader — title + subtitle + description + add button
-//
+// ════════════════════════════════════════════════════════════
 // Usage:
 //   <EntityPageHeader
 //     title="المواد الدراسية"
@@ -65,7 +65,7 @@ export function EntityPageHeader({
 
 // ════════════════════════════════════════════════════════════
 // 2. EntityPageHeaderPlain — title + subtitle + description, no main action button.
-//
+// ════════════════════════════════════════════════════════════
 // Usage:
 //   <EntityPageHeaderPlain
 //     title="لوحة التحكم"
@@ -96,7 +96,7 @@ export function EntityPageHeaderPlain({
 
 // ════════════════════════════════════════════════════════════
 // 3. EntityErrorBanner — shown when the data fetch fails
-//
+// ════════════════════════════════════════════════════════════
 // Usage:
 //   <EntityErrorBanner error={error} onRetry={refetch} isRetrying={isLoading} />
 // ════════════════════════════════════════════════════════════
@@ -131,7 +131,7 @@ export function EntityErrorBanner({
 
 // ════════════════════════════════════════════════════════════
 // 4. EntityToolbar — layout wrapper for the search/sort/filter row.
-//
+// ════════════════════════════════════════════════════════════
 // Usage:
 //   <EntityToolbar>
 //     <SearchInput ... />

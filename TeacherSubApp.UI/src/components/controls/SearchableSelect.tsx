@@ -53,38 +53,12 @@ const STYLES = {
     "transition-colors duration-150 outline-none",
   ].join(" "),
 
-  // Replicating react-aria-components selected/focused states
   itemFocused: "bg-blue-50 text-blue-700",
   itemSelected: "font-medium text-blue-700",
   itemIdle: "hover:bg-neutral-100 hover:text-neutral-900",
 
   empty: "px-3 py-6 text-xs text-center text-neutral-400",
 };
-
-// ════════════════════════════════════════════════════════════
-// SearchableSelect (Custom Component)
-// ════════════════════════════════════════════════════════════
-// Usage 1 (inside a feature page toolbar, as a filter):
-//
-//   <SearchableSelect
-//     value={subjectFilter}
-//     onChange={setSubjectFilter}
-//     options={subjects.map((s) => ({ value: String(s.id), label: s.name }))}
-//     placeholder="كل المواد"
-//     isFilter
-//     disabled={isDisabled}
-//   />
-//
-// Usage 2 (inside a modal or form, as a standard input):
-//
-//   <SearchableSelect
-//     value={subjectId}
-//     onChange={setSubjectId}
-//     options={subjects.map((s) => ({ value: String(s.id), label: s.name }))}
-//     placeholder="اختر مادة"
-//     disabled={isDisabled}
-//   />
-// ════════════════════════════════════════════════════════════
 
 interface Option {
   value: string;
@@ -234,7 +208,6 @@ export function SearchableSelect({
 
       {isOpen && (
         <div className={STYLES.dropdown} dir="rtl">
-          {/* Search Bar */}
           <div className={STYLES.searchWrapper}>
             <div className={STYLES.searchInputWrapper}>
               <Search size={14} className={STYLES.searchIcon} />

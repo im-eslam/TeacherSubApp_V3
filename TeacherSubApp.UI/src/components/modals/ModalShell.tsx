@@ -6,10 +6,6 @@ import {
   type ModalOverlayProps,
 } from "react-aria-components";
 
-// ════════════════════════════════════════════════════════════
-// Styles
-// ════════════════════════════════════════════════════════════
-
 const STYLES = {
   overlay: [
     "fixed inset-0 z-50 flex items-center justify-center p-4",
@@ -39,8 +35,6 @@ const STYLES = {
 interface ModalShellProps extends Omit<ModalOverlayProps, "children"> {
   children: ReactNode;
   isBusy?: boolean;
-  /** "md" (default, 448px) for standard CRUD modals.
-   *  "xl" (768px) for the schedule bulk-edit workflow. */
   size?: "md" | "xl";
 }
 
