@@ -56,14 +56,13 @@ namespace TeacherSubApp.Api.Features.SubstituteMatching.Internal
 
         private async Task<List<WeeklySchedule>> FetchDaySchedulesAsync()
         {
-            int targetDayOfWeek = _query.ServiceDate.DayOfWeek == DayOfWeek.Sunday ? 7 : (int)_query.ServiceDate.DayOfWeek;
+            int targetDayOfWeek = (int)_query.ServiceDate.DayOfWeek + 1;
 
             return await _db.WeeklySchedules
                 .AsNoTracking()
                 .Include(ws => ws.EventKey)
                 .Where(ws => ws.DeletedAt == null && ws.DayOfWeek == targetDayOfWeek)
                 .ToListAsync();
-            ;
         }
 
         private async Task<Dictionary<int, TeacherAbsence>> FetchAbsencesTodayAsync()
@@ -91,7 +90,7 @@ namespace TeacherSubApp.Api.Features.SubstituteMatching.Internal
         private async Task<Dictionary<int, int>> FetchWeeklyLoadAsync()
         {
             DateOnly today = _query.ServiceDate;
-            DateOnly weekStart = _StartOfWeek(today);
+            DateOnly weekStart = today.AddDays(-(int)today.DayOfWeek);
             DateOnly weekEnd = weekStart.AddDays(6);
 
             Dictionary<int, int> baseLoadByTeacherId = await _db.WeeklySchedules
@@ -116,13 +115,6 @@ namespace TeacherSubApp.Api.Features.SubstituteMatching.Internal
 
             return combined;
         }
-
-        private static DateOnly _StartOfWeek(DateOnly reference)
-        {
-            int daysSinceSunday = ((int)reference.DayOfWeek + 1) % 7;
-            return reference.AddDays(-daysSinceSunday);
-        }
-
 
         // ==== Validate ====
         private void ValidateNoImpossibleSlotStates(List<WeeklySchedule> daySchedules)

@@ -10,6 +10,7 @@ namespace TeacherSubApp.Api.Features.SubstituteMatching.Internal
         private readonly TeacherAbsence? _absenceToday;
         private readonly List<Substitution> _relatedSubstitutions;
         private readonly int _weeklyLoad;
+
         private readonly DateOnly _serviceDate;
 
         public TeacherContext(Teacher teacher, List<WeeklySchedule> daySchedules, TeacherAbsence? absenceToday, List<Substitution> substitutions, int weeklyLoad, DateOnly serviceDate)
