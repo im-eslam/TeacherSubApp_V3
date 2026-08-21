@@ -41,6 +41,32 @@ const STYLES = {
     "flex items-center justify-center w-8 h-8 rounded-lg text-neutral-400 hover:text-red-600 hover:bg-red-50 transition-colors outline-none focus-visible:ring-2 focus-visible:ring-red-500/40",
 };
 
+// ════════════════════════════════════════════════════════════
+// EntityGrid
+// ════════════════════════════════════════════════════════════
+// Usage (inside a feature, e.g. SubjectGrid):
+//
+//   const SUBJECT_CONFIG: GridConfig<SubjectReadDto> = {
+//     getKey: (subject) => subject.id,
+//     skeletonHeight: "h-[60px]",
+//     emptyState: { ... },
+//     renderItem: (subject) => (
+//       <>
+//         <div className="...icon wrapper...">
+//           <BookOpen size={18} />
+//         </div>
+//         <span className="...">{subject.name}</span>
+//       </>
+//     ),
+//   };
+//
+//   <EntityGrid
+//     config={SUBJECT_CONFIG}
+//     data={{ items: subjects, isLoading, isError, searchQuery }}
+//     actions={{ onAdd, onEdit, onDelete }}
+//   />
+// ════════════════════════════════════════════════════════════
+
 // ── Interfaces ──
 
 export interface GridData<T> {
@@ -76,32 +102,6 @@ export interface GridConfig<T> {
     subtitle: string;
   };
 }
-
-// ════════════════════════════════════════════════════════════
-// EntityGrid
-// ════════════════════════════════════════════════════════════
-// Usage (inside a feature, e.g. SubjectGrid):
-//
-//   const SUBJECT_CONFIG: GridConfig<SubjectReadDto> = {
-//     getKey: (subject) => subject.id,
-//     skeletonHeight: "h-[60px]",
-//     emptyState: { ... },
-//     renderItem: (subject) => (
-//       <>
-//         <div className="...icon wrapper...">
-//           <BookOpen size={18} />
-//         </div>
-//         <span className="...">{subject.name}</span>
-//       </>
-//     ),
-//   };
-//
-//   <EntityGrid
-//     config={SUBJECT_CONFIG}
-//     data={{ items: subjects, isLoading, isError, searchQuery }}
-//     actions={{ onAdd, onEdit, onDelete }}
-//   />
-// ════════════════════════════════════════════════════════════
 
 interface EntityGridProps<T> extends Pick<
   GridListProps<T>,

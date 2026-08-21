@@ -60,6 +60,49 @@ const STYLES = {
   empty: "px-3 py-6 text-xs text-center text-neutral-400",
 };
 
+// ════════════════════════════════════════════════════════════
+// Searchable Select
+// ════════════════════════════════════════════════════════════
+// Example usage:
+//
+// const [teacherId, setTeacherId] = useState("");
+//
+// const teachers = [
+//   { value: "1", label: "Ahmed Ali" },
+//   { value: "2", label: "Mohamed Hassan" },
+//   { value: "3", label: "Omar Mahmoud" },
+// ];
+//
+// <SearchableSelect
+//   value={teacherId}
+//   onChange={setTeacherId}
+//   options={teachers}
+//   placeholder="اختر المدرس"
+// />
+//
+// For a filter:
+//
+// const [teacherFilter, setTeacherFilter] = useState("");
+//
+// <SearchableSelect
+//   value={teacherFilter}
+//   onChange={setTeacherFilter}
+//   options={teachers}
+//   placeholder="كل المدرسين"
+//   isFilter
+// />
+//
+// Disable the select:
+//
+// <SearchableSelect
+//   value={teacherId}
+//   onChange={setTeacherId}
+//   options={teachers}
+//   placeholder="اختر المدرس"
+//   disabled
+// />
+// ════════════════════════════════════════════════════════════
+
 interface Option {
   value: string;
   label: string;

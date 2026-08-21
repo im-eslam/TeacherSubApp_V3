@@ -19,7 +19,6 @@ import {
   ArrowUpDown,
 } from "lucide-react";
 
-
 const STYLES = {
   wrapper:
     "w-full overflow-auto bg-white border border-neutral-200/80 rounded-2xl",
@@ -76,6 +75,54 @@ const STYLES = {
   emptyAddButton:
     "flex items-center gap-1.5 mt-2 px-4 py-2 text-sm font-medium text-neutral-700 bg-neutral-100 rounded-full hover:bg-neutral-200 transition-colors outline-none focus-visible:ring-2 focus-visible:ring-blue-500/30",
 };
+
+// ════════════════════════════════════════════════════════════
+// DataTable
+// ════════════════════════════════════════════════════════════
+// Usage (inside a feature page, e.g., SubjectsPage):
+//
+//   // 1. Define the config (Ideally outside the component or memoized)
+//   const tableConfig: DataTableConfig<SubjectReadDto> = {
+//     getKey: (item) => item.id,
+//     actionsColumnLabel: "الإجراءات",
+//     columns: [
+//       {
+//         id: "name",
+//         label: "اسم المادة",
+//         isPrimary: true,
+//         allowsSorting: true,
+//         renderCell: (item) => item.name,
+//       },
+//       // ... other columns
+//     ],
+//     emptyState: {
+//       icon: <BookX size={24} />,
+//       title: "لا توجد مواد",
+//       titleFiltered: (q) => `لا توجد نتائج مطابقة لـ "${q}"`,
+//       subtitle: "لم يتم إضافة أي مواد دراسية إلى النظام بعد.",
+//       subtitleFiltered: "تأكد من صحة الكلمة وتجربة بحث مختلفة.",
+//       addFirst: "إضافة مادة",
+//     },
+//   };
+//
+//   // 2. Render the table
+//   <DataTable
+//     config={tableConfig}
+//     data={{
+//       items: subjects,
+//       isLoading: isLoading,
+//       isError: isError,
+//       searchQuery: searchQuery,
+//     }}
+//     actions={{
+//       onAdd: () => setCreateModalOpen(true),
+//       onEdit: (subject) => openEditModal(subject),
+//       onDelete: (subject) => openDeleteModal(subject),
+//     }}
+//     sortDescriptor={sortDescriptor}
+//     onSortChange={setSortDescriptor}
+//   />
+// ════════════════════════════════════════════════════════════
 
 // ── Interfaces ──
 
@@ -155,54 +202,6 @@ function SortIcon({
     <ArrowDown size={12} strokeWidth={2.5} className={iconClass} />
   );
 }
-
-// ════════════════════════════════════════════════════════════
-// DataTable
-// ════════════════════════════════════════════════════════════
-// Usage (inside a feature page, e.g., SubjectsPage):
-//
-//   // 1. Define the config (Ideally outside the component or memoized)
-//   const tableConfig: DataTableConfig<SubjectReadDto> = {
-//     getKey: (item) => item.id,
-//     actionsColumnLabel: "الإجراءات",
-//     columns: [
-//       {
-//         id: "name",
-//         label: "اسم المادة",
-//         isPrimary: true,
-//         allowsSorting: true,
-//         renderCell: (item) => item.name,
-//       },
-//       // ... other columns
-//     ],
-//     emptyState: {
-//       icon: <BookX size={24} />,
-//       title: "لا توجد مواد",
-//       titleFiltered: (q) => `لا توجد نتائج مطابقة لـ "${q}"`,
-//       subtitle: "لم يتم إضافة أي مواد دراسية إلى النظام بعد.",
-//       subtitleFiltered: "تأكد من صحة الكلمة وتجربة بحث مختلفة.",
-//       addFirst: "إضافة مادة",
-//     },
-//   };
-//
-//   // 2. Render the table
-//   <DataTable
-//     config={tableConfig}
-//     data={{
-//       items: subjects,
-//       isLoading: isLoading,
-//       isError: isError,
-//       searchQuery: searchQuery,
-//     }}
-//     actions={{
-//       onAdd: () => setCreateModalOpen(true),
-//       onEdit: (subject) => openEditModal(subject),
-//       onDelete: (subject) => openDeleteModal(subject),
-//     }}
-//     sortDescriptor={sortDescriptor}
-//     onSortChange={setSortDescriptor}
-//   />
-// ════════════════════════════════════════════════════════════
 
 interface DataTableProps<T> {
   config: DataTableConfig<T>;

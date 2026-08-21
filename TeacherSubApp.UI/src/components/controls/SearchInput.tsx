@@ -11,10 +11,6 @@ import { Search, X } from "lucide-react";
 const STYLES = {
   field: "relative flex-1 min-w-[280px] max-w-sm",
 
-  // ps/pe-11 reserves space for the leading search icon and trailing
-  // clear button — intentionally different from TextField's own
-  // ps/pe-11 (same reason) and from Select/SearchableSelect's px-4
-  // (no icon gutters needed there). Don't "align" these paddings.
   input:
     "w-full ps-11 pe-11 py-2.5 min-h-[44px] text-sm text-neutral-900 bg-white border border-neutral-200/80 rounded-full placeholder:text-neutral-400 outline-none transition-all hover:border-blue-300 focus:ring-2 focus:ring-blue-500/30 focus:border-blue-500 [&::-webkit-search-cancel-button]:hidden",
 
