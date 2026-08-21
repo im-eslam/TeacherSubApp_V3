@@ -2,13 +2,13 @@ import { useMemo, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import toast from "react-hot-toast";
 import type { SortDescriptor } from "react-aria-components/Table";
-import { useDebouncedValue } from "../../lib/useDebouncedValue";
 import { useDelayedLoading } from "../../lib/useDelayedLoading";
-import type { SearchableSelectOption } from "../../components/controls/SearchableSelect";
 import type { SelectOption } from "../../components/controls/Select";
 import { useSubjects } from "../subjects/hooks";
 import { teachersApi } from "./api";
-import type { TeacherQuery, TeacherReadDto, TeacherWriteDto } from "./types";
+import type { TeacherReadDto, TeacherWriteDto } from "./types";
+
+type TeacherSubjectOption = { value: string; label: string };
 
 const ALL_VALUE = "all";
 const SUPERVISOR_VALUE = "supervisor";
@@ -22,7 +22,7 @@ const ROLE_OPTIONS: SelectOption[] = [
 
 const teacherKeys = {
   all: ["teachers"] as const,
-  list: (query: TeacherQuery) => [...teacherKeys.all, "list", query] as const,
+  list: () => [...teacherKeys.all, "list"] as const,
   detail: (id: number) => [...teacherKeys.all, "detail", id] as const,
 };
 
@@ -47,7 +47,7 @@ export interface TeacherFilterViewModel {
   onSubjectFilterChange: (value: string) => void;
   roleFilter: string;
   onRoleFilterChange: (value: string) => void;
-  subjectOptions: SearchableSelectOption[];
+  subjectOptions: TeacherSubjectOption[];
   roleOptions: SelectOption[];
   hasFilters: boolean;
   isDisabled: boolean;
@@ -89,10 +89,10 @@ export interface TeacherPageViewModel {
   mutations: TeacherMutationViewModel;
 }
 
-export function useTeachers(query: TeacherQuery = {}) {
+export function useTeachers() {
   return useQuery({
-    queryKey: teacherKeys.list(query),
-    queryFn: ({ signal }) => teachersApi.getAll(query, signal),
+    queryKey: teacherKeys.list(),
+    queryFn: ({ signal }) => teachersApi.getAll({}, signal),
   });
 }
 
@@ -156,39 +156,35 @@ export function useTeachersPage(): TeacherPageViewModel {
   const [selectedTeacher, setSelectedTeacher] =
     useState<TeacherReadDto | null>(null);
 
-  const debouncedQuery = useDebouncedValue(query, 250);
-  const requestQuery = useMemo<TeacherQuery>(
-    () => ({
-      name: debouncedQuery.trim() || undefined,
-      subjectId:
-        subjectFilter === ALL_VALUE ? undefined : Number(subjectFilter),
-      isSupervisor:
-        roleFilter === SUPERVISOR_VALUE
-          ? true
-          : roleFilter === TEACHER_VALUE
-            ? false
-            : undefined,
-    }),
-    [debouncedQuery, roleFilter, subjectFilter],
-  );
-
   const {
     data: teachers = [],
     isLoading,
     isError,
     error,
     refetch,
-  } = useTeachers(requestQuery);
+  } = useTeachers();
   const { data: subjects = [] } = useSubjects();
   const createMutation = useCreateTeacher();
   const updateMutation = useUpdateTeacher();
   const deleteMutation = useDeleteTeacher();
 
   const displayedTeachers = useMemo(() => {
+    const q = query.trim().toLocaleLowerCase();
     const key = String(sortDescriptor.column ?? "name") as keyof TeacherReadDto;
     const multiplier = sortDescriptor.direction === "ascending" ? 1 : -1;
 
-    return [...teachers].sort((a, b) => {
+    return teachers.filter((teacher) => {
+      if (q && !teacher.name.toLocaleLowerCase().includes(q)) return false;
+      if (
+        subjectFilter !== ALL_VALUE &&
+        String(teacher.subjectId) !== subjectFilter
+      ) {
+        return false;
+      }
+      if (roleFilter === SUPERVISOR_VALUE && !teacher.isSupervisor) return false;
+      if (roleFilter === TEACHER_VALUE && teacher.isSupervisor) return false;
+      return true;
+    }).sort((a, b) => {
       if (key === "isSupervisor") {
         return (
           (Number(a.isSupervisor) - Number(b.isSupervisor)) * multiplier
@@ -201,12 +197,12 @@ export function useTeachersPage(): TeacherPageViewModel {
         ? valueA.localeCompare(valueB, "ar") * multiplier
         : 0;
     });
-  }, [sortDescriptor, teachers]);
+  }, [query, roleFilter, sortDescriptor, subjectFilter, teachers]);
 
   const showLoader = useDelayedLoading(isLoading, 200);
   const isAwaitingData = isLoading && teachers.length === 0;
   const isDisabled = isLoading;
-  const subjectOptions: SearchableSelectOption[] = [
+  const subjectOptions: TeacherSubjectOption[] = [
     { value: ALL_VALUE, label: "كل المواد" },
     ...subjects.map((subject) => ({
       value: String(subject.id),
@@ -262,7 +258,7 @@ export function useTeachersPage(): TeacherPageViewModel {
       isLoading: showLoader,
       isAwaitingData,
       isError,
-      searchQuery: debouncedQuery,
+      searchQuery: query,
       isFiltered: subjectFilter !== ALL_VALUE || roleFilter !== ALL_VALUE,
       sortDescriptor,
       onSortChange: setSortDescriptor,

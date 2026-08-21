@@ -2,18 +2,16 @@ import { useMemo, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import toast from "react-hot-toast";
 import type { SortOrder } from "../../components/controls/SortToggle";
-import { useDebouncedValue } from "../../lib/useDebouncedValue";
 import { useDelayedLoading } from "../../lib/useDelayedLoading";
 import { eventKeysApi } from "./api";
 import type {
-  EventKeyQuery,
   EventKeyReadDto,
   EventKeyWriteDto,
 } from "./types";
 
 const eventKeyKeys = {
   all: ["eventKeys"] as const,
-  list: (query: EventKeyQuery) => [...eventKeyKeys.all, "list", query] as const,
+  list: () => [...eventKeyKeys.all, "list"] as const,
   detail: (id: number) => [...eventKeyKeys.all, "detail", id] as const,
 };
 
@@ -68,10 +66,10 @@ export interface EventPageViewModel {
   mutations: EventMutationViewModel;
 }
 
-export function useEventKeys(query: EventKeyQuery = {}) {
+export function useEventKeys() {
   return useQuery({
-    queryKey: eventKeyKeys.list(query),
-    queryFn: ({ signal }) => eventKeysApi.getAll(query, signal),
+    queryKey: eventKeyKeys.list(),
+    queryFn: ({ signal }) => eventKeysApi.getAll({}, signal),
   });
 }
 
@@ -123,7 +121,6 @@ export function useDeleteEventKey() {
 
 export function useEventsPage(): EventPageViewModel {
   const [query, setQuery] = useState("");
-  const debouncedQuery = useDebouncedValue(query, 250);
   const [sortOrder, setSortOrder] = useState<SortOrder>("asc");
   const [createOpen, setCreateOpen] = useState(false);
   const [editOpen, setEditOpen] = useState(false);
@@ -131,30 +128,31 @@ export function useEventsPage(): EventPageViewModel {
   const [selectedEventKey, setSelectedEventKey] =
     useState<EventKeyReadDto | null>(null);
 
-  const requestQuery = useMemo<EventKeyQuery>(
-    () => ({ eventName: debouncedQuery.trim() || undefined }),
-    [debouncedQuery],
-  );
   const {
     data: eventKeys = [],
     isLoading,
     isError,
     error,
     refetch,
-  } = useEventKeys(requestQuery);
+  } = useEventKeys();
   const createMutation = useCreateEventKey();
   const updateMutation = useUpdateEventKey();
   const deleteMutation = useDeleteEventKey();
 
-  const displayedEventKeys = useMemo(
-    () =>
-      [...eventKeys].sort((a, b) =>
-        sortOrder === "asc"
-          ? a.eventName.localeCompare(b.eventName, "ar")
-          : b.eventName.localeCompare(a.eventName, "ar"),
-      ),
-    [eventKeys, sortOrder],
-  );
+  const displayedEventKeys = useMemo(() => {
+    const normalizedQuery = query.trim().toLocaleLowerCase();
+    const filteredEventKeys = normalizedQuery
+      ? eventKeys.filter((eventKey) =>
+          eventKey.eventName.toLocaleLowerCase().includes(normalizedQuery),
+        )
+      : eventKeys;
+
+    return [...filteredEventKeys].sort((a, b) =>
+      sortOrder === "asc"
+        ? a.eventName.localeCompare(b.eventName, "ar")
+        : b.eventName.localeCompare(a.eventName, "ar"),
+    );
+  }, [eventKeys, query, sortOrder]);
   const showLoader = useDelayedLoading(isLoading, 200);
   const isAwaitingData = isLoading && eventKeys.length === 0;
   const isDisabled = isLoading;
@@ -206,7 +204,7 @@ export function useEventsPage(): EventPageViewModel {
       isLoading: showLoader,
       isAwaitingData,
       isError,
-      searchQuery: debouncedQuery,
+      searchQuery: query,
       onAdd: openCreate,
       onEdit: openEdit,
       onDelete: openDelete,
