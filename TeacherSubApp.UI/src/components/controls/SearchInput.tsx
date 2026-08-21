@@ -1,3 +1,4 @@
+import { memo } from "react";
 import {
   SearchField,
   Input,
@@ -47,7 +48,7 @@ interface SearchInputProps extends Omit<
   isDisabled?: boolean;
 }
 
-export function SearchInput({
+export const SearchInput = memo(function SearchInput({
   value,
   onChange,
   placeholder,
@@ -77,4 +78,6 @@ export function SearchInput({
       </Button>
     </SearchField>
   );
-}
+});
+
+SearchInput.displayName = "SearchInput";

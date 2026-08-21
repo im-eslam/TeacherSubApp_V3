@@ -3,11 +3,9 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import toast from "react-hot-toast";
 import type { SortDescriptor } from "react-aria-components/Table";
 import type { SelectOption } from "../../components/controls/Select";
-import { useDebouncedValue } from "../../lib/useDebouncedValue";
 import { useDelayedLoading } from "../../lib/useDelayedLoading";
 import { classesApi } from "./api";
 import type {
-  SchoolClassQuery,
   SchoolClassReadDto,
   SchoolClassWriteDto,
 } from "./types";
@@ -16,7 +14,7 @@ const ALL_VALUE = "all";
 
 const classKeys = {
   all: ["classes"] as const,
-  list: (query: SchoolClassQuery) => [...classKeys.all, "list", query] as const,
+  list: () => [...classKeys.all, "list"] as const,
   grades: () => [...classKeys.all, "grades"] as const,
   sections: (grade: number | null) =>
     [...classKeys.all, "sections", grade] as const,
@@ -84,10 +82,10 @@ export interface ClassesPageViewModel {
   mutations: ClassesMutationViewModel;
 }
 
-export function useSchoolClasses(query: SchoolClassQuery = {}) {
+export function useSchoolClasses() {
   return useQuery({
-    queryKey: classKeys.list(query),
-    queryFn: ({ signal }) => classesApi.getAll(query, signal),
+    queryKey: classKeys.list(),
+    queryFn: ({ signal }) => classesApi.getAll({}, signal),
   });
 }
 
@@ -151,7 +149,6 @@ export function useDeleteSchoolClass() {
 
 export function useClassesPage(): ClassesPageViewModel {
   const [query, setQuery] = useState("");
-  const debouncedQuery = useDebouncedValue(query, 250);
   const [gradeFilter, setGradeFilter] = useState(ALL_VALUE);
   const [sectionFilter, setSectionFilter] = useState(ALL_VALUE);
   const [sortDescriptor, setSortDescriptor] = useState<SortDescriptor>({
@@ -165,23 +162,13 @@ export function useClassesPage(): ClassesPageViewModel {
     useState<SchoolClassReadDto | null>(null);
 
   const selectedGrade = gradeFilter === ALL_VALUE ? null : Number(gradeFilter);
-  const requestQuery = useMemo<SchoolClassQuery>(
-    () => ({
-      displayName: debouncedQuery.trim() || undefined,
-      grade: selectedGrade ?? undefined,
-      section:
-        sectionFilter === ALL_VALUE ? undefined : Number(sectionFilter),
-    }),
-    [debouncedQuery, sectionFilter, selectedGrade],
-  );
-
   const {
     data: classes = [],
     isLoading,
     isError,
     error,
     refetch,
-  } = useSchoolClasses(requestQuery);
+  } = useSchoolClasses();
   const { data: grades = [], isLoading: isGradesLoading } = useGrades();
   const { data: sections = [], isLoading: isSectionsLoading } =
     useSectionsForGrade(selectedGrade);
@@ -190,10 +177,28 @@ export function useClassesPage(): ClassesPageViewModel {
   const deleteMutation = useDeleteSchoolClass();
 
   const displayedClasses = useMemo(() => {
+    const normalizedQuery = query.trim().toLocaleLowerCase();
     const key = String(sortDescriptor.column ?? "displayName") as keyof SchoolClassReadDto;
     const multiplier = sortDescriptor.direction === "ascending" ? 1 : -1;
 
-    return [...classes].sort((a, b) => {
+    return classes.filter((schoolClass) => {
+      if (
+        normalizedQuery &&
+        !schoolClass.displayName.toLocaleLowerCase().includes(normalizedQuery)
+      ) {
+        return false;
+      }
+      if (selectedGrade !== null && schoolClass.grade !== selectedGrade) {
+        return false;
+      }
+      if (
+        sectionFilter !== ALL_VALUE &&
+        schoolClass.section !== Number(sectionFilter)
+      ) {
+        return false;
+      }
+      return true;
+    }).sort((a, b) => {
       if (key === "displayName") {
         return a.displayName.localeCompare(b.displayName, "ar") * multiplier;
       }
@@ -207,7 +212,7 @@ export function useClassesPage(): ClassesPageViewModel {
         ? (valueA - valueB) * multiplier
         : 0;
     });
-  }, [classes, sortDescriptor]);
+  }, [classes, query, sectionFilter, selectedGrade, sortDescriptor]);
 
   const showLoader = useDelayedLoading(isLoading, 200);
   const isAwaitingData = isLoading && classes.length === 0;
@@ -271,7 +276,7 @@ export function useClassesPage(): ClassesPageViewModel {
       isLoading: showLoader,
       isAwaitingData,
       isError,
-      searchQuery: debouncedQuery,
+      searchQuery: query,
       isFiltered: gradeFilter !== ALL_VALUE || sectionFilter !== ALL_VALUE,
       sortDescriptor,
       onSortChange: setSortDescriptor,

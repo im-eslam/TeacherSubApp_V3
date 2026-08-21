@@ -2,14 +2,13 @@ import { useMemo, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import toast from "react-hot-toast";
 import type { SortOrder } from "../../components/controls/SortToggle";
-import { useDebouncedValue } from "../../lib/useDebouncedValue";
 import { useDelayedLoading } from "../../lib/useDelayedLoading";
 import { subjectsApi } from "./api";
-import type { SubjectQuery, SubjectReadDto, SubjectWriteDto } from "./types";
+import type { SubjectReadDto, SubjectWriteDto } from "./types";
 
 const subjectKeys = {
   all: ["subjects"] as const,
-  list: (query: SubjectQuery) => [...subjectKeys.all, "list", query] as const,
+  list: () => [...subjectKeys.all, "list"] as const,
   detail: (id: number) => [...subjectKeys.all, "detail", id] as const,
 };
 
@@ -65,10 +64,10 @@ export interface SubjectPageViewModel {
   mutations: SubjectMutationViewModel;
 }
 
-export function useSubjects(query: SubjectQuery = {}) {
+export function useSubjects() {
   return useQuery({
-    queryKey: subjectKeys.list(query),
-    queryFn: ({ signal }) => subjectsApi.getAll(query, signal),
+    queryKey: subjectKeys.list(),
+    queryFn: ({ signal }) => subjectsApi.getAll({}, signal),
   });
 }
 
@@ -120,7 +119,6 @@ export function useDeleteSubject() {
 
 export function useSubjectsPage(): SubjectPageViewModel {
   const [query, setQuery] = useState("");
-  const debouncedQuery = useDebouncedValue(query, 250);
   const [sortOrder, setSortOrder] = useState<SortOrder>("asc");
   const [createOpen, setCreateOpen] = useState(false);
   const [editOpen, setEditOpen] = useState(false);
@@ -128,30 +126,31 @@ export function useSubjectsPage(): SubjectPageViewModel {
   const [selectedSubject, setSelectedSubject] =
     useState<SubjectReadDto | null>(null);
 
-  const requestQuery = useMemo<SubjectQuery>(
-    () => ({ name: debouncedQuery.trim() || undefined }),
-    [debouncedQuery],
-  );
   const {
     data: subjects = [],
     isLoading,
     isError,
     error,
     refetch,
-  } = useSubjects(requestQuery);
+  } = useSubjects();
   const createMutation = useCreateSubject();
   const updateMutation = useUpdateSubject();
   const deleteMutation = useDeleteSubject();
 
-  const displayedSubjects = useMemo(
-    () =>
-      [...subjects].sort((a, b) =>
-        sortOrder === "asc"
-          ? a.name.localeCompare(b.name, "ar")
-          : b.name.localeCompare(a.name, "ar"),
-      ),
-    [sortOrder, subjects],
-  );
+  const displayedSubjects = useMemo(() => {
+    const normalizedQuery = query.trim().toLocaleLowerCase();
+    const filteredSubjects = normalizedQuery
+      ? subjects.filter((subject) =>
+          subject.name.toLocaleLowerCase().includes(normalizedQuery),
+        )
+      : subjects;
+
+    return [...filteredSubjects].sort((a, b) =>
+      sortOrder === "asc"
+        ? a.name.localeCompare(b.name, "ar")
+        : b.name.localeCompare(a.name, "ar"),
+    );
+  }, [query, sortOrder, subjects]);
   const showLoader = useDelayedLoading(isLoading, 200);
   const isAwaitingData = isLoading && subjects.length === 0;
   const isDisabled = isLoading;
@@ -204,7 +203,7 @@ export function useSubjectsPage(): SubjectPageViewModel {
       isLoading: showLoader,
       isAwaitingData,
       isError,
-      searchQuery: debouncedQuery,
+      searchQuery: query,
       onAdd: openCreate,
       onEdit: openEdit,
       onDelete: openDelete,
