@@ -23,7 +23,7 @@ namespace TeacherSubApp.Api.Features.SubstituteMatching.Internal
             List<Teacher> teachers = await FetchActiveTeachersAsync();
             List<WeeklySchedule> daySchedules = await FetchDaySchedulesAsync();
             ValidateNoImpossibleSlotStates(daySchedules);
-            Dictionary<int, TeacherAbsence> absenceTodayByTeacherId = await FetchAbsencesTodayAsync();
+            Dictionary<int, TeacherAbsence> absenceByTeacherId = await FetchAbsencesForServiceDateAsync();
             List<Substitution> relevantSubstitutions = await FetchRelevantSubstitutionsAsync();
             Dictionary<int, int> weeklyLoadByTeacherId = await FetchWeeklyLoadAsync();
 
@@ -34,11 +34,11 @@ namespace TeacherSubApp.Api.Features.SubstituteMatching.Internal
             foreach (Teacher teacher in teachers)
             {
                 List<WeeklySchedule> teacherDaySchedules = daySchedules.Where(ws => ws.TeacherId == teacher.Id).ToList();
-                absenceTodayByTeacherId.TryGetValue(teacher.Id, out TeacherAbsence? absenceToday);
+                absenceByTeacherId.TryGetValue(teacher.Id, out TeacherAbsence? absenceOnServiceDate);
                 List<Substitution> teacherSubstitutions = relevantSubstitutions.Where(s => s.SubstituteTeacherId == teacher.Id).ToList();
                 int weeklyLoad = weeklyLoadByTeacherId.GetValueOrDefault(teacher.Id, 0);
 
-                contexts.Add(new TeacherContext(teacher, teacherDaySchedules, absenceToday, teacherSubstitutions, weeklyLoad));
+                contexts.Add(new TeacherContext(teacher, teacherDaySchedules, absenceOnServiceDate, teacherSubstitutions, weeklyLoad, _query.ServiceDate));
             }
 
             return contexts;
@@ -63,32 +63,28 @@ namespace TeacherSubApp.Api.Features.SubstituteMatching.Internal
                 .ToListAsync();
         }
 
-        private async Task<Dictionary<int, TeacherAbsence>> FetchAbsencesTodayAsync()
+        private async Task<Dictionary<int, TeacherAbsence>> FetchAbsencesForServiceDateAsync()
         {
-            DateOnly today = DateOnly.FromDateTime(DateTime.UtcNow);
-
             return await _db.TeacherAbsences
                 .AsNoTracking()
-                .Where(a => a.DeletedAt == null && a.AbsenceDate == today)
+                .Where(a => a.DeletedAt == null && a.AbsenceDate == _query.ServiceDate)
                 .ToDictionaryAsync(a => a.TeacherId);
         }
 
         private async Task<List<Substitution>> FetchRelevantSubstitutionsAsync()
         {
-            DateOnly today = DateOnly.FromDateTime(DateTime.UtcNow);
-            DateOnly yesterday = today.AddDays(-1);
+            DateOnly yesterday = _query.ServiceDate.AddDays(-1);
 
             return await _db.Substitutions
                 .AsNoTracking()
                 .Include(s => s.WeeklySchedule)
-                .Where(s => s.DeletedAt == null && (s.ServiceDate == today || s.ServiceDate == yesterday))
+                .Where(s => s.DeletedAt == null && (s.ServiceDate == _query.ServiceDate || s.ServiceDate == yesterday))
                 .ToListAsync();
         }
 
         private async Task<Dictionary<int, int>> FetchWeeklyLoadAsync()
         {
-            DateOnly today = DateOnly.FromDateTime(DateTime.UtcNow);
-            DateOnly weekStart = _StartOfWeek(today);
+            DateOnly weekStart = _StartOfWeek(_query.ServiceDate);
             DateOnly weekEnd = weekStart.AddDays(6);
 
             Dictionary<int, int> baseLoadByTeacherId = await _db.WeeklySchedules
@@ -116,6 +112,7 @@ namespace TeacherSubApp.Api.Features.SubstituteMatching.Internal
 
         private static DateOnly _StartOfWeek(DateOnly reference)
         {
+            // Business week starts on Sunday.
             int daysSinceSunday = ((int)reference.DayOfWeek + 1) % 7;
             return reference.AddDays(-daysSinceSunday);
         }

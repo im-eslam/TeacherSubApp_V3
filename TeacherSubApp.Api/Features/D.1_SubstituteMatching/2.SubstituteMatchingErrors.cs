@@ -39,14 +39,20 @@ namespace TeacherSubApp.Api.Features.SubstituteMatching
 
         public static readonly Error InvalidDayOfWeek = Error.Create(
             "SUB_INVALID_DAY",
-            "Day of week must be between 1 and 7.",
-            "يجب أن يكون يوم الأسبوع بين 1 و 7."
+            "Day of week must be between 1 and 5.",
+            "يجب أن يكون يوم الأسبوع بين 1 و 5."
         );
 
         public static readonly Error InvalidPeriodNumber = Error.Create(
             "SUB_INVALID_PERIOD",
-            "Period number must be greater than 0.",
-            "يجب أن يكون رقم الحصة أكبر من 0."
+            "Period number must be between 1 and 7.",
+            "يجب أن يكون رقم الحصة بين 1 و 7."
+        );
+
+        public static readonly Error ServiceDateDayOfWeekMismatch = Error.Create(
+            "SUB_SERVICE_DATE_DAY_MISMATCH",
+            "Service date does not match the requested day of week.",
+            "تاريخ الخدمة لا يطابق يوم الأسبوع المطلوب."
         );
     }
 }

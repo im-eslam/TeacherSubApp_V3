@@ -7,24 +7,32 @@ namespace TeacherSubApp.Api.Features.SubstituteMatching.Internal
         public Teacher Teacher { get; }
 
         private readonly List<WeeklySchedule> _daySchedules;
-        private readonly TeacherAbsence? _absenceToday;
+        private readonly TeacherAbsence? _absenceOnServiceDate;
         private readonly List<Substitution> _relatedSubstitutions;
         private readonly int _weeklyLoad;
+        private readonly DateOnly _serviceDate;
 
-        public TeacherContext(Teacher teacher, List<WeeklySchedule> daySchedules, TeacherAbsence? absenceToday, List<Substitution> substitutions, int weeklyLoad)
+        public TeacherContext(
+            Teacher teacher,
+            List<WeeklySchedule> daySchedules,
+            TeacherAbsence? absenceOnServiceDate,
+            List<Substitution> substitutions,
+            int weeklyLoad,
+            DateOnly serviceDate)
         {
             Teacher = teacher;
             _daySchedules = daySchedules;
-            _absenceToday = absenceToday;
+            _absenceOnServiceDate = absenceOnServiceDate;
             _relatedSubstitutions = substitutions;
             _weeklyLoad = weeklyLoad;
+            _serviceDate = serviceDate;
         }
 
         // ==== Hard-Drop Checks ====
 
-        public bool IsAbsentToday()
+        public bool IsAbsentOnServiceDate()
         {
-            return _absenceToday is not null;
+            return _absenceOnServiceDate is not null;
         }
 
         public bool IsTeachingRegularClassAt(int periodNumber)
@@ -48,7 +56,8 @@ namespace TeacherSubApp.Api.Features.SubstituteMatching.Internal
 
         public bool IsAlreadyCoveringAt(int periodNumber)
         {
-            return _relatedSubstitutions.Any(s => s.WeeklySchedule.PeriodNumber == periodNumber);
+            return _relatedSubstitutions.Any(s => s.ServiceDate == _serviceDate
+                                                && s.WeeklySchedule.PeriodNumber == periodNumber);
         }
 
         // ==== Bad Choices ====
@@ -104,8 +113,7 @@ namespace TeacherSubApp.Api.Features.SubstituteMatching.Internal
 
         public bool SubbedYesterday()
         {
-            DateOnly today = DateOnly.FromDateTime(DateTime.UtcNow);
-            DateOnly yesterday = today.AddDays(-1);
+            DateOnly yesterday = _serviceDate.AddDays(-1);
             return _relatedSubstitutions.Any(s => s.ServiceDate == yesterday);
         }
 

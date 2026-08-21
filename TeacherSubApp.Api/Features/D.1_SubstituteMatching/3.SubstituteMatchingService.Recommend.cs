@@ -49,14 +49,25 @@ namespace TeacherSubApp.Api.Features.SubstituteMatching
 
         private Result _ValidateQuery()
         {
-            if (_query.DayOfWeek is < 1 or > 7)
+            if (_query.DayOfWeek is < 1 or > 5)
             {
                 return Result.Failure(ErrorType.Validation, SubstituteMatchingErrors.InvalidDayOfWeek);
             }
 
-            if (_query.PeriodNumber <= 0)
+            if (_query.PeriodNumber is < 1 or > 7)
             {
                 return Result.Failure(ErrorType.Validation, SubstituteMatchingErrors.InvalidPeriodNumber);
+            }
+
+            int serviceDateDayOfWeek = (int)_query.ServiceDate.DayOfWeek;
+            if (serviceDateDayOfWeek is < 1 or > 5)
+            {
+                return Result.Failure(ErrorType.Validation, SubstituteMatchingErrors.InvalidDayOfWeek);
+            }
+
+            if (serviceDateDayOfWeek != _query.DayOfWeek)
+            {
+                return Result.Failure(ErrorType.Validation, SubstituteMatchingErrors.ServiceDateDayOfWeekMismatch);
             }
 
             return Result.Success();
@@ -112,7 +123,7 @@ namespace TeacherSubApp.Api.Features.SubstituteMatching
         {
             int periodNumber = _query.PeriodNumber;
 
-            if (teacher.IsAbsentToday())
+            if (teacher.IsAbsentOnServiceDate())
             {
                 return false;
             }
