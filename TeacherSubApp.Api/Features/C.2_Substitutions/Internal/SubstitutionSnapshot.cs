@@ -1,6 +1,6 @@
 ﻿namespace TeacherSubApp.Api.Features.Substitutions.Internal
 {
-    public class SubstitutionSnapshot
+    public sealed class SubstitutionSnapshot
     {
         public string AbsentTeacherName { get; }
         public string AbsentTeacherSubject { get; }
@@ -9,7 +9,7 @@
         public string SubstituteTeacherSubject { get; }
 
         public string ClassName { get; }
-        public int PeriodNumber { get; set; }
+        public int PeriodNumber { get; }
 
         public SubstitutionSnapshot(
             string absentTeacherName,

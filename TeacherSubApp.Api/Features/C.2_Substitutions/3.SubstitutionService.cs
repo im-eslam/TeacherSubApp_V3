@@ -10,10 +10,11 @@ namespace TeacherSubApp.Api.Features.Substitutions
     public class SubstitutionService : ISubstitutionService
     {
         private readonly AppDbContext _db;
-
+        private readonly SubstitutionSnapshotHandler _snapshotHandler;
         public SubstitutionService(AppDbContext db)
         {
             _db = db;
+            _snapshotHandler = new SubstitutionSnapshotHandler(db);
         }
 
         public async Task<Result<List<SubstitutionReadDto>>> GetAllAsync(SubstitutionQuery query)
@@ -33,7 +34,7 @@ namespace TeacherSubApp.Api.Features.Substitutions
 
         public async Task<Result<SubstitutionReadDto>> CreateAsync(SubstitutionWriteDto dto)
         {
-            SubstitutionSnapshot snapshot = await _BuildSnapshotAsync(dto.AbsenceId, dto.WeeklyScheduleId, dto.SubstituteTeacherId);
+            SubstitutionSnapshot snapshot = await _snapshotHandler.BuildAsync(dto.AbsenceId, dto.WeeklyScheduleId, dto.SubstituteTeacherId);
 
             List<Func<Task<Result>>> rules =
             [
@@ -41,8 +42,8 @@ namespace TeacherSubApp.Api.Features.Substitutions
                 () => _CheckWeeklyScheduleActiveAsync(dto.WeeklyScheduleId),
                 () => _CheckWeeklyScheduleEligibleForSubstitutionAsync(dto.WeeklyScheduleId),
                 () => _CheckSubstituteTeacherActiveAsync(dto.SubstituteTeacherId),
-                () => _CheckSubstituteDoubleBookedAsync(dto.SubstituteTeacherId,dto.ServiceDate,snapshot.PeriodNumber,excludeId: null),
-                () => _CheckSubstituteCannotBeAbsentTeacherAsync(dto.AbsenceId,dto.SubstituteTeacherId)
+                () => _CheckSubstituteDoubleBookedAsync(dto.SubstituteTeacherId, dto.ServiceDate, snapshot.PeriodNumber, excludeId: null),
+                () => _CheckSubstituteCannotBeAbsentTeacherAsync(dto.AbsenceId, dto.SubstituteTeacherId)
             ];
 
             foreach (Func<Task<Result>> rule in rules)
@@ -66,13 +67,13 @@ namespace TeacherSubApp.Api.Features.Substitutions
                 return Result<SubstitutionReadDto>.Failure(ErrorType.NotFound, SubstitutionErrors.NotFound);
             }
 
-            SubstitutionChangeSet changes = _DetectChanges(substitution, dto);
+            SubstitutionChangeSet changes = SubstitutionChangeSet.Detect(substitution, dto);
             if (!changes.Any)
             {
                 return Result<SubstitutionReadDto>.Success(SubstitutionReadDto.FromEntity(substitution));
             }
 
-            SubstitutionSnapshot snapshot = await _BuildSnapshotAsync(dto.AbsenceId, dto.WeeklyScheduleId, dto.SubstituteTeacherId);
+            SubstitutionSnapshot snapshot = await _snapshotHandler.BuildAsync(dto.AbsenceId, dto.WeeklyScheduleId, dto.SubstituteTeacherId);
 
             List<Func<Task<Result>>> rules = [];
             if (changes.AbsenceChanged)
@@ -118,18 +119,14 @@ namespace TeacherSubApp.Api.Features.Substitutions
                 return Result.Failure(ErrorType.NotFound, SubstitutionErrors.NotFound);
             }
 
-            DateTime now = DateTime.UtcNow;
-            substitution.DeletedAt = now;
-            substitution.UpdatedAt = now;
-
-            await _db.SaveChangesAsync();
+            await _SoftDeleteAsync(substitution);
             return Result.Success();
         }
 
         #region === Helper Methods ===
 
         // Read
-        private async Task<List<SubstitutionReadDto>> _FetchAllActiveAsync(SubstitutionQuery query)
+        protected async Task<List<SubstitutionReadDto>> _FetchAllActiveAsync(SubstitutionQuery query)
         {
             IQueryable<Substitution> q = _db.Substitutions
                 .AsNoTracking()
@@ -161,14 +158,14 @@ namespace TeacherSubApp.Api.Features.Substitutions
                 .ToListAsync();
         }
 
-        private Task<Substitution?> _FindActiveByIdAsync(int id)
+        protected Task<Substitution?> _FindActiveByIdAsync(int id)
         {
             return _db.Substitutions
                 .FirstOrDefaultAsync(s => s.Id == id && s.DeletedAt == null);
         }
 
         // Validation
-        private async Task<Result> _CheckAbsenceActiveAsync(int absenceId)
+        protected async Task<Result> _CheckAbsenceActiveAsync(int absenceId)
         {
             bool absenceValid = await _db.TeacherAbsences
                 .AnyAsync(a => a.Id == absenceId && a.DeletedAt == null);
@@ -178,7 +175,7 @@ namespace TeacherSubApp.Api.Features.Substitutions
                 : Result.Failure(ErrorType.Validation, SubstitutionErrors.AbsenceInvalid);
         }
 
-        private async Task<Result> _CheckWeeklyScheduleActiveAsync(int weeklyScheduleId)
+        protected async Task<Result> _CheckWeeklyScheduleActiveAsync(int weeklyScheduleId)
         {
             bool scheduleValid = await _db.WeeklySchedules
                 .AnyAsync(ws => ws.Id == weeklyScheduleId && ws.DeletedAt == null);
@@ -188,7 +185,7 @@ namespace TeacherSubApp.Api.Features.Substitutions
                 : Result.Failure(ErrorType.Validation, SubstitutionErrors.WeeklyScheduleInvalid);
         }
 
-        private async Task<Result> _CheckWeeklyScheduleEligibleForSubstitutionAsync(int weeklyScheduleId)
+        protected async Task<Result> _CheckWeeklyScheduleEligibleForSubstitutionAsync(int weeklyScheduleId)
         {
             WeeklySchedule? schedule = await _db.WeeklySchedules
                 .AsNoTracking()
@@ -203,7 +200,7 @@ namespace TeacherSubApp.Api.Features.Substitutions
                 : Result.Success();
         }
 
-        private async Task<Result> _CheckSubstituteTeacherActiveAsync(int substituteTeacherId)
+        protected async Task<Result> _CheckSubstituteTeacherActiveAsync(int substituteTeacherId)
         {
             bool teacherValid = await _db.Teachers
                 .AnyAsync(t => t.Id == substituteTeacherId && t.DeletedAt == null);
@@ -213,7 +210,7 @@ namespace TeacherSubApp.Api.Features.Substitutions
                 : Result.Failure(ErrorType.Validation, SubstitutionErrors.SubstituteTeacherInvalid);
         }
 
-        private async Task<Result> _CheckSubstituteDoubleBookedAsync(int substituteTeacherId, DateOnly serviceDate, int periodNumber, int? excludeId)
+        protected async Task<Result> _CheckSubstituteDoubleBookedAsync(int substituteTeacherId, DateOnly serviceDate, int periodNumber, int? excludeId)
         {
             bool alreadyBooked = await _db.Substitutions
                 .AnyAsync(s => s.DeletedAt == null
@@ -227,7 +224,7 @@ namespace TeacherSubApp.Api.Features.Substitutions
                 : Result.Success();
         }
 
-        private async Task<Result> _CheckSubstituteCannotBeAbsentTeacherAsync(int absenceId, int substituteTeacherId)
+        protected async Task<Result> _CheckSubstituteCannotBeAbsentTeacherAsync(int absenceId, int substituteTeacherId)
         {
             int? absentTeacherId = await _db.TeacherAbsences
                 .Where(a => a.Id == absenceId && a.DeletedAt == null)
@@ -239,68 +236,20 @@ namespace TeacherSubApp.Api.Features.Substitutions
                 : Result.Success();
         }
 
-        // Snapshot
-        private async Task<SubstitutionSnapshot> _BuildSnapshotAsync(int absenceId, int weeklyScheduleId, int substituteTeacherId)
-        {
-            TeacherAbsence? absence = await _db.TeacherAbsences
-                .AsNoTracking()
-                .Include(a => a.Teacher)
-                    .ThenInclude(t => t.Subject)
-                .FirstOrDefaultAsync(a => a.Id == absenceId && a.DeletedAt == null);
-
-            WeeklySchedule? schedule = await _db.WeeklySchedules
-                .AsNoTracking()
-                .Include(ws => ws.SchoolClass)
-                .Include(ws => ws.EventKey)
-                .FirstOrDefaultAsync(ws => ws.Id == weeklyScheduleId && ws.DeletedAt == null);
-
-            Teacher? substituteTeacher = await _db.Teachers
-                .AsNoTracking()
-                .Include(t => t.Subject)
-                .FirstOrDefaultAsync(t => t.Id == substituteTeacherId && t.DeletedAt == null);
-
-            return new SubstitutionSnapshot(
-                absence?.Teacher?.Name ?? string.Empty,
-                absence?.Teacher?.Subject?.Name ?? string.Empty,
-                substituteTeacher?.Name ?? string.Empty,
-                substituteTeacher?.Subject?.Name ?? string.Empty,
-                _BuildClassName(schedule),
-                schedule?.PeriodNumber ?? 0);
-        }
-
-        private static string _BuildClassName(WeeklySchedule? schedule)
-        {
-            if (schedule?.SchoolClass is null)
-                return string.Empty;
-
-            return schedule.EventKey is not null
-                ? $"{schedule.SchoolClass.DisplayName} ({schedule.EventKey.EventName})"
-                : schedule.SchoolClass.DisplayName;
-        }
-
-        // State
-        private static SubstitutionChangeSet _DetectChanges(Substitution substitution, SubstitutionWriteDto dto)
-        {
-            return new SubstitutionChangeSet(
-                absenceChanged: substitution.AbsenceId != dto.AbsenceId,
-                weeklyScheduleChanged: substitution.WeeklyScheduleId != dto.WeeklyScheduleId,
-                substituteTeacherChanged: substitution.SubstituteTeacherId != dto.SubstituteTeacherId,
-                serviceDateChanged: substitution.ServiceDate != dto.ServiceDate,
-                algorithmMatchChanged: substitution.IsAlgorithmMatch != dto.IsAlgorithmMatch);
-        }
-
         // Create / Update
-        private async Task<Substitution> _PersistNewAsync(SubstitutionWriteDto dto, SubstitutionSnapshot snapshot)
+        protected async Task<Substitution> _PersistNewAsync(SubstitutionWriteDto dto, SubstitutionSnapshot snapshot)
         {
             Substitution entity = dto.ToEntity();
-            _ApplySnapshot(entity, snapshot);
+
+            // Map the snapshot cleanly using the static handler
+            SubstitutionSnapshotHandler.ApplyToEntity(entity, snapshot);
 
             _db.Substitutions.Add(entity);
             await _db.SaveChangesAsync();
             return entity;
         }
 
-        private async Task<Substitution> _ApplyUpdateAsync(Substitution substitution, SubstitutionWriteDto dto, SubstitutionSnapshot snapshot)
+        protected async Task<Substitution> _ApplyUpdateAsync(Substitution substitution, SubstitutionWriteDto dto, SubstitutionSnapshot snapshot)
         {
             substitution.AbsenceId = dto.AbsenceId;
             substitution.WeeklyScheduleId = dto.WeeklyScheduleId;
@@ -308,7 +257,8 @@ namespace TeacherSubApp.Api.Features.Substitutions
             substitution.ServiceDate = dto.ServiceDate;
             substitution.IsAlgorithmMatch = dto.IsAlgorithmMatch;
 
-            _ApplySnapshot(substitution, snapshot);
+            // Map the snapshot cleanly using the static handler
+            SubstitutionSnapshotHandler.ApplyToEntity(substitution, snapshot);
 
             substitution.UpdatedAt = DateTime.UtcNow;
 
@@ -316,14 +266,12 @@ namespace TeacherSubApp.Api.Features.Substitutions
             return substitution;
         }
 
-        private static void _ApplySnapshot(Substitution substitution, SubstitutionSnapshot snapshot)
+        // Delete
+        protected async Task _SoftDeleteAsync(Substitution substitution)
         {
-            substitution.AbsentTeacherNameAtTimeOfService = snapshot.AbsentTeacherName;
-            substitution.AbsentTeacherSubjectAtTimeOfService = snapshot.AbsentTeacherSubject;
-            substitution.SubstituteTeacherNameAtTimeOfService = snapshot.SubstituteTeacherName;
-            substitution.SubstituteTeacherSubjectAtTimeOfService = snapshot.SubstituteTeacherSubject;
-            substitution.ClassNameAtTimeOfService = snapshot.ClassName;
-            substitution.PeriodNumberAtTimeOfService = snapshot.PeriodNumber;
+            substitution.DeletedAt = DateTime.UtcNow;
+            substitution.UpdatedAt = DateTime.UtcNow;
+            await _db.SaveChangesAsync();
         }
 
         #endregion
