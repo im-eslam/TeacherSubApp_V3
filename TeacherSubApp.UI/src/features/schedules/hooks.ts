@@ -1,114 +1,206 @@
-import { useCallback, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useEventKeys } from "../events/hooks";
+import { useSchoolClasses } from "../classes/hooks";
+import { useTeachers } from "../teachers/hooks";
 import { weeklySchedulesApi } from "./api";
-import {
-  draftKey,
-  draftRowsToBulkDto,
-  removeDraftRow,
-  upsertDraftRow,
-} from "./draft";
 import type {
-  DraftRow,
-  DraftRowMap,
-  NewDraftRow,
-  NewDraftRowAdd,
-  NewDraftRowDelete,
-  NewDraftRowEdit,
-  NewDraftRowSwap,
+  SlotCoordinate,
+  WeeklyScheduleBulkEditRequest,
   WeeklyScheduleQuery,
+  WeeklyScheduleReadDto,
+  WeeklyScheduleWriteDto,
 } from "./types";
 
 const weeklyScheduleKeys = {
   all: ["weeklySchedules"] as const,
-  grid: (query: WeeklyScheduleQuery) =>
-    [...weeklyScheduleKeys.all, "grid", query] as const,
+  list: (query: WeeklyScheduleQuery) =>
+    [...weeklyScheduleKeys.all, "list", query] as const,
+  detail: (id: number) => [...weeklyScheduleKeys.all, "detail", id] as const,
 };
 
-export function useWeeklyScheduleGrid(
-  query: WeeklyScheduleQuery,
+export function useWeeklySchedules(
+  query: WeeklyScheduleQuery = {},
   options?: { enabled?: boolean },
 ) {
   return useQuery({
-    queryKey: weeklyScheduleKeys.grid(query),
-    queryFn: ({ signal }) => weeklySchedulesApi.getGrid(query, signal),
+    queryKey: weeklyScheduleKeys.list(query),
+    queryFn: ({ signal }) => weeklySchedulesApi.getAll(query, signal),
     enabled: options?.enabled ?? true,
   });
 }
 
-export function useAllWeeklySchedules(options?: { enabled?: boolean }) {
+export function useWeeklySchedule(id: number) {
   return useQuery({
-    queryKey: weeklyScheduleKeys.grid({}),
-    queryFn: ({ signal }) => weeklySchedulesApi.getGrid({}, signal),
-    enabled: options?.enabled ?? true,
+    queryKey: weeklyScheduleKeys.detail(id),
+    queryFn: ({ signal }) => weeklySchedulesApi.getById(id, signal),
+    enabled: id > 0,
   });
 }
 
-export function useBulkUpdateSchedule() {
+export function useCreateWeeklySchedule() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: (dto: Parameters<typeof weeklySchedulesApi.bulkUpdate>[0]) =>
-      weeklySchedulesApi.bulkUpdate(dto),
+    mutationFn: (dto: WeeklyScheduleWriteDto) => weeklySchedulesApi.create(dto),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: weeklyScheduleKeys.all });
     },
   });
 }
 
-export function useWeeklyScheduleDraft() {
-  const [rows, setRows] = useState<DraftRowMap>({});
+export function useUpdateWeeklySchedule() {
+  const queryClient = useQueryClient();
 
-  const stage = useCallback((row: NewDraftRow, replaceKey?: string) => {
-    const fullRow: DraftRow = { ...row, key: draftKey(row) } as DraftRow;
-    setRows((current) => upsertDraftRow(current, fullRow, replaceKey));
-    return fullRow.key;
-  }, []);
-
-  const stageAdd = useCallback(
-    (row: NewDraftRowAdd, options?: { replaceKey?: string }) =>
-      stage(row, options?.replaceKey),
-    [stage],
-  );
-
-  const stageEdit = useCallback(
-    (row: NewDraftRowEdit, options?: { replaceKey?: string }) =>
-      stage(row, options?.replaceKey),
-    [stage],
-  );
-
-  const stageDelete = useCallback(
-    (row: NewDraftRowDelete, options?: { replaceKey?: string }) =>
-      stage(row, options?.replaceKey),
-    [stage],
-  );
-
-  const stageSwap = useCallback(
-    (row: NewDraftRowSwap, options?: { replaceKey?: string }) =>
-      stage(row, options?.replaceKey),
-    [stage],
-  );
-
-  const removeRow = useCallback((key: string) => {
-    setRows((current) => removeDraftRow(current, key));
-  }, []);
-
-  const reset = useCallback(() => setRows({}), []);
-  const rowList = useMemo(() => Object.values(rows), [rows]);
-  const toBulkDto = useCallback(() => draftRowsToBulkDto(rowList), [rowList]);
-
-  return {
-    rows,
-    rowList,
-    isEmpty: rowList.length === 0,
-    dirtyCount: rowList.length,
-    stageAdd,
-    stageEdit,
-    stageDelete,
-    stageSwap,
-    removeRow,
-    reset,
-    toBulkDto,
-  };
+  return useMutation({
+    mutationFn: ({ id, dto }: { id: number; dto: WeeklyScheduleWriteDto }) =>
+      weeklySchedulesApi.update(id, dto),
+    onSuccess: (updatedSchedule: WeeklyScheduleReadDto) => {
+      queryClient.invalidateQueries({ queryKey: weeklyScheduleKeys.all });
+      queryClient.setQueryData(
+        weeklyScheduleKeys.detail(updatedSchedule.id),
+        updatedSchedule,
+      );
+    },
+  });
 }
 
-export type WeeklyScheduleDraft = ReturnType<typeof useWeeklyScheduleDraft>;
+export function useDeleteWeeklySchedule() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (id: number) => weeklySchedulesApi.delete(id),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: weeklyScheduleKeys.all });
+    },
+  });
+}
+
+export function useSwapWeeklySchedules() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (request: { slotA: SlotCoordinate; slotB: SlotCoordinate }) =>
+      weeklySchedulesApi.swap(request),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: weeklyScheduleKeys.all });
+    },
+  });
+}
+
+export function useBulkEditWeeklySchedules() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (request: WeeklyScheduleBulkEditRequest) =>
+      weeklySchedulesApi.bulkEdit(request),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: weeklyScheduleKeys.all });
+    },
+  });
+}
+
+export type ScheduleViewMode = "teacher" | "class";
+
+export interface SchedulePageViewModel {
+  viewMode: ScheduleViewMode;
+  onViewModeChange: (mode: ScheduleViewMode) => void;
+  selectedId: string;
+  onSelectedIdChange: (id: string) => void;
+  selectionOptions: { value: string; label: string }[];
+  selectedQuery: WeeklyScheduleQuery;
+  selectedSlots: WeeklyScheduleReadDto[];
+  isLoading: boolean;
+  isError: boolean;
+  error: unknown;
+  retry: () => void;
+  editorOpen: boolean;
+  openEditor: () => void;
+  closeEditor: () => void;
+  allSlots: WeeklyScheduleReadDto[];
+  isAllSlotsLoading: boolean;
+  teachers: Awaited<ReturnType<typeof useTeachers>>["data"] extends infer T
+    ? T extends (infer U)[]
+      ? U[]
+      : never
+    : never;
+  classes: Awaited<ReturnType<typeof useSchoolClasses>>["data"] extends infer T
+    ? T extends (infer U)[]
+      ? U[]
+      : never
+    : never;
+  events: Awaited<ReturnType<typeof useEventKeys>>["data"] extends infer T
+    ? T extends (infer U)[]
+      ? U[]
+      : never
+    : never;
+  bulkEdit: ReturnType<typeof useBulkEditWeeklySchedules>;
+}
+
+export function useSchedulePage(): SchedulePageViewModel {
+  const [viewMode, setViewMode] = useState<ScheduleViewMode>("teacher");
+  const [selectedId, setSelectedId] = useState("");
+  const [editorOpen, setEditorOpen] = useState(false);
+
+  const { data: teachers = [] } = useTeachers();
+  const { data: classes = [] } = useSchoolClasses();
+  const { data: events = [] } = useEventKeys();
+
+  const selectionOptions = useMemo(() => {
+    if (viewMode === "teacher") {
+      return [...teachers]
+        .sort((a, b) => a.name.localeCompare(b.name, "ar"))
+        .map((teacher) => ({
+          value: String(teacher.id),
+          label: teacher.subjectName
+            ? `${teacher.name} — ${teacher.subjectName}`
+            : teacher.name,
+        }));
+    }
+
+    return [...classes]
+      .sort((a, b) => a.displayName.localeCompare(b.displayName, "ar"))
+      .map((schoolClass) => ({
+        value: String(schoolClass.id),
+        label: schoolClass.displayName,
+      }));
+  }, [classes, teachers, viewMode]);
+
+  const selectedQuery = useMemo<WeeklyScheduleQuery>(() => {
+    if (!selectedId) return {};
+    const id = Number(selectedId);
+    return viewMode === "teacher" ? { teacherId: id } : { classId: id };
+  }, [selectedId, viewMode]);
+
+  const selectedSchedule = useWeeklySchedules(selectedQuery, {
+    enabled: selectedId !== "",
+  });
+  const allSchedule = useWeeklySchedules({}, { enabled: editorOpen });
+  const bulkEdit = useBulkEditWeeklySchedules();
+
+  return {
+    viewMode,
+    onViewModeChange: (mode) => {
+      setViewMode(mode);
+      setSelectedId("");
+    },
+    selectedId,
+    onSelectedIdChange: setSelectedId,
+    selectionOptions,
+    selectedQuery,
+    selectedSlots: selectedSchedule.data ?? [],
+    isLoading: selectedSchedule.isLoading,
+    isError: selectedSchedule.isError,
+    error: selectedSchedule.error,
+    retry: selectedSchedule.refetch,
+    editorOpen,
+    openEditor: () => setEditorOpen(true),
+    closeEditor: () => setEditorOpen(false),
+    allSlots: allSchedule.data ?? [],
+    isAllSlotsLoading: allSchedule.isLoading,
+    teachers,
+    classes,
+    events,
+    bulkEdit,
+  };
+}

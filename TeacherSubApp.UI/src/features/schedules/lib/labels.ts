@@ -1,4 +1,4 @@
-import type { SlotContentInfo } from "../types";
+import type { WeeklyScheduleReadDto } from "../types";
 
 const DAY_NAMES: Record<number, string> = {
   1: "الأحد",
@@ -20,13 +20,22 @@ export function slotLabel(
   return `${teacherName} — ${dayName(dayOfWeek)}، الحصة ${periodNumber}`;
 }
 
-export function contentLabel(content: SlotContentInfo): string {
-  const parts: string[] = [];
-  if (content.classId !== null) {
-    parts.push(content.classDisplayName ?? `فصل #${content.classId}`);
-  }
-  if (content.eventId !== null) {
-    parts.push(content.eventName ?? `حدث #${content.eventId}`);
-  }
+export function contentLabel(
+  content: Pick<WeeklyScheduleReadDto, "classDisplayName" | "eventName">,
+): string {
+  const parts = [content.classDisplayName, content.eventName].filter(
+    (value): value is string => value !== null && value.trim() !== "",
+  );
+
   return parts.length > 0 ? parts.join(" + ") : "— فارغة —";
 }
+
+export const DAYS = [
+  { value: 1, label: DAY_NAMES[1] },
+  { value: 2, label: DAY_NAMES[2] },
+  { value: 3, label: DAY_NAMES[3] },
+  { value: 4, label: DAY_NAMES[4] },
+  { value: 5, label: DAY_NAMES[5] },
+] as const;
+
+export const PERIODS = [1, 2, 3, 4, 5, 6, 7] as const;
