@@ -38,7 +38,7 @@ namespace TeacherSubApp.Api.Features.SubstituteMatching.Internal
                 List<Substitution> teacherSubstitutions = relevantSubstitutions.Where(s => s.SubstituteTeacherId == teacher.Id).ToList();
                 int weeklyLoad = weeklyLoadByTeacherId.GetValueOrDefault(teacher.Id, 0);
 
-                contexts.Add(new TeacherContext(teacher, teacherDaySchedules, absenceToday, teacherSubstitutions, weeklyLoad));
+                contexts.Add(new TeacherContext(teacher, teacherDaySchedules, absenceToday, teacherSubstitutions, weeklyLoad, _query.ServiceDate));
             }
 
             return contexts;
@@ -56,16 +56,19 @@ namespace TeacherSubApp.Api.Features.SubstituteMatching.Internal
 
         private async Task<List<WeeklySchedule>> FetchDaySchedulesAsync()
         {
+            int targetDayOfWeek = _query.ServiceDate.DayOfWeek == DayOfWeek.Sunday ? 7 : (int)_query.ServiceDate.DayOfWeek;
+
             return await _db.WeeklySchedules
                 .AsNoTracking()
                 .Include(ws => ws.EventKey)
-                .Where(ws => ws.DeletedAt == null && ws.DayOfWeek == _query.DayOfWeek)
+                .Where(ws => ws.DeletedAt == null && ws.DayOfWeek == targetDayOfWeek)
                 .ToListAsync();
+            ;
         }
 
         private async Task<Dictionary<int, TeacherAbsence>> FetchAbsencesTodayAsync()
         {
-            DateOnly today = DateOnly.FromDateTime(DateTime.UtcNow);
+            DateOnly today = _query.ServiceDate;
 
             return await _db.TeacherAbsences
                 .AsNoTracking()
@@ -75,7 +78,7 @@ namespace TeacherSubApp.Api.Features.SubstituteMatching.Internal
 
         private async Task<List<Substitution>> FetchRelevantSubstitutionsAsync()
         {
-            DateOnly today = DateOnly.FromDateTime(DateTime.UtcNow);
+            DateOnly today = _query.ServiceDate;
             DateOnly yesterday = today.AddDays(-1);
 
             return await _db.Substitutions
@@ -87,7 +90,7 @@ namespace TeacherSubApp.Api.Features.SubstituteMatching.Internal
 
         private async Task<Dictionary<int, int>> FetchWeeklyLoadAsync()
         {
-            DateOnly today = DateOnly.FromDateTime(DateTime.UtcNow);
+            DateOnly today = _query.ServiceDate;
             DateOnly weekStart = _StartOfWeek(today);
             DateOnly weekEnd = weekStart.AddDays(6);
 

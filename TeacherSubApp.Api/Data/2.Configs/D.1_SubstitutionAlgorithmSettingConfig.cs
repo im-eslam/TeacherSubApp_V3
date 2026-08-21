@@ -4,14 +4,13 @@ using TeacherSubApp.Api.Data.Models;
 
 namespace TeacherSubApp.Api.Data.Configs
 {
-    public class SubstitutionAlgorithmSettingsConfig
-        : IEntityTypeConfiguration<SubstitutionAlgorithmSetting>
+    public class SubstitutionAlgorithmSettingsConfig : IEntityTypeConfiguration<SubstitutionAlgorithmSetting>
     {
         public void Configure(EntityTypeBuilder<SubstitutionAlgorithmSetting> builder)
         {
             _ConfigureTable(builder);
             _ConfigureProperties(builder);
-            _ConfigureDefaults(builder);
+            //_ConfigureDefaults(builder);
         }
 
         private void _ConfigureTable(EntityTypeBuilder<SubstitutionAlgorithmSetting> builder)
@@ -53,25 +52,25 @@ namespace TeacherSubApp.Api.Data.Configs
                 .IsRequired();
         }
 
-        private void _ConfigureDefaults(EntityTypeBuilder<SubstitutionAlgorithmSetting> builder)
-        {
-            builder.HasData(new SubstitutionAlgorithmSetting
-            {
-                Id = 1,
+        //private void _ConfigureDefaults(EntityTypeBuilder<SubstitutionAlgorithmSetting> builder)
+        //{
+        //    builder.HasData(new SubstitutionAlgorithmSetting
+        //    {
+        //        Id = 1,
 
-                WeeklyLoadWeight = 14.28,
-                DailyLoadWeight = 14.28,
-                SubjectMatchWeight = 14.28,
-                StandByWeight = 14.28,
-                SubbedYesterdayWeight = 14.28,
-                ConsecutiveClassWeight = 14.28,
-                EarlyLeaveWeight = 14.28,
+        //        WeeklyLoadWeight = 14.28,
+        //        DailyLoadWeight = 14.28,
+        //        SubjectMatchWeight = 14.28,
+        //        StandByWeight = 14.28,
+        //        SubbedYesterdayWeight = 14.28,
+        //        ConsecutiveClassWeight = 14.28,
+        //        EarlyLeaveWeight = 14.28,
 
-                OvertimeThreshold = 16,
-                LowLoadThreshold = 12,
-                DailyLoadThreshold = 4,
-                RestPeriodBreak = 4
-            });
-        }
+        //        OvertimeThreshold = 16,
+        //        LowLoadThreshold = 12,
+        //        DailyLoadThreshold = 4,
+        //        RestPeriodBreak = 4
+        //    });
+        //}
     }
 }

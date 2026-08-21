@@ -39,8 +39,8 @@ namespace TeacherSubApp.Api.Features.SubstituteMatching
 
         public static readonly Error InvalidDayOfWeek = Error.Create(
             "SUB_INVALID_DAY",
-            "Day of week must be between 1 and 7.",
-            "يجب أن يكون يوم الأسبوع بين 1 و 7."
+            "Day of week must be between 1 and 5.",
+            "يجب أن يكون يوم الأسبوع بين 1 و 5."
         );
 
         public static readonly Error InvalidPeriodNumber = Error.Create(

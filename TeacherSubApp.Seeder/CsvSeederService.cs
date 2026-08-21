@@ -7,6 +7,7 @@ using TeacherSubApp.Api.Features.EventKeys.Dtos;
 using TeacherSubApp.Api.Features.SchoolClasses.Dtos;
 using TeacherSubApp.Api.Features.Subjects.Dtos;
 using TeacherSubApp.Api.Features.Teachers.Dtos;
+using TeacherSubApp.Api.Features.WeeklySchedules.Dtos;
 
 namespace TeacherSubApp.Seeder
 {
@@ -49,12 +50,12 @@ namespace TeacherSubApp.Seeder
         private async Task SeedSubjectsAsync()
         {
             Console.WriteLine("\n--- Seeding Subjects ---");
-            var rows = ReadCsv<dynamic>("CsvData/Subjects.csv");
+            var rows = _ReadCsv<dynamic>("CsvData/Subjects.csv");
             foreach (var row in rows)
             {
                 string name = row.Name;
                 var dto = new SubjectWriteDto { Name = name.Trim() };
-                int? id = await PostAndGetIdAsync("/subjects", dto);
+                int? id = await _PostAndGetIdAsync("/subjects", dto);
                 if (id.HasValue)
                     _subjectMap[name.Trim()] = id.Value;
             }
@@ -63,7 +64,7 @@ namespace TeacherSubApp.Seeder
         private async Task SeedClassesAsync()
         {
             Console.WriteLine("\n--- Seeding Classes ---");
-            var rows = ReadCsv<dynamic>("CsvData/Classes.csv");
+            var rows = _ReadCsv<dynamic>("CsvData/Classes.csv");
             foreach (var row in rows)
             {
                 string displayName = row.DisplayName;
@@ -73,7 +74,7 @@ namespace TeacherSubApp.Seeder
                     Grade = int.Parse((string)row.Grade),
                     Section = int.Parse((string)row.Section)
                 };
-                int? id = await PostAndGetIdAsync("/classes", dto);
+                int? id = await _PostAndGetIdAsync("/classes", dto);
                 if (id.HasValue)
                     _classMap[displayName.Trim()] = id.Value;
             }
@@ -82,7 +83,7 @@ namespace TeacherSubApp.Seeder
         private async Task SeedEventKeysAsync()
         {
             Console.WriteLine("\n--- Seeding Event Keys ---");
-            var rows = ReadCsv<dynamic>("CsvData/EventKeys.csv");
+            var rows = _ReadCsv<dynamic>("CsvData/EventKeys.csv");
             foreach (var row in rows)
             {
                 string eventName = row.EventName;
@@ -92,7 +93,7 @@ namespace TeacherSubApp.Seeder
                     IsSupport = bool.Parse((string)row.IsSupport),
                     IsStandby = bool.Parse((string)row.IsStandby)
                 };
-                int? id = await PostAndGetIdAsync("/events", dto);
+                int? id = await _PostAndGetIdAsync("/events", dto);
                 if (id.HasValue)
                     _eventMap[eventName.Trim()] = id.Value;
             }
@@ -101,7 +102,7 @@ namespace TeacherSubApp.Seeder
         private async Task SeedTeachersAsync()
         {
             Console.WriteLine("\n--- Seeding Teachers ---");
-            var rows = ReadCsv<dynamic>("CsvData/Teachers.csv");
+            var rows = _ReadCsv<dynamic>("CsvData/Teachers.csv");
             foreach (var row in rows)
             {
                 string name = row.Name;
@@ -119,7 +120,7 @@ namespace TeacherSubApp.Seeder
                     SubjectId = subjectId,
                     IsSupervisor = bool.Parse((string)row.IsSupervisor)
                 };
-                int? id = await PostAndGetIdAsync("/teachers", dto);
+                int? id = await _PostAndGetIdAsync("/teachers", dto);
                 if (id.HasValue)
                     _teacherMap[name.Trim()] = id.Value;
             }
@@ -127,53 +128,61 @@ namespace TeacherSubApp.Seeder
 
         private async Task SeedTimetableAsync()
         {
-            //Console.WriteLine("\n--- Seeding Timetable (Bulk) ---");
-            //var rows = ReadCsv<dynamic>("CsvData/Timetable.csv");
+            Console.WriteLine("\n--- Seeding Timetable (Bulk) ---");
+            var rows = _ReadCsv<dynamic>("CsvData/Timetable.csv");
 
-            //var bulkDto = new WeeklyScheduleBulkUpdateDto();
+            var bulkRequest = new WeeklyScheduleBulkEditRequest();
 
-            //foreach (var row in rows)
-            //{
-            //    string teacherName = row.TeacherName;
-            //    if (string.IsNullOrWhiteSpace(teacherName))
-            //        continue;
+            foreach (var row in rows)
+            {
+                string teacherName = row.TeacherName;
+                if (string.IsNullOrWhiteSpace(teacherName))
+                    continue;
 
-            //    string className = row.ClassDisplayName;
-            //    string eventName = row.EventName;
+                string className = row.ClassDisplayName;
+                string eventName = row.EventName;
 
-            //    if (!_teacherMap.TryGetValue(teacherName.Trim(), out int teacherId))
-            //    {
-            //        Console.WriteLine($"[SKIPPED] Teacher '{teacherName}' not found in DB.");
-            //        continue;
-            //    }
+                if (!_teacherMap.TryGetValue(teacherName.Trim(), out int teacherId))
+                {
+                    Console.WriteLine($"[SKIPPED] Teacher '{teacherName}' not found in DB.");
+                    continue;
+                }
 
-            //    var addDto = new WeeklyScheduleAddDto
-            //    {
-            //        TeacherId = teacherId,
-            //        DayOfWeek = int.Parse((string)row.DayOfWeek),
-            //        PeriodNumber = int.Parse((string)row.PeriodNumber),
-            //        ClassId = !string.IsNullOrWhiteSpace(className) && _classMap.ContainsKey(className.Trim()) ? _classMap[className.Trim()] : null,
-            //        EventId = !string.IsNullOrWhiteSpace(eventName) && _eventMap.ContainsKey(eventName.Trim()) ? _eventMap[eventName.Trim()] : null
-            //    };
+                var writeDto = new WeeklyScheduleWriteDto
+                {
+                    TeacherId = teacherId,
+                    DayOfWeek = int.Parse((string)row.DayOfWeek),
+                    PeriodNumber = int.Parse((string)row.PeriodNumber),
+                    ClassId = !string.IsNullOrWhiteSpace(className) && _classMap.ContainsKey(className.Trim())
+                                ? _classMap[className.Trim()]
+                                : null,
+                    EventId = !string.IsNullOrWhiteSpace(eventName) && _eventMap.ContainsKey(eventName.Trim())
+                                ? _eventMap[eventName.Trim()]
+                                : null
+                };
 
-            //    bulkDto.Adds.Add(addDto);
-            //}
+                // Add to the 'Creates' list of the new bulk request object
+                bulkRequest.Creates.Add(writeDto);
+            }
 
-            //if (bulkDto.Adds.Count > 0)
-            //{
-            //    Console.WriteLine($"Sending bulk update with {bulkDto.Adds.Count} schedules...");
-            //    await PutBulkAsync("/schedules/bulk", bulkDto);
-            //}
-            //else
-            //{
-            //    Console.WriteLine("No schedules to insert.");
-            //}
+            if (bulkRequest.HasAnyOperations)
+            {
+                Console.WriteLine($"Sending bulk update with {bulkRequest.Creates.Count} schedules...");
+
+                await _PostBulkAsync("/schedules/bulk", bulkRequest);
+            }
+            else
+            {
+                Console.WriteLine("No schedules to insert.");
+            }
         }
 
-        private async Task PutBulkAsync(string endpoint, object payload)
+        private async Task _PostBulkAsync(string endpoint, object payload)
         {
             string url = $"{_config.ApiBaseUrl.TrimEnd('/')}/{endpoint.TrimStart('/')}";
-            var response = await _http.PutAsJsonAsync(url, payload);
+
+            // Changed PutAsJsonAsync to PostAsJsonAsync
+            var response = await _http.PostAsJsonAsync(url, payload);
 
             if (!response.IsSuccessStatusCode)
             {
@@ -191,14 +200,14 @@ namespace TeacherSubApp.Seeder
             }
         }
 
-        private List<T> ReadCsv<T>(string filePath)
+        private List<T> _ReadCsv<T>(string filePath)
         {
             using var reader = new StreamReader(filePath, System.Text.Encoding.UTF8);
             using var csv = new CsvReader(reader, new CsvConfiguration(CultureInfo.InvariantCulture) { HasHeaderRecord = true });
             return new List<T>(csv.GetRecords<T>());
         }
 
-        private async Task<int?> PostAndGetIdAsync(string endpoint, object payload)
+        private async Task<int?> _PostAndGetIdAsync(string endpoint, object payload)
         {
             string url = $"{_config.ApiBaseUrl.TrimEnd('/')}/{endpoint.TrimStart('/')}";
             var response = await _http.PostAsJsonAsync(url, payload);
