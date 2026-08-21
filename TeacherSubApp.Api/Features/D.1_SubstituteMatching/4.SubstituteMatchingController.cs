@@ -16,7 +16,7 @@ namespace TeacherSubApp.Api.Features.SubstituteMatching
             _service = service;
         }
 
-        // GET: api/substitute-matching/settings
+        // GET: api/recommendations/settings
         [HttpGet("settings")]
         [ProducesResponseType<AlgorithmSettingsDto>(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
@@ -26,7 +26,7 @@ namespace TeacherSubApp.Api.Features.SubstituteMatching
             return HandleResult(result);
         }
 
-        // PUT: api/substitute-matching/settings
+        // PUT: api/recommendations/settings
         [HttpPut("settings")]
         [ProducesResponseType(StatusCodes.Status204NoContent)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
@@ -37,7 +37,7 @@ namespace TeacherSubApp.Api.Features.SubstituteMatching
             return HandleResult(result);
         }
 
-        // GET: api/substitute-matching/recommendations?absentTeacherId=1&dayOfWeek=2&periodNumber=3
+        // GET: api/recommendations/recommendations?absentTeacherId=1&dayOfWeek=2&periodNumber=3
         [HttpGet("recommendations")]
         [ProducesResponseType<List<SubstituteCandidateDto>>(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]

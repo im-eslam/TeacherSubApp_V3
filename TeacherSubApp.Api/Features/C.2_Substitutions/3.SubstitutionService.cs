@@ -283,7 +283,7 @@ namespace TeacherSubApp.Api.Features.Substitutions
             if (!scheduleDayOfWeek.HasValue)
                 return Result.Success();
 
-            int actualDayOfWeek = (int)serviceDate.DayOfWeek;
+            int actualDayOfWeek = (int)serviceDate.DayOfWeek + 1;
 
             return actualDayOfWeek == scheduleDayOfWeek.Value
                 ? Result.Success()

@@ -10,7 +10,7 @@ namespace TeacherSubApp.Api.Data.Configs
         {
             _ConfigureTable(builder);
             _ConfigureProperties(builder);
-            //_ConfigureDefaults(builder);
+            _ConfigureDefaults(builder);
         }
 
         private void _ConfigureTable(EntityTypeBuilder<SubstitutionAlgorithmSetting> builder)
@@ -52,25 +52,27 @@ namespace TeacherSubApp.Api.Data.Configs
                 .IsRequired();
         }
 
-        //private void _ConfigureDefaults(EntityTypeBuilder<SubstitutionAlgorithmSetting> builder)
-        //{
-        //    builder.HasData(new SubstitutionAlgorithmSetting
-        //    {
-        //        Id = 1,
+        private void _ConfigureDefaults(EntityTypeBuilder<SubstitutionAlgorithmSetting> builder)
+        {
+            builder.HasData(new SubstitutionAlgorithmSetting
+            {
+                Id = 1,
 
-        //        WeeklyLoadWeight = 14.28,
-        //        DailyLoadWeight = 14.28,
-        //        SubjectMatchWeight = 14.28,
-        //        StandByWeight = 14.28,
-        //        SubbedYesterdayWeight = 14.28,
-        //        ConsecutiveClassWeight = 14.28,
-        //        EarlyLeaveWeight = 14.28,
+                StandByWeight = 14.28 + 4.12,
+                SubbedYesterdayWeight = 14.28 + 4.12,
+                ConsecutiveClassWeight = 14.28 + 4.12,
 
-        //        OvertimeThreshold = 16,
-        //        LowLoadThreshold = 12,
-        //        DailyLoadThreshold = 4,
-        //        RestPeriodBreak = 4
-        //    });
-        //}
+                WeeklyLoadWeight = 9.5 + 4.12,
+                DailyLoadWeight = 9.5 + 4.12,
+
+                SubjectMatchWeight = 4.7 + 4.12,
+                EarlyLeaveWeight = 4.7 + 4.12,
+
+                OvertimeThreshold = 16,
+                LowLoadThreshold = 12,
+                DailyLoadThreshold = 4,
+                RestPeriodBreak = 4
+            });
+        }
     }
 }
