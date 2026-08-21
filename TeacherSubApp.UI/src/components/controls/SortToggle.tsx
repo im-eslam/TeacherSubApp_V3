@@ -12,8 +12,6 @@ const STYLES = {
   selected: "text-blue-700 border-blue-200 bg-blue-50 hover:bg-blue-100",
 };
 
-export type SortOrder = "asc" | "desc";
-
 // ════════════════════════════════════════════════════════════
 // SortToggle
 // ════════════════════════════════════════════════════════════
@@ -29,6 +27,9 @@ export type SortOrder = "asc" | "desc";
 //     sortDescLabel="ي ← أ"
 //   />
 // ════════════════════════════════════════════════════════════
+
+
+export type SortOrder = "asc" | "desc";
 
 interface SortToggleProps extends Omit<
   ToggleButtonProps,

@@ -22,7 +22,8 @@ const STYLES = {
   ].join(" "),
   inputActive: "bg-blue-50 border-blue-200 text-blue-700 hover:bg-blue-100",
   searchIcon: "absolute end-3 text-neutral-400 pointer-events-none",
-  trigger: "absolute end-1 flex items-center justify-center w-9 h-9 rounded-full outline-none focus-visible:ring-2 focus-visible:ring-blue-500/30",
+  trigger:
+    "absolute end-1 flex items-center justify-center w-9 h-9 rounded-full outline-none focus-visible:ring-2 focus-visible:ring-blue-500/30",
   chevron: "text-neutral-400 transition-transform duration-200",
   chevronActive: "text-blue-500",
   popover: [
@@ -40,6 +41,34 @@ const STYLES = {
   ].join(" "),
   empty: "px-3 py-6 text-xs text-center text-neutral-400",
 };
+
+// ════════════════════════════════════════════════════════════
+// Searchable Select
+// ════════════════════════════════════════════════════════════
+// const [teacher, setTeacher] = useState("");
+//
+// const teachers = [
+//   { value: "1", label: "Ahmed Ali" },
+//   { value: "2", label: "Mohamed Hassan" },
+//   { value: "3", label: "Omar Mahmoud" },
+// ];
+//
+// <SearchableSelect
+//   value={teacher}
+//   onChange={setTeacher}
+//   options={teachers}
+//   placeholder="اختر المدرس"
+// />
+//
+// For a filter:
+// <SearchableSelect
+//   value={teacherFilter}
+//   onChange={setTeacherFilter}
+//   options={teachers}
+//   placeholder="كل المدرسين"
+//   isFilter
+// />
+// ════════════════════════════════════════════════════════════
 
 export interface SearchableSelectOption {
   value: string;
@@ -114,7 +143,9 @@ export function SearchableSelect({
         <ListBox<SearchableSelectOption>
           items={options}
           className={STYLES.list}
-          renderEmptyState={() => <div className={STYLES.empty}>لا توجد خيارات مطابقة</div>}
+          renderEmptyState={() => (
+            <div className={STYLES.empty}>لا توجد خيارات مطابقة</div>
+          )}
         >
           {(option) => (
             <ListBoxItem

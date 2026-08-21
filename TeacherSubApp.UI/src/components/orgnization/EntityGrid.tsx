@@ -8,8 +8,7 @@ import { Button } from "react-aria-components/Button";
 import { Pencil, Trash2, Plus, ServerCrash } from "lucide-react";
 
 const STYLES = {
-  skeletonWrap:
-    "grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5",
+  skeletonWrap: "grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5",
   skeletonCard: "w-full bg-neutral-200/60 animate-pulse rounded-2xl",
 
   emptyWrap:
