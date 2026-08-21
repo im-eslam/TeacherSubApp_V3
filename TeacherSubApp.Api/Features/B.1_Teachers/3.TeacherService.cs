@@ -111,7 +111,7 @@ namespace TeacherSubApp.Api.Features.Teachers
             }
         }
 
-        #region === Helper Methods ===
+        #region === Helpers ===
 
         // Read
         private async Task<List<TeacherReadDto>> _FetchAllActiveAsync(TeacherQuery query)

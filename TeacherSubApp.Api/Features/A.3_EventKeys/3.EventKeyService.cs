@@ -116,7 +116,7 @@ namespace TeacherSubApp.Api.Features.EventKeys
             }
         }
 
-        #region === Private Helpers ===
+        #region === Helpers ===
 
         // Read 
         private async Task<List<EventKeyReadDto>> _FetchAllActiveAsync(EventKeyQuery query)

@@ -10,30 +10,69 @@ namespace TeacherSubApp.Api.Features.SubstituteMatching.Internal
         private readonly AppDbContext _db;
         private readonly SubstituteMatchQuery _query;
 
-        private List<Teacher> _teachers = new();
-        private List<WeeklySchedule> _daySchedules = new();
-        private Dictionary<int, TeacherAbsence> _absenceTodayByTeacherId = new();
-        private List<Substitution> _relevantSubstitutions = new();
-        private Dictionary<int, int> _weeklyLoadByTeacherId = new();
-
         public TeacherContextAssembler(AppDbContext db, SubstituteMatchQuery query)
         {
             _db = db;
             _query = query;
         }
 
-        // ==== Step 1: Fetch data needed ====
-
-        public async Task FetchActiveTeachersAsync()
+        // ==== Assemble ====
+        public async Task<List<TeacherContext>> BuildContexts()
         {
-            _teachers = await _db.Teachers
+            // Define
+            List<Teacher> _teachers = new();
+            List<WeeklySchedule> _daySchedules = new();
+            Dictionary<int, TeacherAbsence> _absenceTodayByTeacherId = new();
+            List<Substitution> _relevantSubstitutions = new();
+            Dictionary<int, int> _weeklyLoadByTeacherId = new();
+
+            // Fetch
+            await FetchActiveTeachersAsync(ref _teachers);
+            await FetchDaySchedulesAsync();
+            ValidateNoImpossibleSlotStates();
+            await FetchAbsencesTodayAsync();
+            await FetchRelevantSubstitutionsAsync();
+            await FetchWeeklyLoadAsync();
+
+            // Stich 
+            List<TeacherContext> contexts = new();
+
+            foreach (Teacher teacher in _teachers)
+            {
+                List<WeeklySchedule> teacherDaySchedules = _daySchedules
+                    .Where(ws => ws.TeacherId == teacher.Id)
+                    .ToList();
+
+                _absenceTodayByTeacherId.TryGetValue(teacher.Id, out TeacherAbsence? absenceToday);
+
+                List<Substitution> teacherSubstitutions = _relevantSubstitutions
+                    .Where(s => s.SubstituteTeacherId == teacher.Id)
+                    .ToList();
+
+                int weeklyLoad = _weeklyLoadByTeacherId.GetValueOrDefault(teacher.Id, 0);
+
+                contexts.Add(new TeacherContext(
+                    teacher,
+                    teacherDaySchedules,
+                    absenceToday,
+                    teacherSubstitutions,
+                    weeklyLoad));
+            }
+
+            return contexts;
+        }
+
+        // ==== Fetch data ====
+        private async Task FetchActiveTeachersAsync(ref List<Teacher> teachers)
+        {
+            teachers = await _db.Teachers
                 .AsNoTracking()
                 .Include(t => t.Subject)
                 .Where(t => t.DeletedAt == null)
                 .ToListAsync();
         }
 
-        public async Task FetchDaySchedulesAsync()
+        private async Task FetchDaySchedulesAsync()
         {
             _daySchedules = await _db.WeeklySchedules
                 .AsNoTracking()
@@ -42,7 +81,7 @@ namespace TeacherSubApp.Api.Features.SubstituteMatching.Internal
                 .ToListAsync();
         }
 
-        public async Task FetchAbsencesTodayAsync()
+        private async Task FetchAbsencesTodayAsync()
         {
             DateOnly today = DateOnly.FromDateTime(DateTime.UtcNow);
 
@@ -52,7 +91,7 @@ namespace TeacherSubApp.Api.Features.SubstituteMatching.Internal
                 .ToDictionaryAsync(a => a.TeacherId);
         }
 
-        public async Task FetchRelevantSubstitutionsAsync()
+        private async Task FetchRelevantSubstitutionsAsync()
         {
             DateOnly today = DateOnly.FromDateTime(DateTime.UtcNow);
             DateOnly yesterday = today.AddDays(-1);
@@ -64,7 +103,7 @@ namespace TeacherSubApp.Api.Features.SubstituteMatching.Internal
                 .ToListAsync();
         }
 
-        public async Task FetchWeeklyLoadAsync()
+        private async Task FetchWeeklyLoadAsync()
         {
             DateOnly today = DateOnly.FromDateTime(DateTime.UtcNow);
             DateOnly weekStart = _StartOfWeek(today);
@@ -93,9 +132,15 @@ namespace TeacherSubApp.Api.Features.SubstituteMatching.Internal
             _weeklyLoadByTeacherId = combined;
         }
 
-        // ==== Step 2: Validate ====
+        private static DateOnly _StartOfWeek(DateOnly reference)
+        {
+            int daysSinceSunday = ((int)reference.DayOfWeek + 1) % 7;
+            return reference.AddDays(-daysSinceSunday);
+        }
 
-        public void ValidateNoImpossibleSlotStates()
+
+        // ==== Validate ====
+        private void ValidateNoImpossibleSlotStates()
         {
             foreach (WeeklySchedule slot in _daySchedules)
             {
@@ -116,43 +161,6 @@ namespace TeacherSubApp.Api.Features.SubstituteMatching.Internal
                         "This combination should never occur - check upstream data entry.");
                 }
             }
-        }
-
-        // ==== Step 3: Assemble ====
-
-        public List<TeacherContext> BuildContexts()
-        {
-            List<TeacherContext> contexts = new();
-
-            foreach (Teacher teacher in _teachers)
-            {
-                List<WeeklySchedule> teacherDaySchedules = _daySchedules
-                    .Where(ws => ws.TeacherId == teacher.Id)
-                    .ToList();
-
-                _absenceTodayByTeacherId.TryGetValue(teacher.Id, out TeacherAbsence? absenceToday);
-
-                List<Substitution> teacherSubstitutions = _relevantSubstitutions
-                    .Where(s => s.SubstituteTeacherId == teacher.Id)
-                    .ToList();
-
-                int weeklyLoad = _weeklyLoadByTeacherId.GetValueOrDefault(teacher.Id, 0);
-
-                contexts.Add(new TeacherContext(
-                    teacher,
-                    teacherDaySchedules,
-                    absenceToday,
-                    teacherSubstitutions,
-                    weeklyLoad));
-            }
-
-            return contexts;
-        }
-
-        private static DateOnly _StartOfWeek(DateOnly reference)
-        {
-            int daysSinceSunday = ((int)reference.DayOfWeek + 1) % 7;
-            return reference.AddDays(-daysSinceSunday);
         }
     }
 }

@@ -13,6 +13,7 @@ namespace TeacherSubApp.Api.Features.SubstituteMatching
         private SubstitutionAlgorithmSetting _settings = null!;
         private List<TeacherContext> _allTeachers = new();
         private TeacherContext _absentTeacherContext = null!;
+
         private List<TeacherContext> _eligibleCandidates = new();
 
         public async Task<Result<List<SubstituteCandidateDto>>> GetRecommendationsAsync(SubstituteMatchQuery query)
@@ -80,15 +81,7 @@ namespace TeacherSubApp.Api.Features.SubstituteMatching
         private async Task _LoadAllTeacherContextsAsync()
         {
             TeacherContextAssembler assembler = new(_db, _query);
-
-            await assembler.FetchActiveTeachersAsync();
-            await assembler.FetchDaySchedulesAsync();
-            assembler.ValidateNoImpossibleSlotStates();
-            await assembler.FetchAbsencesTodayAsync();
-            await assembler.FetchRelevantSubstitutionsAsync();
-            await assembler.FetchWeeklyLoadAsync();
-
-            _allTeachers = assembler.BuildContexts();
+            _allTeachers = await assembler.BuildContexts();
         }
 
         private Result _ResolveAbsentTeacherContext()

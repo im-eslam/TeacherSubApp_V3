@@ -10,8 +10,5 @@ namespace TeacherSubApp.Api.Features.SubstituteMatching.Dtos
 
         public CandidateTier Tier { get; init; }
         public double TotalScore { get; init; }
-
-        public List<string> Pros { get; init; } = new();
-        public List<string> Cons { get; init; } = new();
     }
 }

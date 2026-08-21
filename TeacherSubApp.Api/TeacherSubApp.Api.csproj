@@ -6,6 +6,13 @@
     <ImplicitUsings>enable</ImplicitUsings>
   </PropertyGroup>
 
+  <ItemGroup>
+    <Compile Remove="Features\D.1_SubstituteMatching\**" />
+    <Content Remove="Features\D.1_SubstituteMatching\**" />
+    <EmbeddedResource Remove="Features\D.1_SubstituteMatching\**" />
+    <None Remove="Features\D.1_SubstituteMatching\**" />
+  </ItemGroup>
+
   <!-- Dependecies Packages -->
   <ItemGroup>
       <PackageReference Include="Swashbuckle.AspNetCore" Version="6.6.*" />

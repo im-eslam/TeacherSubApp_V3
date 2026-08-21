@@ -8,7 +8,7 @@ namespace TeacherSubApp.Api.Features.SubstituteMatching.Internal
 
         private readonly List<WeeklySchedule> _daySchedules;
         private readonly TeacherAbsence? _absenceToday;
-        private readonly List<Substitution> _substitutions;
+        private readonly List<Substitution> _relatedSubstitutions;
         private readonly int _weeklyLoad;
 
         public TeacherContext(Teacher teacher, List<WeeklySchedule> daySchedules, TeacherAbsence? absenceToday, List<Substitution> substitutions, int weeklyLoad)
@@ -16,7 +16,7 @@ namespace TeacherSubApp.Api.Features.SubstituteMatching.Internal
             Teacher = teacher;
             _daySchedules = daySchedules;
             _absenceToday = absenceToday;
-            _substitutions = substitutions;
+            _relatedSubstitutions = substitutions;
             _weeklyLoad = weeklyLoad;
         }
 
@@ -48,7 +48,7 @@ namespace TeacherSubApp.Api.Features.SubstituteMatching.Internal
 
         public bool IsAlreadyCoveringAt(int periodNumber)
         {
-            return _substitutions.Any(s => s.WeeklySchedule.PeriodNumber == periodNumber);
+            return _relatedSubstitutions.Any(s => s.WeeklySchedule.PeriodNumber == periodNumber);
         }
 
         // ==== Bad Choices ====
@@ -106,7 +106,7 @@ namespace TeacherSubApp.Api.Features.SubstituteMatching.Internal
         {
             DateOnly today = DateOnly.FromDateTime(DateTime.UtcNow);
             DateOnly yesterday = today.AddDays(-1);
-            return _substitutions.Any(s => s.ServiceDate == yesterday);
+            return _relatedSubstitutions.Any(s => s.ServiceDate == yesterday);
         }
 
         public bool IsSubjectMatch(int? targetSubjectId)

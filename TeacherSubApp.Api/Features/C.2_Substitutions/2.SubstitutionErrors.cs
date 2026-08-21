@@ -46,5 +46,20 @@ namespace TeacherSubApp.Api.Features.Substitutions
             "SUBSTITUTION_SUBSTITUTE_CANNOT_BE_ABSENT_TEACHER",
             "The substitute teacher cannot be the teacher recorded as absent.",
             "لا يمكن أن يكون المعلم البديل هو المعلم المسجل كغائب.");
+
+        public static readonly Error SlotAlreadySubstituted = Error.Create(
+            "SUBSTITUTION_SLOT_ALREADY_SUBSTITUTED",
+            "This weekly schedule slot already has an active substitution recorded for this date.",
+            "توجد بالفعل مناوبة نشطة مسجلة لهذه الحصة في هذا التاريخ.");
+
+        public static readonly Error ServiceDateAbsenceMismatch = Error.Create(
+    "SUBSTITUTION_SERVICE_DATE_ABSENCE_MISMATCH",
+    "The substitution service date must match the date of the linked teacher absence.",
+    "يجب أن يتطابق تاريخ تنفيذ المناوبة مع تاريخ غياب المعلم المرتبط.");
+
+        public static readonly Error ServiceDateDayOfWeekMismatch = Error.Create(
+            "SUBSTITUTION_SERVICE_DATE_DAYOFWEEK_MISMATCH",
+            "The substitution service date does not fall on the weekly schedule slot's assigned day of week.",
+            "تاريخ تنفيذ المناوبة لا يوافق يوم الأسبوع المحدد لهذه الحصة في الجدول.");
     }
 }

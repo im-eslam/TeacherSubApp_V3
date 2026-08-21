@@ -127,47 +127,47 @@ namespace TeacherSubApp.Seeder
 
         private async Task SeedTimetableAsync()
         {
-            Console.WriteLine("\n--- Seeding Timetable (Bulk) ---");
-            var rows = ReadCsv<dynamic>("CsvData/Timetable.csv");
+            //Console.WriteLine("\n--- Seeding Timetable (Bulk) ---");
+            //var rows = ReadCsv<dynamic>("CsvData/Timetable.csv");
 
-            var bulkDto = new WeeklyScheduleBulkUpdateDto();
+            //var bulkDto = new WeeklyScheduleBulkUpdateDto();
 
-            foreach (var row in rows)
-            {
-                string teacherName = row.TeacherName;
-                if (string.IsNullOrWhiteSpace(teacherName))
-                    continue;
+            //foreach (var row in rows)
+            //{
+            //    string teacherName = row.TeacherName;
+            //    if (string.IsNullOrWhiteSpace(teacherName))
+            //        continue;
 
-                string className = row.ClassDisplayName;
-                string eventName = row.EventName;
+            //    string className = row.ClassDisplayName;
+            //    string eventName = row.EventName;
 
-                if (!_teacherMap.TryGetValue(teacherName.Trim(), out int teacherId))
-                {
-                    Console.WriteLine($"[SKIPPED] Teacher '{teacherName}' not found in DB.");
-                    continue;
-                }
+            //    if (!_teacherMap.TryGetValue(teacherName.Trim(), out int teacherId))
+            //    {
+            //        Console.WriteLine($"[SKIPPED] Teacher '{teacherName}' not found in DB.");
+            //        continue;
+            //    }
 
-                var addDto = new WeeklyScheduleAddDto
-                {
-                    TeacherId = teacherId,
-                    DayOfWeek = int.Parse((string)row.DayOfWeek),
-                    PeriodNumber = int.Parse((string)row.PeriodNumber),
-                    ClassId = !string.IsNullOrWhiteSpace(className) && _classMap.ContainsKey(className.Trim()) ? _classMap[className.Trim()] : null,
-                    EventId = !string.IsNullOrWhiteSpace(eventName) && _eventMap.ContainsKey(eventName.Trim()) ? _eventMap[eventName.Trim()] : null
-                };
+            //    var addDto = new WeeklyScheduleAddDto
+            //    {
+            //        TeacherId = teacherId,
+            //        DayOfWeek = int.Parse((string)row.DayOfWeek),
+            //        PeriodNumber = int.Parse((string)row.PeriodNumber),
+            //        ClassId = !string.IsNullOrWhiteSpace(className) && _classMap.ContainsKey(className.Trim()) ? _classMap[className.Trim()] : null,
+            //        EventId = !string.IsNullOrWhiteSpace(eventName) && _eventMap.ContainsKey(eventName.Trim()) ? _eventMap[eventName.Trim()] : null
+            //    };
 
-                bulkDto.Adds.Add(addDto);
-            }
+            //    bulkDto.Adds.Add(addDto);
+            //}
 
-            if (bulkDto.Adds.Count > 0)
-            {
-                Console.WriteLine($"Sending bulk update with {bulkDto.Adds.Count} schedules...");
-                await PutBulkAsync("/schedules/bulk", bulkDto);
-            }
-            else
-            {
-                Console.WriteLine("No schedules to insert.");
-            }
+            //if (bulkDto.Adds.Count > 0)
+            //{
+            //    Console.WriteLine($"Sending bulk update with {bulkDto.Adds.Count} schedules...");
+            //    await PutBulkAsync("/schedules/bulk", bulkDto);
+            //}
+            //else
+            //{
+            //    Console.WriteLine("No schedules to insert.");
+            //}
         }
 
         private async Task PutBulkAsync(string endpoint, object payload)

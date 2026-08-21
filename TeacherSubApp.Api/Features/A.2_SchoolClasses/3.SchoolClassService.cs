@@ -137,7 +137,7 @@ namespace TeacherSubApp.Api.Features.SchoolClasses
             return Result<List<int>>.Success(sections);
         }
 
-        #region === Helper Methods ===
+        #region === Helpers ===
 
         // Read 
         private async Task<List<SchoolClassReadDto>> _FetchAllActiveAsync(SchoolClassQuery query)
@@ -210,7 +210,7 @@ namespace TeacherSubApp.Api.Features.SchoolClasses
             return (nameChanged, gradeSecChanged);
         }
 
-        // Persistence 
+        // Create / Update
         private async Task<SchoolClass> _PersistNewAsync(SchoolClassWriteDto dto)
         {
             SchoolClass entity = dto.ToEntity();

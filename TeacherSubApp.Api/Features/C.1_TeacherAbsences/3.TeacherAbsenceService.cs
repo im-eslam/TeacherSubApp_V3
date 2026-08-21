@@ -111,7 +111,7 @@ namespace TeacherSubApp.Api.Features.TeacherAbsences
             }
         }
 
-        #region === Helper Methods ===
+        #region === Helpers ===
 
         // Read
         private async Task<List<TeacherAbsenceReadDto>> _FetchAllActiveAsync(TeacherAbsenceQuery query)

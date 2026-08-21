@@ -43,7 +43,10 @@ namespace TeacherSubApp.Api.Features.Substitutions
                 () => _CheckWeeklyScheduleEligibleForSubstitutionAsync(dto.WeeklyScheduleId),
                 () => _CheckSubstituteTeacherActiveAsync(dto.SubstituteTeacherId),
                 () => _CheckSubstituteDoubleBookedAsync(dto.SubstituteTeacherId, dto.ServiceDate, snapshot.PeriodNumber, excludeId: null),
-                () => _CheckSubstituteCannotBeAbsentTeacherAsync(dto.AbsenceId, dto.SubstituteTeacherId)
+                () => _CheckSlotAlreadySubstitutedAsync(dto.WeeklyScheduleId, dto.ServiceDate, excludeId: null),
+                () => _CheckSubstituteCannotBeAbsentTeacherAsync(dto.AbsenceId, dto.SubstituteTeacherId),
+                () => _CheckServiceDateMatchesAbsenceAsync(dto.AbsenceId, dto.ServiceDate),
+                () => _CheckServiceDateMatchesScheduleDayAsync(dto.WeeklyScheduleId, dto.ServiceDate),
             ];
 
             foreach (Func<Task<Result>> rule in rules)
@@ -97,6 +100,15 @@ namespace TeacherSubApp.Api.Features.Substitutions
             {
                 rules.Add(() => _CheckSubstituteCannotBeAbsentTeacherAsync(dto.AbsenceId, dto.SubstituteTeacherId));
             }
+            if (changes.WeeklyScheduleChanged || changes.ServiceDateChanged)
+            {
+                rules.Add(() => _CheckSlotAlreadySubstitutedAsync(dto.WeeklyScheduleId, dto.ServiceDate, id));
+            }
+            if (changes.AbsenceChanged || changes.WeeklyScheduleChanged || changes.ServiceDateChanged)
+            {
+                rules.Add(() => _CheckServiceDateMatchesAbsenceAsync(dto.AbsenceId, dto.ServiceDate));
+                rules.Add(() => _CheckServiceDateMatchesScheduleDayAsync(dto.WeeklyScheduleId, dto.ServiceDate));
+            }
 
             foreach (Func<Task<Result>> rule in rules)
             {
@@ -123,10 +135,10 @@ namespace TeacherSubApp.Api.Features.Substitutions
             return Result.Success();
         }
 
-        #region === Helper Methods ===
+        #region === Helpers ===
 
         // Read
-        protected async Task<List<SubstitutionReadDto>> _FetchAllActiveAsync(SubstitutionQuery query)
+        private async Task<List<SubstitutionReadDto>> _FetchAllActiveAsync(SubstitutionQuery query)
         {
             IQueryable<Substitution> q = _db.Substitutions
                 .AsNoTracking()
@@ -158,14 +170,14 @@ namespace TeacherSubApp.Api.Features.Substitutions
                 .ToListAsync();
         }
 
-        protected Task<Substitution?> _FindActiveByIdAsync(int id)
+        private Task<Substitution?> _FindActiveByIdAsync(int id)
         {
             return _db.Substitutions
                 .FirstOrDefaultAsync(s => s.Id == id && s.DeletedAt == null);
         }
 
         // Validation
-        protected async Task<Result> _CheckAbsenceActiveAsync(int absenceId)
+        private async Task<Result> _CheckAbsenceActiveAsync(int absenceId)
         {
             bool absenceValid = await _db.TeacherAbsences
                 .AnyAsync(a => a.Id == absenceId && a.DeletedAt == null);
@@ -175,7 +187,7 @@ namespace TeacherSubApp.Api.Features.Substitutions
                 : Result.Failure(ErrorType.Validation, SubstitutionErrors.AbsenceInvalid);
         }
 
-        protected async Task<Result> _CheckWeeklyScheduleActiveAsync(int weeklyScheduleId)
+        private async Task<Result> _CheckWeeklyScheduleActiveAsync(int weeklyScheduleId)
         {
             bool scheduleValid = await _db.WeeklySchedules
                 .AnyAsync(ws => ws.Id == weeklyScheduleId && ws.DeletedAt == null);
@@ -185,7 +197,7 @@ namespace TeacherSubApp.Api.Features.Substitutions
                 : Result.Failure(ErrorType.Validation, SubstitutionErrors.WeeklyScheduleInvalid);
         }
 
-        protected async Task<Result> _CheckWeeklyScheduleEligibleForSubstitutionAsync(int weeklyScheduleId)
+        private async Task<Result> _CheckWeeklyScheduleEligibleForSubstitutionAsync(int weeklyScheduleId)
         {
             WeeklySchedule? schedule = await _db.WeeklySchedules
                 .AsNoTracking()
@@ -200,7 +212,7 @@ namespace TeacherSubApp.Api.Features.Substitutions
                 : Result.Success();
         }
 
-        protected async Task<Result> _CheckSubstituteTeacherActiveAsync(int substituteTeacherId)
+        private async Task<Result> _CheckSubstituteTeacherActiveAsync(int substituteTeacherId)
         {
             bool teacherValid = await _db.Teachers
                 .AnyAsync(t => t.Id == substituteTeacherId && t.DeletedAt == null);
@@ -210,7 +222,7 @@ namespace TeacherSubApp.Api.Features.Substitutions
                 : Result.Failure(ErrorType.Validation, SubstitutionErrors.SubstituteTeacherInvalid);
         }
 
-        protected async Task<Result> _CheckSubstituteDoubleBookedAsync(int substituteTeacherId, DateOnly serviceDate, int periodNumber, int? excludeId)
+        private async Task<Result> _CheckSubstituteDoubleBookedAsync(int substituteTeacherId, DateOnly serviceDate, int periodNumber, int? excludeId)
         {
             bool alreadyBooked = await _db.Substitutions
                 .AnyAsync(s => s.DeletedAt == null
@@ -224,7 +236,7 @@ namespace TeacherSubApp.Api.Features.Substitutions
                 : Result.Success();
         }
 
-        protected async Task<Result> _CheckSubstituteCannotBeAbsentTeacherAsync(int absenceId, int substituteTeacherId)
+        private async Task<Result> _CheckSubstituteCannotBeAbsentTeacherAsync(int absenceId, int substituteTeacherId)
         {
             int? absentTeacherId = await _db.TeacherAbsences
                 .Where(a => a.Id == absenceId && a.DeletedAt == null)
@@ -236,8 +248,50 @@ namespace TeacherSubApp.Api.Features.Substitutions
                 : Result.Success();
         }
 
+        protected async Task<Result> _CheckSlotAlreadySubstitutedAsync(int weeklyScheduleId, DateOnly serviceDate, int? excludeId)
+        {
+            bool alreadyTaken = await _db.Substitutions
+                .AnyAsync(s => s.DeletedAt == null
+                            && s.WeeklyScheduleId == weeklyScheduleId
+                            && s.ServiceDate == serviceDate
+                            && (!excludeId.HasValue || s.Id != excludeId.Value));
+
+            return alreadyTaken
+                ? Result.Failure(ErrorType.Conflict, SubstitutionErrors.SlotAlreadySubstituted)
+                : Result.Success();
+        }
+
+        protected async Task<Result> _CheckServiceDateMatchesAbsenceAsync(int absenceId, DateOnly serviceDate)
+        {
+            DateOnly? absenceDate = await _db.TeacherAbsences
+                .Where(a => a.Id == absenceId && a.DeletedAt == null)
+                .Select(a => (DateOnly?)a.AbsenceDate)
+                .FirstOrDefaultAsync();
+
+            return absenceDate.HasValue && absenceDate.Value != serviceDate
+                ? Result.Failure(ErrorType.Validation, SubstitutionErrors.ServiceDateAbsenceMismatch)
+                : Result.Success();
+        }
+
+        protected async Task<Result> _CheckServiceDateMatchesScheduleDayAsync(int weeklyScheduleId, DateOnly serviceDate)
+        {
+            int? scheduleDayOfWeek = await _db.WeeklySchedules
+                .Where(ws => ws.Id == weeklyScheduleId && ws.DeletedAt == null)
+                .Select(ws => (int?)ws.DayOfWeek)
+                .FirstOrDefaultAsync();
+
+            if (!scheduleDayOfWeek.HasValue)
+                return Result.Success();
+
+            int actualDayOfWeek = (int)serviceDate.DayOfWeek;
+
+            return actualDayOfWeek == scheduleDayOfWeek.Value
+                ? Result.Success()
+                : Result.Failure(ErrorType.Validation, SubstitutionErrors.ServiceDateDayOfWeekMismatch);
+        }
+
         // Create / Update
-        protected async Task<Substitution> _PersistNewAsync(SubstitutionWriteDto dto, SubstitutionSnapshot snapshot)
+        private async Task<Substitution> _PersistNewAsync(SubstitutionWriteDto dto, SubstitutionSnapshot snapshot)
         {
             Substitution entity = dto.ToEntity();
 
@@ -249,7 +303,7 @@ namespace TeacherSubApp.Api.Features.Substitutions
             return entity;
         }
 
-        protected async Task<Substitution> _ApplyUpdateAsync(Substitution substitution, SubstitutionWriteDto dto, SubstitutionSnapshot snapshot)
+        private async Task<Substitution> _ApplyUpdateAsync(Substitution substitution, SubstitutionWriteDto dto, SubstitutionSnapshot snapshot)
         {
             substitution.AbsenceId = dto.AbsenceId;
             substitution.WeeklyScheduleId = dto.WeeklyScheduleId;
@@ -267,7 +321,7 @@ namespace TeacherSubApp.Api.Features.Substitutions
         }
 
         // Delete
-        protected async Task _SoftDeleteAsync(Substitution substitution)
+        private async Task _SoftDeleteAsync(Substitution substitution)
         {
             substitution.DeletedAt = DateTime.UtcNow;
             substitution.UpdatedAt = DateTime.UtcNow;

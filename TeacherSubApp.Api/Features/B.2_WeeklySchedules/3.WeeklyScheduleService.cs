@@ -163,7 +163,7 @@ namespace TeacherSubApp.Api.Features.WeeklySchedules
             }
         }
 
-        #region === Helper Methods ===
+        #region === Helpers ===
 
         // Read
         protected async Task<List<WeeklyScheduleReadDto>> _FetchAllActiveAsync(WeeklyScheduleQuery query)
