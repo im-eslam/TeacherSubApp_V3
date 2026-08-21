@@ -1,9 +1,34 @@
 import { apiClient } from "../../lib/apiClient";
-import type { TeacherReadDto, TeacherWriteDto } from "./types";
+import type { TeacherQuery, TeacherReadDto, TeacherWriteDto } from "./types";
+
+export function buildQueryString(query: TeacherQuery): string {
+  const params = new URLSearchParams();
+
+  if (query.name && query.name.trim() !== "") {
+    params.set("name", query.name.trim());
+  }
+
+  if (query.subjectId !== undefined) {
+    params.set("subjectId", String(query.subjectId));
+  }
+
+  if (query.isSupervisor !== undefined) {
+    params.set("isSupervisor", String(query.isSupervisor));
+  }
+
+  const queryString = params.toString();
+  return queryString ? `?${queryString}` : "";
+}
 
 export const teachersApi = {
-  getAll: (signal?: AbortSignal): Promise<TeacherReadDto[]> => {
-    return apiClient.get<TeacherReadDto[]>("/teachers", signal);
+  getAll: (
+    query: TeacherQuery = {},
+    signal?: AbortSignal,
+  ): Promise<TeacherReadDto[]> => {
+    return apiClient.get<TeacherReadDto[]>(
+      `/teachers${buildQueryString(query)}`,
+      signal,
+    );
   },
 
   getById: (id: number, signal?: AbortSignal): Promise<TeacherReadDto> => {

@@ -1,9 +1,38 @@
 import { apiClient } from "../../lib/apiClient";
-import type { SchoolClassReadDto, SchoolClassWriteDto } from "./types";
+import type {
+  SchoolClassQuery,
+  SchoolClassReadDto,
+  SchoolClassWriteDto,
+} from "./types";
+
+export function buildQueryString(query: SchoolClassQuery): string {
+  const params = new URLSearchParams();
+
+  if (query.displayName && query.displayName.trim() !== "") {
+    params.set("displayName", query.displayName.trim());
+  }
+
+  if (query.grade !== undefined) {
+    params.set("grade", String(query.grade));
+  }
+
+  if (query.section !== undefined) {
+    params.set("section", String(query.section));
+  }
+
+  const queryString = params.toString();
+  return queryString ? `?${queryString}` : "";
+}
 
 export const classesApi = {
-  getAll: (signal?: AbortSignal): Promise<SchoolClassReadDto[]> => {
-    return apiClient.get<SchoolClassReadDto[]>("/classes", signal);
+  getAll: (
+    query: SchoolClassQuery = {},
+    signal?: AbortSignal,
+  ): Promise<SchoolClassReadDto[]> => {
+    return apiClient.get<SchoolClassReadDto[]>(
+      `/classes${buildQueryString(query)}`,
+      signal,
+    );
   },
 
   getById: (id: number, signal?: AbortSignal): Promise<SchoolClassReadDto> => {

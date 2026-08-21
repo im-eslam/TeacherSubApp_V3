@@ -1,199 +1,87 @@
-import { useState, useMemo } from "react";
-import toast, { Toaster } from "react-hot-toast";
 import { X } from "lucide-react";
-import { useDelayedLoading } from "../lib/useDelayedLoading";
 import {
-  EntityPageHeader,
   EntityErrorBanner,
+  EntityPageHeader,
   EntityToolbar,
 } from "../components/layout/EntityPageLayout";
-import { SearchInput } from "../components/controls/SearchInput";
-import { SortToggle, type SortOrder } from "../components/controls/SortToggle";
 import { Button } from "../components/controls/Button";
-import {
-  useSubjects,
-  useCreateSubject,
-  useUpdateSubject,
-  useDeleteSubject,
-} from "../features/subjects/hooks";
+import { SearchInput } from "../components/controls/SearchInput";
+import { SortToggle } from "../components/controls/SortToggle";
+import { useSubjectsPage } from "../features/subjects/hooks";
 import { SubjectGrid } from "../features/subjects/components/SubjectGrid";
 import {
   SubjectCreateModal,
-  SubjectEditModal,
   SubjectDeleteModal,
+  SubjectEditModal,
 } from "../features/subjects/components/SubjectModals";
-import type {
-  SubjectReadDto,
-  SubjectWriteDto,
-} from "../features/subjects/types";
-import { useDebouncedValue } from "../lib/useDebouncedValue";
 
 export default function SubjectsPage() {
-  // ── Data fetching ──
-  const {
-    data: subjects = [],
-    isLoading,
-    isError,
-    error,
-    refetch,
-  } = useSubjects();
-  const createMutation = useCreateSubject();
-  const updateMutation = useUpdateSubject();
-  const deleteMutation = useDeleteSubject();
-
-  // ── Modal state ──
-  const [createOpen, setCreateOpen] = useState(false);
-  const [editOpen, setEditOpen] = useState(false);
-  const [deleteOpen, setDeleteOpen] = useState(false);
-  const [selectedSubject, setSelectedSubject] = useState<SubjectReadDto | null>(
-    null,
-  );
-
-  // ── Toolbar state ──
-  const [query, setQuery] = useState("");
-  const debouncedQuery = useDebouncedValue(query, 250);
-  const [sortOrder, setSortOrder] = useState<SortOrder>("asc");
-
-  // ── Derived data ──
-  const displayedSubjects = useMemo(() => {
-    const filtered = debouncedQuery.trim()
-      ? subjects.filter((s) =>
-          s.name.toLowerCase().includes(debouncedQuery.trim().toLowerCase()),
-        )
-      : [...subjects];
-
-    return filtered.sort((a, b) =>
-      sortOrder === "asc"
-        ? a.name.localeCompare(b.name, "ar")
-        : b.name.localeCompare(a.name, "ar"),
-    );
-  }, [subjects, debouncedQuery, sortOrder]);
-
-  const hasFilters = query.length > 0 || sortOrder !== "asc";
-  const showLoader = useDelayedLoading(isLoading, 200);
-  const isAwaitingData = isLoading && subjects.length === 0;
-
-  const isDisabled = isLoading;
-
-  // ── Handlers ──
-  const handleCreateSubmit = async (data: SubjectWriteDto) => {
-    await createMutation.mutateAsync(data);
-    toast.success("تمت إضافة المادة بنجاح");
-  };
-
-  const handleEditSubmit = async (id: number, data: SubjectWriteDto) => {
-    await updateMutation.mutateAsync({ id, dto: data });
-    toast.success("تم حفظ التعديلات");
-  };
-
-  const handleDeleteSubmit = async (id: number) => {
-    await deleteMutation.mutateAsync(id);
-    toast.success("تم حذف المادة");
-  };
+  const page = useSubjectsPage();
+  const { filters, grid, modals, mutations } = page;
 
   return (
-    <div className="flex flex-col gap-6 p-6 min-h-full">
-      <Toaster
-        position="top-center"
-        toastOptions={{
-          className: "font-medium text-sm",
-          style: { direction: "rtl", borderRadius: "99px" },
-        }}
-      />
-
+    <div className="flex min-h-full flex-col gap-6 p-6">
       <EntityPageHeader
         title="المواد الدراسية"
         description="تُربط المواد بالمعلمين لتحديد تخصصاتهم في الجدول. وتعتمد عليها خوارزمية الاستبدال بشكل مباشر لمنح الأولوية لمعلمي نفس المادة عند ترشيح البديل الأنسب."
         addLabel="إضافة مادة"
-        onAdd={() => {
-          setCreateOpen(true);
-        }}
-        isDisabled={isDisabled}
+        onAdd={modals.openCreate}
+        isDisabled={page.isDisabled}
       />
-
-      {isError && (
+      {page.isError && (
         <EntityErrorBanner
-          error={error}
-          onRetry={refetch}
-          isRetrying={isLoading}
+          error={page.error}
+          onRetry={page.retry}
+          isRetrying={page.isDisabled}
         />
       )}
-
       <EntityToolbar>
         <SearchInput
-          value={query}
-          onChange={setQuery}
+          value={filters.query}
+          onChange={filters.onQueryChange}
           placeholder="بحث عن مادة..."
-          isDisabled={isDisabled}
+          isDisabled={filters.isDisabled}
         />
-
         <SortToggle
-          sortOrder={sortOrder}
-          onSortToggle={() =>
-            setSortOrder((prev) => (prev === "asc" ? "desc" : "asc"))
-          }
-          isDisabled={isDisabled}
+          sortOrder={filters.sortOrder}
+          onSortToggle={filters.onSortToggle}
+          isDisabled={filters.isDisabled}
           sortAscLabel="أ ← ي"
           sortDescLabel="ي ← أ"
         />
-
-        {hasFilters && (
+        {filters.hasFilters && (
           <Button
             variant="quiet"
-            onPress={() => {
-              setQuery("");
-              setSortOrder("asc");
-            }}
-            isDisabled={isDisabled}
+            onPress={filters.onClear}
+            isDisabled={filters.isDisabled}
           >
             <X size={16} strokeWidth={2.5} />
             إلغاء التصفية
           </Button>
         )}
       </EntityToolbar>
-
-      <SubjectGrid
-        subjects={displayedSubjects}
-        isLoading={showLoader}
-        isAwaitingData={isAwaitingData}
-        isError={isError}
-        searchQuery={debouncedQuery}
-        onAdd={() => {
-          setCreateOpen(true);
-        }}
-        onEdit={(subject) => {
-          setSelectedSubject(subject);
-          setEditOpen(true);
-        }}
-        onDelete={(subject) => {
-          setSelectedSubject(subject);
-          setDeleteOpen(true);
-        }}
-      />
-
-      {createOpen && (
+      <SubjectGrid {...grid} />
+      {modals.createOpen && (
         <SubjectCreateModal
-          isOpen={createOpen}
-          onClose={() => setCreateOpen(false)}
-          onSubmit={handleCreateSubmit}
+          isOpen={modals.createOpen}
+          onClose={modals.closeCreate}
+          onSubmit={mutations.create}
         />
       )}
-
-      {editOpen && selectedSubject && (
+      {modals.editOpen && modals.selectedSubject && (
         <SubjectEditModal
-          isOpen={editOpen}
-          subject={selectedSubject}
-          onClose={() => setEditOpen(false)}
-          onSubmit={handleEditSubmit}
+          isOpen={modals.editOpen}
+          subject={modals.selectedSubject}
+          onClose={modals.closeEdit}
+          onSubmit={mutations.update}
         />
       )}
-
-      {deleteOpen && selectedSubject && (
+      {modals.deleteOpen && modals.selectedSubject && (
         <SubjectDeleteModal
-          isOpen={deleteOpen}
-          subject={selectedSubject}
-          onClose={() => setDeleteOpen(false)}
-          onSubmit={handleDeleteSubmit}
+          isOpen={modals.deleteOpen}
+          subject={modals.selectedSubject}
+          onClose={modals.closeDelete}
+          onSubmit={mutations.remove}
         />
       )}
     </div>

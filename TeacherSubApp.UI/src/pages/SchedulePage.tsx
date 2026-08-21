@@ -1,6 +1,5 @@
 import { useCallback, useMemo, useState } from "react";
 import { CalendarDays, CalendarRange, Pencil } from "lucide-react";
-import { Toaster } from "react-hot-toast";
 import { useDelayedLoading } from "../lib/useDelayedLoading";
 import {
   EntityErrorBanner,
@@ -101,14 +100,6 @@ export default function SchedulePage() {
 
   return (
     <div className="flex flex-col gap-6 p-6 min-h-full">
-      <Toaster
-        position="top-center"
-        toastOptions={{
-          className: "font-medium text-sm",
-          style: { direction: "rtl", borderRadius: "12px" },
-        }}
-      />
-
       <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-4">
         <div className="flex flex-col gap-1">
           <h1 className="text-2xl font-bold tracking-tight text-neutral-900">

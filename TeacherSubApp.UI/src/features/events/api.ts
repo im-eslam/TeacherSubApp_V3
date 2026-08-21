@@ -1,7 +1,7 @@
 import { apiClient } from "../../lib/apiClient";
 import type { EventKeyReadDto, EventKeyWriteDto, EventKeyQuery } from "./types";
 
-function buildQueryString(query: EventKeyQuery): string {
+export function buildQueryString(query: EventKeyQuery): string {
   const params = new URLSearchParams();
 
   if (query.eventName && query.eventName.trim() !== "") {
