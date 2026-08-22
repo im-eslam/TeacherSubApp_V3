@@ -39,7 +39,7 @@ interface CollapseGroupConfig {
 const MAIN_LINKS: NavLinkConfig[] = [
   { label: "لوحة التحكم", path: "/dashboard", Icon: LayoutDashboard },
   { label: "جدول الحصص", path: "/schedule", Icon: CalendarDays },
-  { label: "طلبات الغياب", path: "/absences", Icon: ClipboardList },
+  { label: "إدارة الغياب والاحتياط", path: "/substitutions", Icon: ClipboardList },
   { label: "الإشعارات", path: "/notifications", Icon: Bell },
 ];
 
