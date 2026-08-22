@@ -13,18 +13,9 @@ import {
   ScheduleGrid,
   type ScheduleGridViewMode,
 } from "../features/schedules/components/ScheduleGrid";
-import { ScheduleEditorModal } from "../features/schedules/components/ScheduleEditorModal";
+import { ScheduleEditWorkspace } from "../features/schedules/components/ScheduleEditWorkspace";
 import { useSchedulePage } from "../features/schedules/hooks";
-import type {
-  SlotCoordinate,
-  WeeklyScheduleBulkEditRequest,
-  WeeklyScheduleReadDto,
-} from "../features/schedules/types";
-
-type EditorTarget = {
-  coordinate: SlotCoordinate;
-  slot: WeeklyScheduleReadDto | null;
-} | null;
+import type { WeeklyScheduleBulkEditRequest } from "../features/schedules/types";
 
 const VIEW_MODE_OPTIONS = [
   { value: "teacher", label: "عرض المعلم" },
@@ -33,31 +24,15 @@ const VIEW_MODE_OPTIONS = [
 
 export default function SchedulePage() {
   const viewModel = useSchedulePage();
-  const [editorTarget, setEditorTarget] = useState<EditorTarget>(null);
+  const [editorOpen, setEditorOpen] = useState(false);
   const showLoader = useDelayedLoading(viewModel.isLoading, 200);
 
-  const handleCellPress = (
-    coordinate: SlotCoordinate,
-    slot: WeeklyScheduleReadDto | null,
-  ) => {
-    setEditorTarget({ coordinate, slot });
-    viewModel.openEditor();
-  };
-
-  const handleCloseEditor = () => {
-    setEditorTarget(null);
-    viewModel.closeEditor();
-  };
+  const handleCloseEditor = () => setEditorOpen(false);
 
   const handleSubmit = async (request: WeeklyScheduleBulkEditRequest) => {
     await viewModel.bulkEdit.mutateAsync(request);
     toast.success("تم حفظ تغييرات الجدول بنجاح");
   };
-
-  const selectedLabel =
-    viewModel.viewMode === "teacher"
-      ? "اختر معلماً لعرض جدوله"
-      : "اختر فصلاً لعرض جدوله";
 
   return (
     <div className="flex min-h-full flex-col gap-6 p-6">
@@ -67,16 +42,13 @@ export default function SchedulePage() {
             الجدول الأسبوعي
           </h1>
           <p className="mt-1 max-w-2xl text-sm leading-relaxed text-neutral-500">
-            اعرض جدول أي معلم أو فصل عبر أيام الأسبوع والحصص السبع، ثم أضف أو
-            عدّل أو احذف التعيينات من خلال محرر الجدول.
+            اعرض جدول أي معلم أو فصل عبر أيام الأسبوع والحصص السبع. استخدم محرر
+            التعديلات المركزي لتحضير عدة تغييرات ثم حفظها دفعة واحدة.
           </p>
         </div>
         <Button
           variant="primary"
-          onPress={() => {
-            setEditorTarget(null);
-            viewModel.openEditor();
-          }}
+          onPress={() => setEditorOpen(true)}
           isDisabled={viewModel.bulkEdit.isPending}
         >
           <Pencil size={16} strokeWidth={2.5} />
@@ -105,7 +77,11 @@ export default function SchedulePage() {
             value={viewModel.selectedId}
             onChange={viewModel.onSelectedIdChange}
             options={viewModel.selectionOptions}
-            placeholder={selectedLabel}
+            placeholder={
+              viewModel.viewMode === "teacher"
+                ? "اختر معلماً لعرض جدوله"
+                : "اختر فصلاً لعرض جدوله"
+            }
           />
         </div>
       </EntityToolbar>
@@ -115,21 +91,19 @@ export default function SchedulePage() {
           slots={viewModel.selectedSlots}
           viewMode={viewModel.viewMode}
           isLoading={showLoader}
-          onCellPress={handleCellPress}
         />
       ) : (
         <ScheduleGridEmptyPrompt viewMode={viewModel.viewMode} />
       )}
 
-      {viewModel.editorOpen && (
-        <ScheduleEditorModal
-          isOpen={viewModel.editorOpen}
-          initialCoordinate={editorTarget?.coordinate ?? null}
-          initialSlot={editorTarget?.slot ?? null}
+      {editorOpen && (
+        <ScheduleEditWorkspace
+          isOpen={editorOpen}
           baseSlots={viewModel.allSlots}
           teachers={viewModel.teachers}
           classes={viewModel.classes}
           events={viewModel.events}
+          isLoading={viewModel.isAllSlotsLoading}
           onClose={handleCloseEditor}
           onSubmit={handleSubmit}
         />
