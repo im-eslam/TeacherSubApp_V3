@@ -154,6 +154,8 @@ namespace TeacherSubApp.Api.Features.SubstituteMatching
                 .Select(candidate => _BuildCandidateDto(scoringEngine, candidate))
                 .ToList();
 
+            scoredCandidates = scoringEngine.ExcludeTier(scoredCandidates, CandidateTier.C3);
+
             return scoringEngine.RankByTierThenScore(scoredCandidates);
         }
 

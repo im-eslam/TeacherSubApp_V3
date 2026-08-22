@@ -42,7 +42,7 @@ namespace TeacherSubApp.Api.Features.SubstituteMatching.Internal
                 : CandidateTier.A;
         }
 
-        // ==== Rank / Sort ====
+        // ==== Rank / Sort / Filter ====
 
         public double CalculateTotalScore(TeacherContext candidate)
         {
@@ -74,7 +74,17 @@ namespace TeacherSubApp.Api.Features.SubstituteMatching.Internal
                 .ToList();
         }
 
-        // ==== Private Helpers ====
+        public List<SubstituteCandidateDto> ExcludeTier(List<SubstituteCandidateDto> scoredCandidates, CandidateTier excludeTier)
+        {
+            if (scoredCandidates is null)
+                return new List<SubstituteCandidateDto>();
+
+            return scoredCandidates
+                .Where(c => c.Tier != excludeTier)
+                .ToList();
+        }
+
+        #region ==== Private Herlpers ====
 
         private double _NormalizeWeeklyLoad(TeacherContext candidate)
         {
@@ -133,5 +143,7 @@ namespace TeacherSubApp.Api.Features.SubstituteMatching.Internal
         {
             return periodNumber <= _settings.RestPeriodBreak ? 1 : 2;
         }
+
+        #endregion
     }
 }

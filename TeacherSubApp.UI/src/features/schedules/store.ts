@@ -3,7 +3,7 @@ import type { ScheduleViewMode } from "./types";
 
 interface SchedulePageState {
   viewMode: ScheduleViewMode;
-  selectedId: string; 
+  selectedId: string;
 
   setViewMode: (mode: ScheduleViewMode) => void;
   setSelectedId: (id: string) => void;

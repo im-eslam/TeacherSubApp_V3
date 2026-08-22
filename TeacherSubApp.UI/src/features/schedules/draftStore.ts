@@ -104,7 +104,10 @@ interface ScheduleDraftState {
   goToStep1: () => void;
   chooseOperation: (kind: DraftOperationKind) => void;
 
-  commitOperation: (op: DraftOperation) => { success: boolean; reason?: string };
+  commitOperation: (op: DraftOperation) => {
+    success: boolean;
+    reason?: string;
+  };
 
   editStagedOperation: (draftId: string) => void;
   removeStagedOperation: (draftId: string) => void;

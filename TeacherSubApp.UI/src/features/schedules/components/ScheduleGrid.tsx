@@ -26,8 +26,10 @@ const STYLES = {
     "flex h-20 sm:h-24 items-center justify-center rounded-xl border border-dashed border-neutral-300 bg-neutral-50/50",
   emptyCellDash: "text-xl sm:text-2xl font-medium text-neutral-400",
 
-  cardWrapper: "flex min-h-20 sm:min-h-24 w-full flex-col overflow-hidden rounded-xl border",
-  cardSection: "flex flex-1 flex-col items-center justify-center px-1.5 sm:px-2 py-1.5 sm:py-2 text-center",
+  cardWrapper:
+    "flex min-h-20 sm:min-h-24 w-full flex-col overflow-hidden rounded-xl border",
+  cardSection:
+    "flex flex-1 flex-col items-center justify-center px-1.5 sm:px-2 py-1.5 sm:py-2 text-center",
   cardDivider: "border-t border-neutral-100",
   primaryText:
     "max-w-full line-clamp-2 break-words text-[13px] sm:text-base font-medium leading-snug tracking-tight text-neutral-800",
@@ -78,7 +80,9 @@ function ScheduleCell({
   if (viewMode === "teacher") {
     if (hasClass && hasEvent) {
       return (
-        <div className={[STYLES.cardWrapper, "bg-white", color?.border].join(" ")}>
+        <div
+          className={[STYLES.cardWrapper, "bg-white", color?.border].join(" ")}
+        >
           <div className={STYLES.cardSection}>
             <span className={STYLES.primaryText}>{slot.classDisplayName}</span>
           </div>
@@ -94,7 +98,9 @@ function ScheduleCell({
 
     if (hasEvent) {
       return (
-        <div className={[STYLES.cardWrapper, color?.bg, color?.border].join(" ")}>
+        <div
+          className={[STYLES.cardWrapper, color?.bg, color?.border].join(" ")}
+        >
           <div className={STYLES.cardSection}>
             <span className={[STYLES.primaryText, color?.text].join(" ")}>
               {slot.eventName}
@@ -105,7 +111,11 @@ function ScheduleCell({
     }
 
     return (
-      <div className={[STYLES.cardWrapper, "bg-white border-neutral-300"].join(" ")}>
+      <div
+        className={[STYLES.cardWrapper, "bg-white border-neutral-300"].join(
+          " ",
+        )}
+      >
         <div className={STYLES.cardSection}>
           <span className={STYLES.primaryText}>{slot.classDisplayName}</span>
         </div>
@@ -115,7 +125,9 @@ function ScheduleCell({
 
   if (hasEvent) {
     return (
-      <div className={[STYLES.cardWrapper, "bg-white", color?.border].join(" ")}>
+      <div
+        className={[STYLES.cardWrapper, "bg-white", color?.border].join(" ")}
+      >
         <div className={STYLES.cardSection}>
           <span className={STYLES.primaryText}>{slot.teacherName}</span>
         </div>
@@ -130,7 +142,9 @@ function ScheduleCell({
   }
 
   return (
-    <div className={[STYLES.cardWrapper, "bg-white border-neutral-300"].join(" ")}>
+    <div
+      className={[STYLES.cardWrapper, "bg-white border-neutral-300"].join(" ")}
+    >
       <div className={STYLES.cardSection}>
         <span className={STYLES.primaryText}>{slot.teacherName}</span>
       </div>
@@ -170,10 +184,13 @@ export const ScheduleGrid = memo(function ScheduleGrid({
           <CalendarDays size={22} strokeWidth={1.75} />
         </div>
         <p className={STYLES.emptyTitle}>
-          {viewMode === "teacher" ? "اختر معلمًا لعرض جدوله" : "اختر فصلاً لعرض جدوله"}
+          {viewMode === "teacher"
+            ? "اختر معلمًا لعرض جدوله"
+            : "اختر فصلاً لعرض جدوله"}
         </p>
         <p className={STYLES.emptySubtitle}>
-          استخدم القائمة أعلاه لعرض الجدول الأسبوعي الخاص بالمعلم أو الفصل المطلوب
+          استخدم القائمة أعلاه لعرض الجدول الأسبوعي الخاص بالمعلم أو الفصل
+          المطلوب
         </p>
       </div>
     );
