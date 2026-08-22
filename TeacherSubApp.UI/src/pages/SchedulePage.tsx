@@ -1,60 +1,44 @@
-import { useState } from "react";
-import { CalendarDays, CalendarRange, Pencil } from "lucide-react";
-import toast from "react-hot-toast";
-import { useDelayedLoading } from "../lib/useDelayedLoading";
+import { lazy, Suspense, useState } from "react";
+import { CalendarDays, CalendarRange, Loader2, Pencil } from "lucide-react";
+import { Button } from "../components/controls/Button";
 import {
   EntityErrorBanner,
-  EntityToolbar,
 } from "../components/layout/EntityPageLayout";
-import { Button } from "../components/controls/Button";
-import { SearchableSelect } from "../components/controls/SearchableSelect";
-import { SegmentedToggle } from "../components/controls/SegmentedToggle";
-import {
-  ScheduleGrid,
-  type ScheduleGridViewMode,
-} from "../features/schedules/components/ScheduleGrid";
-import { ScheduleEditWorkspace } from "../features/schedules/components/ScheduleEditWorkspace";
-import { useSchedulePage } from "../features/schedules/hooks";
-import type { WeeklyScheduleBulkEditRequest } from "../features/schedules/types";
+import { useSchedulePage, type ScheduleViewMode } from "../features/schedules/hooks";
+import { ScheduleGrid } from "../features/schedules/components/ScheduleGrid";
+import { ScheduleToolbar } from "../features/schedules/components/ScheduleToolbar";
 
-const VIEW_MODE_OPTIONS = [
-  { value: "teacher", label: "عرض المعلم" },
-  { value: "class", label: "عرض الفصل" },
-];
+const BulkEditModal = lazy(() =>
+  import("../features/schedules/components/BulkEditModal").then((module) => ({
+    default: module.BulkEditModal,
+  })),
+);
 
 export default function SchedulePage() {
   const viewModel = useSchedulePage();
-  const [editorOpen, setEditorOpen] = useState(false);
-  const showLoader = useDelayedLoading(viewModel.isLoading, 200);
-
-  const handleCloseEditor = () => setEditorOpen(false);
-
-  const handleSubmit = async (request: WeeklyScheduleBulkEditRequest) => {
-    await viewModel.bulkEdit.mutateAsync(request);
-    toast.success("تم حفظ تغييرات الجدول بنجاح");
-  };
+  const [isEditorOpen, setIsEditorOpen] = useState(false);
 
   return (
     <div className="flex min-h-full flex-col gap-6 p-6">
-      <div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-start">
-        <div className="flex flex-col gap-1">
+      <header className="flex flex-col justify-between gap-4 sm:flex-row sm:items-start">
+        <div>
           <h1 className="text-2xl font-bold tracking-tight text-neutral-900">
             الجدول الأسبوعي
           </h1>
           <p className="mt-1 max-w-2xl text-sm leading-relaxed text-neutral-500">
-            اعرض جدول أي معلم أو فصل عبر أيام الأسبوع والحصص السبع. استخدم محرر
-            التعديلات المركزي لتحضير عدة تغييرات ثم حفظها دفعة واحدة.
+            اعرض جدول المعلمين والفصول في مصفوفة أسبوعية واضحة، ثم جهّز تعديلات
+            كاملة للجدول واحفظها دفعة واحدة من المحرر المركزي.
           </p>
         </div>
         <Button
           variant="primary"
-          onPress={() => setEditorOpen(true)}
-          isDisabled={viewModel.bulkEdit.isPending}
+          onPress={() => setIsEditorOpen(true)}
+          isDisabled={viewModel.isError}
         >
           <Pencil size={16} strokeWidth={2.5} />
-          تعديل الجدول
+          تعديل الجدول بالكامل
         </Button>
-      </div>
+      </header>
 
       {viewModel.isError && (
         <EntityErrorBanner
@@ -64,74 +48,68 @@ export default function SchedulePage() {
         />
       )}
 
-      <EntityToolbar>
-        <SegmentedToggle
-          value={viewModel.viewMode}
-          onChange={(value) =>
-            viewModel.onViewModeChange(value as ScheduleGridViewMode)
-          }
-          options={VIEW_MODE_OPTIONS}
-        />
-        <div className="w-[300px]">
-          <SearchableSelect
-            value={viewModel.selectedId}
-            onChange={viewModel.onSelectedIdChange}
-            options={viewModel.selectionOptions}
-            placeholder={
-              viewModel.viewMode === "teacher"
-                ? "اختر معلماً لعرض جدوله"
-                : "اختر فصلاً لعرض جدوله"
-            }
-          />
-        </div>
-      </EntityToolbar>
+      <ScheduleToolbar
+        viewMode={viewModel.viewMode}
+        teacherOptions={viewModel.teacherOptions}
+        classOptions={viewModel.classOptions}
+        selectedTeacherId={viewModel.selectedTeacherId}
+        selectedClassId={viewModel.selectedClassId}
+        onViewModeChange={viewModel.onViewModeChange}
+        onTeacherChange={viewModel.onTeacherChange}
+        onClassChange={viewModel.onClassChange}
+        isDisabled={viewModel.isError}
+      />
 
-      {viewModel.selectedId ? (
-        <ScheduleGrid
-          slots={viewModel.selectedSlots}
-          viewMode={viewModel.viewMode}
-          isLoading={showLoader}
-        />
+      {viewModel.isAwaitingSelection ? (
+        <ScheduleEmptyPrompt viewMode={viewModel.viewMode} />
       ) : (
-        <ScheduleGridEmptyPrompt viewMode={viewModel.viewMode} />
+        <ScheduleGrid
+          slots={viewModel.slots}
+          viewMode={viewModel.viewMode}
+          teacherSubjectById={viewModel.teacherSubjectById}
+          isLoading={viewModel.isLoading}
+        />
       )}
 
-      {editorOpen && (
-        <ScheduleEditWorkspace
-          isOpen={editorOpen}
-          baseSlots={viewModel.allSlots}
-          teachers={viewModel.teachers}
-          classes={viewModel.classes}
-          events={viewModel.events}
-          isLoading={viewModel.isAllSlotsLoading}
-          onClose={handleCloseEditor}
-          onSubmit={handleSubmit}
-        />
+      {isEditorOpen && (
+        <Suspense fallback={<ModalLoadingFallback />}>
+          <BulkEditModal
+            isOpen={isEditorOpen}
+            onClose={() => setIsEditorOpen(false)}
+          />
+        </Suspense>
       )}
     </div>
   );
 }
 
-function ScheduleGridEmptyPrompt({
-  viewMode,
-}: {
-  viewMode: ScheduleGridViewMode;
-}) {
+function ScheduleEmptyPrompt({ viewMode }: { viewMode: ScheduleViewMode }) {
   const Icon = viewMode === "teacher" ? CalendarDays : CalendarRange;
-  const message =
+  const text =
     viewMode === "teacher"
-      ? "اختر معلماً لعرض جدوله الأسبوعي الكامل"
+      ? "اختر معلماً لعرض جدوله الأسبوعي"
       : "اختر فصلاً لعرض جدوله الأسبوعي";
 
   return (
-    <div className="flex flex-col items-center justify-center gap-3 rounded-2xl border border-neutral-200/80 bg-white px-4 py-24 text-center">
+    <div className="flex flex-col items-center justify-center gap-3 rounded-2xl border border-neutral-200/80 bg-white px-4 py-24 text-center shadow-sm">
       <div className="flex h-16 w-16 items-center justify-center rounded-3xl bg-neutral-100 text-neutral-400">
         <Icon size={28} strokeWidth={1.5} />
       </div>
-      <p className="mt-1 text-sm font-medium text-neutral-900">{message}</p>
+      <p className="text-sm font-medium text-neutral-900">{text}</p>
       <p className="max-w-xs text-xs leading-relaxed text-neutral-400">
-        استخدم القائمة أعلاه لتحديد معلم أو فصل والبدء بعرض الجدول.
+        ستظهر الخانات الفارغة تلقائياً في شبكة الأيام والحصص بعد الاختيار.
       </p>
+    </div>
+  );
+}
+
+function ModalLoadingFallback() {
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4">
+      <div className="flex items-center gap-3 rounded-2xl bg-white px-6 py-5 text-sm text-neutral-600 shadow-xl">
+        <Loader2 className="animate-spin text-blue-600" size={18} />
+        جارٍ تحميل محرر الجدول...
+      </div>
     </div>
   );
 }

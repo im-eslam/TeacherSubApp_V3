@@ -7,6 +7,7 @@ import {
   TableHeader,
 } from "react-aria-components/Table";
 import { DAYS, PERIODS } from "../lib/labels";
+import { indexSlotsByCoordinate, scheduleCoordinateKey } from "../lib/grid";
 import type { WeeklyScheduleReadDto } from "../types";
 
 export type ScheduleGridViewMode = "teacher" | "class";
@@ -14,6 +15,7 @@ export type ScheduleGridViewMode = "teacher" | "class";
 interface ScheduleGridProps {
   slots: WeeklyScheduleReadDto[];
   viewMode: ScheduleGridViewMode;
+  teacherSubjectById: ReadonlyMap<number, string | null>;
   isLoading: boolean;
 }
 
@@ -42,7 +44,6 @@ const STYLES = {
     "max-w-full truncate text-base font-medium leading-snug tracking-tight",
   secondaryLine:
     "mt-0.5 max-w-full truncate text-sm font-normal leading-snug tracking-wide",
-  supportSection: "border-t border-amber-200/60 bg-amber-50/50",
   skeletonWrap:
     "w-full overflow-hidden rounded-2xl border border-slate-200 bg-white p-4",
   skeletonHeaderRow: "mb-3 grid grid-cols-8 gap-3",
@@ -71,16 +72,15 @@ function colorForEventId(eventId: number) {
   return EVENT_COLOR_PALETTE[Math.abs(eventId) % EVENT_COLOR_PALETTE.length];
 }
 
-export function ScheduleGrid({ slots, viewMode, isLoading }: ScheduleGridProps) {
+export function ScheduleGrid({
+  slots,
+  viewMode,
+  teacherSubjectById,
+  isLoading,
+}: ScheduleGridProps) {
   if (isLoading) return <ScheduleGridSkeleton />;
 
-  const slotsByCoordinate = new Map<string, WeeklyScheduleReadDto[]>();
-  for (const slot of slots) {
-    const key = `${slot.dayOfWeek}-${slot.periodNumber}`;
-    const current = slotsByCoordinate.get(key) ?? [];
-    current.push(slot);
-    slotsByCoordinate.set(key, current);
-  }
+  const slotsByCoordinate = indexSlotsByCoordinate(slots);
 
   return (
     <div className={STYLES.wrapper}>
@@ -106,8 +106,9 @@ export function ScheduleGrid({ slots, viewMode, isLoading }: ScheduleGridProps) 
               {PERIODS.map((period) => (
                 <Cell key={period} className={STYLES.cellBase}>
                   <ScheduleCellContent
-                    slots={slotsByCoordinate.get(`${day.value}-${period}`) ?? []}
+                    slots={slotsByCoordinate.get(scheduleCoordinateKey(day.value, period)) ?? []}
                     viewMode={viewMode}
+                    teacherSubjectById={teacherSubjectById}
                   />
                 </Cell>
               ))}
@@ -122,9 +123,11 @@ export function ScheduleGrid({ slots, viewMode, isLoading }: ScheduleGridProps) 
 function ScheduleCellContent({
   slots,
   viewMode,
+  teacherSubjectById,
 }: {
   slots: WeeklyScheduleReadDto[];
   viewMode: ScheduleGridViewMode;
+  teacherSubjectById: ReadonlyMap<number, string | null>;
 }) {
   if (slots.length === 0) {
     return (
@@ -134,10 +137,13 @@ function ScheduleCellContent({
     );
   }
 
-  return viewMode === "class" ? (
-    <ClassViewCell slots={slots} />
-  ) : (
+  return viewMode === "teacher" ? (
     <TeacherViewCell slot={slots[0]} />
+  ) : (
+    <ClassViewCell
+      slots={slots}
+      teacherSubjectById={teacherSubjectById}
+    />
   );
 }
 
@@ -172,7 +178,13 @@ function TeacherViewCell({ slot }: { slot: WeeklyScheduleReadDto }) {
   );
 }
 
-function ClassViewCell({ slots }: { slots: WeeklyScheduleReadDto[] }) {
+function ClassViewCell({
+  slots,
+  teacherSubjectById,
+}: {
+  slots: WeeklyScheduleReadDto[];
+  teacherSubjectById: ReadonlyMap<number, string | null>;
+}) {
   return (
     <div className="flex min-h-24 flex-col gap-0">
       {slots.map((slot, index) => (
@@ -185,11 +197,11 @@ function ClassViewCell({ slots }: { slots: WeeklyScheduleReadDto[] }) {
           }`}
         >
           <TeacherHalf name={slot.teacherName} />
-          {slot.eventName && (
-            <>
-              <div className={STYLES.cardDivider} />
-              <EventHalf slot={slot} />
-            </>
+          <div className={STYLES.cardDivider} />
+          {slot.eventId !== null ? (
+            <EventHalf slot={slot} />
+          ) : (
+            <SubjectHalf label={teacherSubjectById.get(slot.teacherId) ?? null} />
           )}
           {index < slots.length - 1 && <div className="h-2" />}
         </div>
@@ -208,21 +220,20 @@ function ClassHalf({ label }: { label: string | null }) {
   );
 }
 
-function TeacherHalf({
-  name,
-  subtitle,
-}: {
-  name: string;
-  subtitle?: string | null;
-}) {
+function TeacherHalf({ name }: { name: string }) {
   return (
     <div className={`${STYLES.cardSectionBase} ${STYLES.cardSectionNeutral}`}>
       <div className={`${STYLES.primaryLine} text-slate-800`}>{name}</div>
-      {subtitle && (
-        <div className={`${STYLES.secondaryLine} text-slate-500`}>
-          {subtitle}
-        </div>
-      )}
+    </div>
+  );
+}
+
+function SubjectHalf({ label }: { label: string | null }) {
+  return (
+    <div className={`${STYLES.cardSectionBase} bg-slate-50/50`}>
+      <div className={`${STYLES.primaryLine} text-slate-600`}>
+        {label ?? "—"}
+      </div>
     </div>
   );
 }
@@ -230,11 +241,7 @@ function TeacherHalf({
 function EventHalf({ slot }: { slot: WeeklyScheduleReadDto }) {
   const color = slot.eventId === null ? null : colorForEventId(slot.eventId);
   return (
-    <div
-      className={`${STYLES.cardSectionBase} ${
-        color?.bg ?? "bg-slate-50"
-      }`}
-    >
+    <div className={`${STYLES.cardSectionBase} ${color?.bg ?? "bg-slate-50"}`}>
       <div className={`${STYLES.primaryLine} ${color?.text ?? "text-slate-800"}`}>
         {slot.eventName ?? "حدث"}
       </div>
