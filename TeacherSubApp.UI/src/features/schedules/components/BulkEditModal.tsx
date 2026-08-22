@@ -8,7 +8,7 @@ import {
   Trash2,
 } from "lucide-react";
 import { Button, Form } from "react-aria-components";
-import { ScheduleSearchableSelect } from "./ScheduleSearchableSelect";
+import { SearchableSelect } from "../../../components/controls/SearchableSelect";
 import { Select, type SelectOption } from "../../../components/controls/Select";
 import { ModalShell } from "../../../components/modals/ModalShell";
 import {
@@ -434,8 +434,7 @@ function AddFields({
 }) {
   return (
     <>
-      <ScheduleSearchableSelect
-        label="المعلم"
+      <SearchableSelect
         value={String(draft.teacherId ?? "")}
         onChange={(value) => onPatch({ teacherId: toNullableId(value) })}
         options={teacherOptions}

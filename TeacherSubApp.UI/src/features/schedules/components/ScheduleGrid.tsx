@@ -7,7 +7,7 @@ import {
   TableHeader,
 } from "react-aria-components/Table";
 import { DAYS, PERIODS } from "../lib/labels";
-import { indexSlotsByCoordinate, scheduleCoordinateKey } from "../lib/grid";
+import { buildScheduleMatrix } from "../lib/grid";
 import type { WeeklyScheduleReadDto } from "../types";
 
 export type ScheduleGridViewMode = "teacher" | "class";
@@ -80,7 +80,7 @@ export function ScheduleGrid({
 }: ScheduleGridProps) {
   if (isLoading) return <ScheduleGridSkeleton />;
 
-  const slotsByCoordinate = indexSlotsByCoordinate(slots);
+  const scheduleMatrix = buildScheduleMatrix(slots);
 
   return (
     <div className={STYLES.wrapper}>
@@ -100,20 +100,23 @@ export function ScheduleGrid({
           ))}
         </TableHeader>
         <TableBody items={DAYS}>
-          {(day) => (
-            <Row id={`day-${day.value}`} className={STYLES.bodyRow}>
-              <Cell className={STYLES.dayHeaderCell}>{day.label}</Cell>
-              {PERIODS.map((period) => (
-                <Cell key={period} className={STYLES.cellBase}>
-                  <ScheduleCellContent
-                    slots={slotsByCoordinate.get(scheduleCoordinateKey(day.value, period)) ?? []}
-                    viewMode={viewMode}
-                    teacherSubjectById={teacherSubjectById}
-                  />
-                </Cell>
-              ))}
-            </Row>
-          )}
+          {(day) => {
+            const dayIndex = DAYS.findIndex((candidate) => candidate.value === day.value);
+            return (
+              <Row id={`day-${day.value}`} className={STYLES.bodyRow}>
+                <Cell className={STYLES.dayHeaderCell}>{day.label}</Cell>
+                {PERIODS.map((period, periodIndex) => (
+                  <Cell key={period} className={STYLES.cellBase}>
+                    <ScheduleCellContent
+                      slots={scheduleMatrix[dayIndex]?.[periodIndex] ?? []}
+                      viewMode={viewMode}
+                      teacherSubjectById={teacherSubjectById}
+                    />
+                  </Cell>
+                ))}
+              </Row>
+            );
+          }}
         </TableBody>
       </Table>
     </div>

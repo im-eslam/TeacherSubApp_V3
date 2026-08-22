@@ -1,4 +1,4 @@
-import { ScheduleSearchableSelect } from "./ScheduleSearchableSelect";
+import { SearchableSelect } from "../../../components/controls/SearchableSelect";
 import { SegmentedToggle } from "../../../components/controls/SegmentedToggle";
 import type { ScheduleViewMode } from "../hooks";
 
@@ -41,7 +41,7 @@ export function ScheduleToolbar({
   );
 
   return (
-    <section className="flex flex-col gap-4 rounded-2xl border border-neutral-200/80 bg-white p-4 shadow-sm sm:flex-row sm:items-center sm:justify-between">
+    <>
       <div className="flex flex-col gap-2">
         <span className="text-xs font-semibold uppercase tracking-wide text-neutral-400">
           طريقة عرض الجدول
@@ -54,8 +54,7 @@ export function ScheduleToolbar({
         />
       </div>
       <div className="w-full sm:max-w-sm">
-        <ScheduleSearchableSelect
-          label={viewMode === "teacher" ? "المعلم" : "الفصل"}
+        <SearchableSelect
           value={selectedValue}
           onChange={viewMode === "teacher" ? onTeacherChange : onClassChange}
           options={options}
@@ -64,9 +63,9 @@ export function ScheduleToolbar({
               ? "اختر معلماً لعرض جدوله"
               : "اختر فصلاً لعرض جدوله"
           }
-          isDisabled={isDisabled}
+          disabled={isDisabled}
         />
       </div>
-    </section>
+    </>
   );
 }
