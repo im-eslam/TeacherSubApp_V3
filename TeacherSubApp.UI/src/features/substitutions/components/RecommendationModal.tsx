@@ -33,19 +33,21 @@ function CandidateCard({
       variant="secondary"
       onPress={() => onSelect(candidate)}
       isDisabled={isDisabled}
-      className={`group flex min-h-0 w-full items-center justify-between rounded-2xl border px-4 py-4 text-start shadow-sm transition-all ${styles.card}`}
+      className={`group flex min-h-0 w-full items-center justify-between rounded-xl border px-3 py-2.5 text-start shadow-sm transition-all ${styles.card}`}
     >
       <span className="flex min-w-0 items-center gap-3">
         <span
-          className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-full text-sm font-bold shadow-sm ${styles.avatar}`}
+          className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-xs font-bold shadow-sm ${styles.avatar}`}
         >
           {candidate.teacherName.trim().slice(0, 1)}
         </span>
         <span className="min-w-0">
-          <span className="block truncate text-sm font-bold text-neutral-900">
+          <span className="block truncate text-base font-bold leading-5 text-neutral-900"
+>
             {candidate.teacherName}
           </span>
-          <span className="mt-1 block truncate text-xs text-neutral-500">
+          <span className="mt-0.5 block truncate text-sm leading-5 text-neutral-500"
+>
             {candidate.subjectName ?? "بلا مادة"}
           </span>
         </span>
@@ -130,7 +132,10 @@ export function RecommendationModal({
   );
   const recommendations = useRecommendations(query, isOpen);
   const mutation = useCreateSubstitution();
-  const candidates = recommendations.data ?? [];
+  const candidates = useMemo(
+    () => recommendations.data ?? [],
+    [recommendations.data],
+  );
 
   const byGroup = useMemo(() => {
     const groups: Record<CandidateTier, SubstituteCandidateDto[]> = {
@@ -220,9 +225,18 @@ export function RecommendationModal({
         />
 
         <TierSection
-          title="خيارات مقبولة"
-          hint="متاح بأجر إضافي أو تدريس مشترك"
-          candidates={[...byGroup[2], ...byGroup[3]]}
+          title="متاح بأجر إضافي"
+          hint="قد يتجاوز النصاب المعتاد"
+          candidates={byGroup[2]}
+          isDisabled={mutation.isPending}
+          onSelect={handleSelect}
+          defaultOpen
+        />
+
+        <TierSection
+          title="معلم مساعد"
+          hint="متاح ضمن دور الدعم"
+          candidates={byGroup[3]}
           isDisabled={mutation.isPending}
           onSelect={handleSelect}
           defaultOpen
