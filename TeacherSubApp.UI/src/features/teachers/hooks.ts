@@ -1,16 +1,18 @@
-import { useMemo, useState } from "react";
+import { useMemo } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import toast from "react-hot-toast";
 import type { SortDescriptor } from "react-aria-components/Table";
+import { useDebouncedValue } from "../../lib/useDebouncedValue";
 import { useDelayedLoading } from "../../lib/useDelayedLoading";
 import type { SelectOption } from "../../components/controls/Select";
 import { useSubjects } from "../subjects/hooks";
 import { teachersApi } from "./api";
+import { ALL_VALUE, useTeachersPageStore } from "./store";
 import type { TeacherReadDto, TeacherWriteDto } from "./types";
 
 type TeacherSubjectOption = { value: string; label: string };
 
-const ALL_VALUE = "all";
+const SEARCH_DEBOUNCE_MS = 150;
 const SUPERVISOR_VALUE = "supervisor";
 const TEACHER_VALUE = "teacher";
 
@@ -80,6 +82,7 @@ export interface TeacherPageViewModel {
       : never
     : never;
   isDisabled: boolean;
+  isBlocked: boolean;
   isError: boolean;
   error: unknown;
   retry: () => void;
@@ -143,18 +146,29 @@ export function useDeleteTeacher() {
 }
 
 export function useTeachersPage(): TeacherPageViewModel {
-  const [query, setQuery] = useState("");
-  const [subjectFilter, setSubjectFilter] = useState(ALL_VALUE);
-  const [roleFilter, setRoleFilter] = useState(ALL_VALUE);
-  const [sortDescriptor, setSortDescriptor] = useState<SortDescriptor>({
-    column: "name",
-    direction: "ascending",
-  });
-  const [createOpen, setCreateOpen] = useState(false);
-  const [editOpen, setEditOpen] = useState(false);
-  const [deleteOpen, setDeleteOpen] = useState(false);
-  const [selectedTeacher, setSelectedTeacher] =
-    useState<TeacherReadDto | null>(null);
+  const {
+    query,
+    subjectFilter,
+    roleFilter,
+    sortDescriptor,
+    setQuery,
+    setSubjectFilter,
+    setRoleFilter,
+    setSortDescriptor,
+    clearFilters,
+    createOpen,
+    editOpen,
+    deleteOpen,
+    selectedTeacher,
+    openCreate,
+    closeCreate,
+    openEdit,
+    closeEdit,
+    openDelete,
+    closeDelete,
+  } = useTeachersPageStore();
+
+  const debouncedQuery = useDebouncedValue(query, SEARCH_DEBOUNCE_MS);
 
   const {
     data: teachers = [],
@@ -169,7 +183,7 @@ export function useTeachersPage(): TeacherPageViewModel {
   const deleteMutation = useDeleteTeacher();
 
   const displayedTeachers = useMemo(() => {
-    const q = query.trim().toLocaleLowerCase();
+    const q = debouncedQuery.trim().toLocaleLowerCase();
     const key = String(sortDescriptor.column ?? "name") as keyof TeacherReadDto;
     const multiplier = sortDescriptor.direction === "ascending" ? 1 : -1;
 
@@ -197,11 +211,12 @@ export function useTeachersPage(): TeacherPageViewModel {
         ? valueA.localeCompare(valueB, "ar") * multiplier
         : 0;
     });
-  }, [query, roleFilter, sortDescriptor, subjectFilter, teachers]);
+  }, [debouncedQuery, roleFilter, sortDescriptor, subjectFilter, teachers]);
 
   const showLoader = useDelayedLoading(isLoading, 200);
   const isAwaitingData = isLoading && teachers.length === 0;
   const isDisabled = isLoading;
+  const isBlocked = isLoading || isError;
   const subjectOptions: TeacherSubjectOption[] = [
     { value: ALL_VALUE, label: "كل المواد" },
     ...subjects.map((subject) => ({
@@ -209,25 +224,6 @@ export function useTeachersPage(): TeacherPageViewModel {
       label: subject.name,
     })),
   ];
-
-  const openCreate = () => setCreateOpen(true);
-  const closeCreate = () => setCreateOpen(false);
-  const openEdit = (teacher: TeacherReadDto) => {
-    setSelectedTeacher(teacher);
-    setEditOpen(true);
-  };
-  const closeEdit = () => {
-    setEditOpen(false);
-    setSelectedTeacher(null);
-  };
-  const openDelete = (teacher: TeacherReadDto) => {
-    setSelectedTeacher(teacher);
-    setDeleteOpen(true);
-  };
-  const closeDelete = () => {
-    setDeleteOpen(false);
-    setSelectedTeacher(null);
-  };
 
   const mutations: TeacherMutationViewModel = {
     create: async (data) => {
@@ -250,6 +246,7 @@ export function useTeachersPage(): TeacherPageViewModel {
   return {
     subjects,
     isDisabled,
+    isBlocked,
     isError,
     error,
     retry: refetch,
@@ -279,12 +276,8 @@ export function useTeachersPage(): TeacherPageViewModel {
         query.length > 0 ||
         subjectFilter !== ALL_VALUE ||
         roleFilter !== ALL_VALUE,
-      isDisabled,
-      onClear: () => {
-        setQuery("");
-        setSubjectFilter(ALL_VALUE);
-        setRoleFilter(ALL_VALUE);
-      },
+      isDisabled: isBlocked,
+      onClear: clearFilters,
     },
     modals: {
       createOpen,

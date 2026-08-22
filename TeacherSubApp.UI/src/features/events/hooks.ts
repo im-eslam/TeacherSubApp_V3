@@ -1,13 +1,14 @@
-import { useMemo, useState } from "react";
+import { useMemo } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import toast from "react-hot-toast";
 import type { SortOrder } from "../../components/controls/SortToggle";
+import { useDebouncedValue } from "../../lib/useDebouncedValue";
 import { useDelayedLoading } from "../../lib/useDelayedLoading";
 import { eventKeysApi } from "./api";
-import type {
-  EventKeyReadDto,
-  EventKeyWriteDto,
-} from "./types";
+import { useEventsPageStore } from "./store";
+import type { EventKeyReadDto, EventKeyWriteDto } from "./types";
+
+const SEARCH_DEBOUNCE_MS = 150;
 
 const eventKeyKeys = {
   all: ["eventKeys"] as const,
@@ -57,6 +58,7 @@ export interface EventMutationViewModel {
 
 export interface EventPageViewModel {
   isDisabled: boolean;
+  isBlocked: boolean;
   isError: boolean;
   error: unknown;
   retry: () => void;
@@ -120,13 +122,25 @@ export function useDeleteEventKey() {
 }
 
 export function useEventsPage(): EventPageViewModel {
-  const [query, setQuery] = useState("");
-  const [sortOrder, setSortOrder] = useState<SortOrder>("asc");
-  const [createOpen, setCreateOpen] = useState(false);
-  const [editOpen, setEditOpen] = useState(false);
-  const [deleteOpen, setDeleteOpen] = useState(false);
-  const [selectedEventKey, setSelectedEventKey] =
-    useState<EventKeyReadDto | null>(null);
+  const {
+    query,
+    sortOrder,
+    setQuery,
+    toggleSortOrder,
+    clearFilters,
+    createOpen,
+    editOpen,
+    deleteOpen,
+    selectedEventKey,
+    openCreate,
+    closeCreate,
+    openEdit,
+    closeEdit,
+    openDelete,
+    closeDelete,
+  } = useEventsPageStore();
+
+  const debouncedQuery = useDebouncedValue(query, SEARCH_DEBOUNCE_MS);
 
   const {
     data: eventKeys = [],
@@ -140,7 +154,7 @@ export function useEventsPage(): EventPageViewModel {
   const deleteMutation = useDeleteEventKey();
 
   const displayedEventKeys = useMemo(() => {
-    const normalizedQuery = query.trim().toLocaleLowerCase();
+    const normalizedQuery = debouncedQuery.trim().toLocaleLowerCase();
     const filteredEventKeys = normalizedQuery
       ? eventKeys.filter((eventKey) =>
           eventKey.eventName.toLocaleLowerCase().includes(normalizedQuery),
@@ -152,29 +166,11 @@ export function useEventsPage(): EventPageViewModel {
         ? a.eventName.localeCompare(b.eventName, "ar")
         : b.eventName.localeCompare(a.eventName, "ar"),
     );
-  }, [eventKeys, query, sortOrder]);
+  }, [debouncedQuery, eventKeys, sortOrder]);
   const showLoader = useDelayedLoading(isLoading, 200);
   const isAwaitingData = isLoading && eventKeys.length === 0;
   const isDisabled = isLoading;
-
-  const openCreate = () => setCreateOpen(true);
-  const closeCreate = () => setCreateOpen(false);
-  const openEdit = (eventKey: EventKeyReadDto) => {
-    setSelectedEventKey(eventKey);
-    setEditOpen(true);
-  };
-  const closeEdit = () => {
-    setEditOpen(false);
-    setSelectedEventKey(null);
-  };
-  const openDelete = (eventKey: EventKeyReadDto) => {
-    setSelectedEventKey(eventKey);
-    setDeleteOpen(true);
-  };
-  const closeDelete = () => {
-    setDeleteOpen(false);
-    setSelectedEventKey(null);
-  };
+  const isBlocked = isLoading || isError;
 
   const mutations: EventMutationViewModel = {
     create: async (data) => {
@@ -196,6 +192,7 @@ export function useEventsPage(): EventPageViewModel {
 
   return {
     isDisabled,
+    isBlocked,
     isError,
     error,
     retry: refetch,
@@ -213,14 +210,10 @@ export function useEventsPage(): EventPageViewModel {
       query,
       onQueryChange: setQuery,
       sortOrder,
-      onSortToggle: () =>
-        setSortOrder((current) => (current === "asc" ? "desc" : "asc")),
+      onSortToggle: toggleSortOrder,
       hasFilters: query.length > 0 || sortOrder !== "asc",
-      isDisabled,
-      onClear: () => {
-        setQuery("");
-        setSortOrder("asc");
-      },
+      isDisabled: isBlocked,
+      onClear: clearFilters,
     },
     modals: {
       createOpen,

@@ -26,7 +26,7 @@ export default function EventKeysPage() {
         description="تمثل الحصص غير الدراسية كالاجتماعات. يمكن تخصيص حدث كـ«دعم» لدخول معلمَين معاً للحصة، أو كـ«احتياطي» لمنح صاحبه الأولوية عند اختياره كبديل لتغطية الغياب."
         addLabel="إضافة حدث"
         onAdd={modals.openCreate}
-        isDisabled={page.isDisabled}
+        isDisabled={page.isBlocked}
       />
       {page.isError && (
         <EntityErrorBanner

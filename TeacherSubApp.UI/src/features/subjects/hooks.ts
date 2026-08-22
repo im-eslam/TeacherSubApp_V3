@@ -1,10 +1,14 @@
-import { useMemo, useState } from "react";
+import { useMemo } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import toast from "react-hot-toast";
 import type { SortOrder } from "../../components/controls/SortToggle";
+import { useDebouncedValue } from "../../lib/useDebouncedValue";
 import { useDelayedLoading } from "../../lib/useDelayedLoading";
 import { subjectsApi } from "./api";
+import { useSubjectsPageStore } from "./store";
 import type { SubjectReadDto, SubjectWriteDto } from "./types";
+
+const SEARCH_DEBOUNCE_MS = 150;
 
 const subjectKeys = {
   all: ["subjects"] as const,
@@ -55,6 +59,7 @@ export interface SubjectMutationViewModel {
 export interface SubjectPageViewModel {
   subjects: SubjectReadDto[];
   isDisabled: boolean;
+  isBlocked: boolean;
   isError: boolean;
   error: unknown;
   retry: () => void;
@@ -118,13 +123,25 @@ export function useDeleteSubject() {
 }
 
 export function useSubjectsPage(): SubjectPageViewModel {
-  const [query, setQuery] = useState("");
-  const [sortOrder, setSortOrder] = useState<SortOrder>("asc");
-  const [createOpen, setCreateOpen] = useState(false);
-  const [editOpen, setEditOpen] = useState(false);
-  const [deleteOpen, setDeleteOpen] = useState(false);
-  const [selectedSubject, setSelectedSubject] =
-    useState<SubjectReadDto | null>(null);
+  const {
+    query,
+    sortOrder,
+    setQuery,
+    toggleSortOrder,
+    clearFilters,
+    createOpen,
+    editOpen,
+    deleteOpen,
+    selectedSubject,
+    openCreate,
+    closeCreate,
+    openEdit,
+    closeEdit,
+    openDelete,
+    closeDelete,
+  } = useSubjectsPageStore();
+
+  const debouncedQuery = useDebouncedValue(query, SEARCH_DEBOUNCE_MS);
 
   const {
     data: subjects = [],
@@ -138,7 +155,7 @@ export function useSubjectsPage(): SubjectPageViewModel {
   const deleteMutation = useDeleteSubject();
 
   const displayedSubjects = useMemo(() => {
-    const normalizedQuery = query.trim().toLocaleLowerCase();
+    const normalizedQuery = debouncedQuery.trim().toLocaleLowerCase();
     const filteredSubjects = normalizedQuery
       ? subjects.filter((subject) =>
           subject.name.toLocaleLowerCase().includes(normalizedQuery),
@@ -150,29 +167,11 @@ export function useSubjectsPage(): SubjectPageViewModel {
         ? a.name.localeCompare(b.name, "ar")
         : b.name.localeCompare(a.name, "ar"),
     );
-  }, [query, sortOrder, subjects]);
+  }, [debouncedQuery, sortOrder, subjects]);
   const showLoader = useDelayedLoading(isLoading, 200);
   const isAwaitingData = isLoading && subjects.length === 0;
   const isDisabled = isLoading;
-
-  const openCreate = () => setCreateOpen(true);
-  const closeCreate = () => setCreateOpen(false);
-  const openEdit = (subject: SubjectReadDto) => {
-    setSelectedSubject(subject);
-    setEditOpen(true);
-  };
-  const closeEdit = () => {
-    setEditOpen(false);
-    setSelectedSubject(null);
-  };
-  const openDelete = (subject: SubjectReadDto) => {
-    setSelectedSubject(subject);
-    setDeleteOpen(true);
-  };
-  const closeDelete = () => {
-    setDeleteOpen(false);
-    setSelectedSubject(null);
-  };
+  const isBlocked = isLoading || isError;
 
   const mutations: SubjectMutationViewModel = {
     create: async (data) => {
@@ -195,6 +194,7 @@ export function useSubjectsPage(): SubjectPageViewModel {
   return {
     subjects,
     isDisabled,
+    isBlocked,
     isError,
     error,
     retry: refetch,
@@ -212,14 +212,10 @@ export function useSubjectsPage(): SubjectPageViewModel {
       query,
       onQueryChange: setQuery,
       sortOrder,
-      onSortToggle: () =>
-        setSortOrder((current) => (current === "asc" ? "desc" : "asc")),
+      onSortToggle: toggleSortOrder,
       hasFilters: query.length > 0 || sortOrder !== "asc",
-      isDisabled,
-      onClear: () => {
-        setQuery("");
-        setSortOrder("asc");
-      },
+      isDisabled: isBlocked,
+      onClear: clearFilters,
     },
     modals: {
       createOpen,

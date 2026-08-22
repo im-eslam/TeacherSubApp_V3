@@ -8,7 +8,7 @@ import { ToggleCard } from "../../../components/controls/ToggleCard";
 import type { EventKeyReadDto, EventKeyWriteDto } from "../types";
 
 // ════════════════════════════════════════════════════════════
-// Shared flag fields — the two mutually-exclusive event flags
+// Shared flag fields
 // ════════════════════════════════════════════════════════════
 
 interface EventKeyFlagsFieldProps {

@@ -8,9 +8,7 @@ import { Button } from "../components/controls/Button";
 import { SearchInput } from "../components/controls/SearchInput";
 import { SearchableSelect } from "../components/controls/SearchableSelect";
 import { Select } from "../components/controls/Select";
-import {
-  useTeachersPage,
-} from "../features/teachers/hooks";
+import { useTeachersPage } from "../features/teachers/hooks";
 import { TeacherGrid } from "../features/teachers/components/TeacherTable";
 import {
   TeacherCreateModal,
@@ -29,7 +27,7 @@ export default function TeachersPage() {
         description="يشكلون أساس الجدول الأسبوعي. تعتمد خوارزمية الاستبدال على بياناتهم، كالمادة المسندة وحالة الإشراف، كمعايير دقيقة لاختيار المعلم الأنسب لتغطية الحصص الشاغرة."
         addLabel="إضافة معلم"
         onAdd={modals.openCreate}
-        isDisabled={page.isDisabled}
+        isDisabled={page.isBlocked}
       />
 
       {page.isError && (

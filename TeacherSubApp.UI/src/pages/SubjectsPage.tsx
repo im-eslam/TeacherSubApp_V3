@@ -26,7 +26,7 @@ export default function SubjectsPage() {
         description="تُربط المواد بالمعلمين لتحديد تخصصاتهم في الجدول. وتعتمد عليها خوارزمية الاستبدال بشكل مباشر لمنح الأولوية لمعلمي نفس المادة عند ترشيح البديل الأنسب."
         addLabel="إضافة مادة"
         onAdd={modals.openCreate}
-        isDisabled={page.isDisabled}
+        isDisabled={page.isBlocked}
       />
       {page.isError && (
         <EntityErrorBanner

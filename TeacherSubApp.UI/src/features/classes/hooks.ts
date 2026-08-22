@@ -1,16 +1,15 @@
-import { useMemo, useState } from "react";
+import { useMemo } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import toast from "react-hot-toast";
 import type { SortDescriptor } from "react-aria-components/Table";
 import type { SelectOption } from "../../components/controls/Select";
+import { useDebouncedValue } from "../../lib/useDebouncedValue";
 import { useDelayedLoading } from "../../lib/useDelayedLoading";
 import { classesApi } from "./api";
-import type {
-  SchoolClassReadDto,
-  SchoolClassWriteDto,
-} from "./types";
+import { ALL_VALUE, useClassesPageStore } from "./store";
+import type { SchoolClassReadDto, SchoolClassWriteDto } from "./types";
 
-const ALL_VALUE = "all";
+const SEARCH_DEBOUNCE_MS = 150;
 
 const classKeys = {
   all: ["classes"] as const,
@@ -73,6 +72,7 @@ export interface ClassesMutationViewModel {
 
 export interface ClassesPageViewModel {
   isDisabled: boolean;
+  isBlocked: boolean;
   isError: boolean;
   error: unknown;
   retry: () => void;
@@ -148,18 +148,29 @@ export function useDeleteSchoolClass() {
 }
 
 export function useClassesPage(): ClassesPageViewModel {
-  const [query, setQuery] = useState("");
-  const [gradeFilter, setGradeFilter] = useState(ALL_VALUE);
-  const [sectionFilter, setSectionFilter] = useState(ALL_VALUE);
-  const [sortDescriptor, setSortDescriptor] = useState<SortDescriptor>({
-    column: "displayName",
-    direction: "ascending",
-  });
-  const [createOpen, setCreateOpen] = useState(false);
-  const [editOpen, setEditOpen] = useState(false);
-  const [deleteOpen, setDeleteOpen] = useState(false);
-  const [selectedClass, setSelectedClass] =
-    useState<SchoolClassReadDto | null>(null);
+  const {
+    query,
+    gradeFilter,
+    sectionFilter,
+    sortDescriptor,
+    setQuery,
+    setGradeFilter,
+    setSectionFilter,
+    setSortDescriptor,
+    clearFilters,
+    createOpen,
+    editOpen,
+    deleteOpen,
+    selectedClass,
+    openCreate,
+    closeCreate,
+    openEdit,
+    closeEdit,
+    openDelete,
+    closeDelete,
+  } = useClassesPageStore();
+
+  const debouncedQuery = useDebouncedValue(query, SEARCH_DEBOUNCE_MS);
 
   const selectedGrade = gradeFilter === ALL_VALUE ? null : Number(gradeFilter);
   const {
@@ -177,49 +188,57 @@ export function useClassesPage(): ClassesPageViewModel {
   const deleteMutation = useDeleteSchoolClass();
 
   const displayedClasses = useMemo(() => {
-    const normalizedQuery = query.trim().toLocaleLowerCase();
-    const key = String(sortDescriptor.column ?? "displayName") as keyof SchoolClassReadDto;
+    const normalizedQuery = debouncedQuery.trim().toLocaleLowerCase();
+    const key = String(
+      sortDescriptor.column ?? "displayName",
+    ) as keyof SchoolClassReadDto;
     const multiplier = sortDescriptor.direction === "ascending" ? 1 : -1;
 
-    return classes.filter((schoolClass) => {
-      if (
-        normalizedQuery &&
-        !schoolClass.displayName.toLocaleLowerCase().includes(normalizedQuery)
-      ) {
-        return false;
-      }
-      if (selectedGrade !== null && schoolClass.grade !== selectedGrade) {
-        return false;
-      }
-      if (
-        sectionFilter !== ALL_VALUE &&
-        schoolClass.section !== Number(sectionFilter)
-      ) {
-        return false;
-      }
-      return true;
-    }).sort((a, b) => {
-      if (key === "displayName") {
-        return a.displayName.localeCompare(b.displayName, "ar") * multiplier;
-      }
+    return classes
+      .filter((schoolClass) => {
+        if (
+          normalizedQuery &&
+          !schoolClass.displayName.toLocaleLowerCase().includes(normalizedQuery)
+        ) {
+          return false;
+        }
+        if (selectedGrade !== null && schoolClass.grade !== selectedGrade) {
+          return false;
+        }
+        if (
+          sectionFilter !== ALL_VALUE &&
+          schoolClass.section !== Number(sectionFilter)
+        ) {
+          return false;
+        }
+        return true;
+      })
+      .sort((a, b) => {
+        if (key === "displayName") {
+          return a.displayName.localeCompare(b.displayName, "ar") * multiplier;
+        }
 
-      const valueA = a[key];
-      const valueB = b[key];
-      if (valueA === null && valueB === null) return 0;
-      if (valueA === null) return 1;
-      if (valueB === null) return -1;
-      return typeof valueA === "number" && typeof valueB === "number"
-        ? (valueA - valueB) * multiplier
-        : 0;
-    });
-  }, [classes, query, sectionFilter, selectedGrade, sortDescriptor]);
+        const valueA = a[key];
+        const valueB = b[key];
+        if (valueA === null && valueB === null) return 0;
+        if (valueA === null) return 1;
+        if (valueB === null) return -1;
+        return typeof valueA === "number" && typeof valueB === "number"
+          ? (valueA - valueB) * multiplier
+          : 0;
+      });
+  }, [classes, debouncedQuery, sectionFilter, selectedGrade, sortDescriptor]);
 
   const showLoader = useDelayedLoading(isLoading, 200);
   const isAwaitingData = isLoading && classes.length === 0;
   const isDisabled = isLoading;
+  const isBlocked = isLoading || isError;
   const gradeOptions: SelectOption[] = [
     { value: ALL_VALUE, label: "كل الصفوف" },
-    ...grades.map((grade) => ({ value: String(grade), label: `الصف ${grade}` })),
+    ...grades.map((grade) => ({
+      value: String(grade),
+      label: `الصف ${grade}`,
+    })),
   ];
   const sectionOptions: SelectOption[] = [
     { value: ALL_VALUE, label: "كل الشعب" },
@@ -228,25 +247,6 @@ export function useClassesPage(): ClassesPageViewModel {
       label: `الشعبة ${section}`,
     })),
   ];
-
-  const openCreate = () => setCreateOpen(true);
-  const closeCreate = () => setCreateOpen(false);
-  const openEdit = (schoolClass: SchoolClassReadDto) => {
-    setSelectedClass(schoolClass);
-    setEditOpen(true);
-  };
-  const closeEdit = () => {
-    setEditOpen(false);
-    setSelectedClass(null);
-  };
-  const openDelete = (schoolClass: SchoolClassReadDto) => {
-    setSelectedClass(schoolClass);
-    setDeleteOpen(true);
-  };
-  const closeDelete = () => {
-    setDeleteOpen(false);
-    setSelectedClass(null);
-  };
 
   const mutations: ClassesMutationViewModel = {
     create: async (data) => {
@@ -268,6 +268,7 @@ export function useClassesPage(): ClassesPageViewModel {
 
   return {
     isDisabled,
+    isBlocked,
     isError,
     error,
     retry: refetch,
@@ -288,10 +289,7 @@ export function useClassesPage(): ClassesPageViewModel {
       query,
       onQueryChange: setQuery,
       gradeFilter,
-      onGradeFilterChange: (value) => {
-        setGradeFilter(value);
-        setSectionFilter(ALL_VALUE);
-      },
+      onGradeFilterChange: setGradeFilter,
       sectionFilter,
       onSectionFilterChange: setSectionFilter,
       gradeOptions,
@@ -303,12 +301,8 @@ export function useClassesPage(): ClassesPageViewModel {
         query.length > 0 ||
         gradeFilter !== ALL_VALUE ||
         sectionFilter !== ALL_VALUE,
-      isDisabled,
-      onClear: () => {
-        setQuery("");
-        setGradeFilter(ALL_VALUE);
-        setSectionFilter(ALL_VALUE);
-      },
+      isDisabled: isBlocked,
+      onClear: clearFilters,
     },
     modals: {
       createOpen,

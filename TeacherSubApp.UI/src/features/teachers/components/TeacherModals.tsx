@@ -42,7 +42,7 @@ function SubjectAndSupervisorFields({
 
   return (
     <>
-      <div>
+      <div className="relative z-50">
         <label className="block text-xs font-medium text-neutral-500 mb-1.5">
           المادة الدراسية
         </label>
@@ -101,6 +101,7 @@ export function TeacherCreateModal({
       submittingLabel="جارٍ الإضافة..."
       onClose={onClose}
       onSubmit={() => onSubmit({ name: name.trim(), subjectId, isSupervisor })}
+      allowBodyOverflow={true}
     >
       <TextField
         label="اسم المعلم"
@@ -159,6 +160,7 @@ export function TeacherEditModal({
       onSubmit={() =>
         onSubmit(teacher!.id, { name: name.trim(), subjectId, isSupervisor })
       }
+      allowBodyOverflow={true}
     >
       <TextField label="اسم المعلم" value={name} onChange={setName} autoFocus />
 

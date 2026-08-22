@@ -1,3 +1,4 @@
+import { memo, useMemo } from "react";
 import { BookOpen } from "lucide-react";
 import {
   EntityGrid,
@@ -54,23 +55,41 @@ interface SubjectGridProps {
   onAdd: () => void;
 }
 
-export function SubjectGrid(props: SubjectGridProps) {
+export const SubjectGrid = memo(function SubjectGrid(props: SubjectGridProps) {
+  const data = useMemo(
+    () => ({
+      items: props.subjects,
+      isLoading: props.isLoading,
+      isAwaitingData: props.isAwaitingData,
+      isError: props.isError,
+      searchQuery: props.searchQuery,
+    }),
+    [
+      props.subjects,
+      props.isLoading,
+      props.isAwaitingData,
+      props.isError,
+      props.searchQuery,
+    ],
+  );
+
+  const actions = useMemo(
+    () => ({
+      onAdd: props.onAdd,
+      onEdit: props.onEdit,
+      onDelete: props.onDelete,
+    }),
+    [props.onAdd, props.onEdit, props.onDelete],
+  );
+
   return (
     <EntityGrid<SubjectReadDto>
       aria-label="المواد الدراسية"
       config={SUBJECT_CONFIG}
-      data={{
-        items: props.subjects,
-        isLoading: props.isLoading,
-        isAwaitingData: props.isAwaitingData,
-        isError: props.isError,
-        searchQuery: props.searchQuery,
-      }}
-      actions={{
-        onAdd: props.onAdd,
-        onEdit: props.onEdit,
-        onDelete: props.onDelete,
-      }}
+      data={data}
+      actions={actions}
     />
   );
-}
+});
+
+SubjectGrid.displayName = "SubjectGrid";

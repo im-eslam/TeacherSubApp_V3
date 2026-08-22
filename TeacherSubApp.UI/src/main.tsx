@@ -24,8 +24,8 @@ createRoot(document.getElementById("root")!).render(
       <Toaster
         position="top-center"
         toastOptions={{
-          className: "font-medium text-sm",
-          style: { direction: "rtl", borderRadius: "12px" },
+          className: "font-medium text-sm mt-5",
+          style: { direction: "rtl", borderRadius: "50px" },
         }}
       />
       <div dir="rtl">

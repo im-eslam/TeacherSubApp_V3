@@ -60,8 +60,21 @@ export function ModalHeader({ title, isBusy, onClose }: ModalHeaderProps) {
 // ModalBody — scrollable content area
 // ════════════════════════════════════════════════════════════
 
-export function ModalBody({ children }: { children: ReactNode }) {
-  return <div className={STYLES.body}>{children}</div>;
+interface ModalBodyProps {
+  children: ReactNode;
+  allowBodyOverflow?: boolean;
+}
+
+export function ModalBody({
+  children,
+  allowBodyOverflow = false,
+}: ModalBodyProps) {
+  const bodyStyles = [
+    "px-6 py-6 flex flex-col gap-4",
+    allowBodyOverflow ? "overflow-visible" : "overflow-y-auto",
+  ].join(" ");
+
+  return <div className={bodyStyles}>{children}</div>;
 }
 
 // ════════════════════════════════════════════════════════════

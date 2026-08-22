@@ -26,7 +26,7 @@ export default function SchoolClassesPage() {
         description="تُستخدم الفصول لربط الطلاب بالمعلمين في الجدول الأسبوعي. تعتمد عليها خوارزمية الاستبدال كمعيار رئيسي لمنع تضارب الحصص وتأمين التغطية الفورية للغياب."
         addLabel="إضافة فصل"
         onAdd={modals.openCreate}
-        isDisabled={page.isDisabled}
+        isDisabled={page.isBlocked}
       />
       {page.isError && (
         <EntityErrorBanner

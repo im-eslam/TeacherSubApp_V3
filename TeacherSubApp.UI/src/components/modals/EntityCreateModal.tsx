@@ -39,6 +39,7 @@ interface CreateModalProps {
   submitDisabled?: boolean;
   onClose: () => void;
   onSubmit: () => Promise<void>;
+  allowBodyOverflow?: boolean;
   children: ReactNode;
 }
 
@@ -50,6 +51,7 @@ export function EntityCreateModal({
   submitDisabled = false,
   onClose,
   onSubmit,
+  allowBodyOverflow = false,
   children,
 }: CreateModalProps) {
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -93,7 +95,7 @@ export function EntityCreateModal({
           className="contents"
           onChange={() => error && setError(null)}
         >
-          <ModalBody>
+          <ModalBody allowBodyOverflow={allowBodyOverflow}>
             {error != null && (
               <ModalErrorBanner message={getErrorMessage(error)} />
             )}

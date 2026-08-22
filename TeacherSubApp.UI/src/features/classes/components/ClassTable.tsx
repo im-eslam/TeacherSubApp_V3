@@ -1,3 +1,4 @@
+import { memo, useMemo } from "react";
 import { GraduationCap } from "lucide-react";
 import type { SortDescriptor } from "react-aria-components/Table";
 import {
@@ -71,26 +72,47 @@ interface SchoolClassGridProps {
   onAdd: () => void;
 }
 
-export function SchoolClassGrid(props: SchoolClassGridProps) {
+export const SchoolClassGrid = memo(function SchoolClassGrid(
+  props: SchoolClassGridProps,
+) {
+  const data = useMemo(
+    () => ({
+      items: props.classes,
+      isLoading: props.isLoading,
+      isAwaitingData: props.isAwaitingData,
+      isError: props.isError,
+      searchQuery: props.searchQuery,
+      isFiltered: props.isFiltered,
+    }),
+    [
+      props.classes,
+      props.isLoading,
+      props.isAwaitingData,
+      props.isError,
+      props.searchQuery,
+      props.isFiltered,
+    ],
+  );
+
+  const actions = useMemo(
+    () => ({
+      onAdd: props.onAdd,
+      onEdit: props.onEdit,
+      onDelete: props.onDelete,
+    }),
+    [props.onAdd, props.onEdit, props.onDelete],
+  );
+
   return (
     <DataTable<SchoolClassReadDto>
       aria-label="الفصول الدراسية"
       config={SCHOOL_CLASS_CONFIG}
-      data={{
-        items: props.classes,
-        isLoading: props.isLoading,
-        isAwaitingData: props.isAwaitingData,
-        isError: props.isError,
-        searchQuery: props.searchQuery,
-        isFiltered: props.isFiltered,
-      }}
-      actions={{
-        onAdd: props.onAdd,
-        onEdit: props.onEdit,
-        onDelete: props.onDelete,
-      }}
+      data={data}
+      actions={actions}
       sortDescriptor={props.sortDescriptor}
       onSortChange={props.onSortChange}
     />
   );
-}
+});
+
+SchoolClassGrid.displayName = "SchoolClassGrid";

@@ -1,3 +1,4 @@
+import { memo, useMemo } from "react";
 import { CalendarClock, ShieldCheck, RefreshCw } from "lucide-react";
 import {
   EntityGrid,
@@ -83,23 +84,43 @@ interface EventKeyGridProps {
   onAdd: () => void;
 }
 
-export function EventKeyGrid(props: EventKeyGridProps) {
+export const EventKeyGrid = memo(function EventKeyGrid(
+  props: EventKeyGridProps,
+) {
+  const data = useMemo(
+    () => ({
+      items: props.eventKeys,
+      isLoading: props.isLoading,
+      isAwaitingData: props.isAwaitingData,
+      isError: props.isError,
+      searchQuery: props.searchQuery,
+    }),
+    [
+      props.eventKeys,
+      props.isLoading,
+      props.isAwaitingData,
+      props.isError,
+      props.searchQuery,
+    ],
+  );
+
+  const actions = useMemo(
+    () => ({
+      onAdd: props.onAdd,
+      onEdit: props.onEdit,
+      onDelete: props.onDelete,
+    }),
+    [props.onAdd, props.onEdit, props.onDelete],
+  );
+
   return (
     <EntityGrid<EventKeyReadDto>
       aria-label="الأحداث"
       config={EVENT_KEY_CONFIG}
-      data={{
-        items: props.eventKeys,
-        isLoading: props.isLoading,
-        isAwaitingData: props.isAwaitingData,
-        isError: props.isError,
-        searchQuery: props.searchQuery,
-      }}
-      actions={{
-        onAdd: props.onAdd,
-        onEdit: props.onEdit,
-        onDelete: props.onDelete,
-      }}
+      data={data}
+      actions={actions}
     />
   );
-}
+});
+
+EventKeyGrid.displayName = "EventKeyGrid";

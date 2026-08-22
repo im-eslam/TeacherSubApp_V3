@@ -1,4 +1,5 @@
 import { Users, ShieldAlert } from "lucide-react";
+import { memo, useMemo } from "react";
 import type { SortDescriptor } from "react-aria-components/Table";
 import {
   DataTable,
@@ -6,7 +7,6 @@ import {
   type DataTableConfig,
 } from "../../../components/orgnization/DataTable";
 import type { TeacherReadDto } from "../types";
-import { useMemo } from "react";
 
 const STYLES = {
   badgeSupervisor:
@@ -92,7 +92,7 @@ interface TeacherGridProps {
   onAdd: () => void;
 }
 
-export function TeacherGrid(props: TeacherGridProps) {
+export const TeacherGrid = memo(function TeacherGrid(props: TeacherGridProps) {
   const tableData = useMemo(
     () => ({
       items: props.teachers,
@@ -131,4 +131,6 @@ export function TeacherGrid(props: TeacherGridProps) {
       onSortChange={props.onSortChange}
     />
   );
-}
+});
+
+TeacherGrid.displayName = "TeacherGrid";
