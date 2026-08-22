@@ -18,7 +18,6 @@ import type {
   TeacherAbsenceReadDto,
   TeacherAbsenceWriteDto,
   TeacherQuery,
-  WeeklyScheduleReadDto,
 } from "./types";
 
 // ════════════════════════════════════════════════════════════
@@ -53,10 +52,18 @@ function scheduleQueryForTeacherOnDate(
 // ════════════════════════════════════════════════════════════
 
 export function useAbsences(serviceDate: string) {
+  const queryClient = useQueryClient();
   const query: AbsenceQuery = { fromDate: serviceDate, toDate: serviceDate };
   return useQuery({
     queryKey: substitutionKeys.absences(query),
-    queryFn: ({ signal }) => substitutionsApi.getAbsences(query, signal),
+    queryFn: async ({ signal }) => {
+      const absences = await substitutionsApi.getAbsences(query, signal);
+      const teacherIds = new Set(absences.map((absence) => absence.teacherId));
+      for (const teacherId of teacherIds) {
+        prefetchWeeklySchedule(queryClient, teacherId, serviceDate);
+      }
+      return absences;
+    },
   });
 }
 
@@ -203,7 +210,14 @@ export function useCreateSubstitution() {
     SubstitutionWriteDto & { optimisticName: string; optimisticSubject: string },
     CreateSubstitutionContext
   >({
-    mutationFn: (dto) => substitutionsApi.createSubstitution(dto),
+    mutationFn: (dto) =>
+      substitutionsApi.createSubstitution({
+        absenceId: dto.absenceId,
+        weeklyScheduleId: dto.weeklyScheduleId,
+        substituteTeacherId: dto.substituteTeacherId,
+        serviceDate: dto.serviceDate,
+        isAlgorithmMatch: dto.isAlgorithmMatch,
+      }),
 
     // Turn the slot green and show the sub's name the instant the admin
     // clicks a candidate card — don't make them wait for the round trip.

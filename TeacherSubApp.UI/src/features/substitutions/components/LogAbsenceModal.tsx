@@ -1,8 +1,7 @@
 import { useState } from "react";
-import { CalendarDays, X } from "lucide-react";
+import { X } from "lucide-react";
 import toast from "react-hot-toast";
 import {
-  Input,
   Label,
   TextArea,
   TextField as AriaTextField,
@@ -12,6 +11,7 @@ import { SearchableSelect } from "../../../components/controls/SearchableSelect"
 import { ModalShell } from "../../../components/modals/ModalShell";
 import { getErrorMessage } from "../../../lib/apiErrors";
 import { getTodayIsoDate } from "../dateUtils";
+import { LocalizedDateInput } from "./LocalizedDateInput";
 import { useCreateAbsence } from "../hooks";
 import { useSubstitutionsPageStore } from "../store";
 import type { TeacherReadDto } from "../types";
@@ -85,22 +85,13 @@ export function LogAbsenceModal({
           />
         </div>
 
-        <AriaTextField
+        <LocalizedDateInput
+          label="التاريخ"
           value={absenceDate}
           onChange={setAbsenceDate}
-          isRequired
-          className="flex flex-col gap-1.5"
-        >
-          <Label className="text-xs font-medium text-neutral-500">التاريخ</Label>
-          <div className="relative">
-            <CalendarDays size={17} className="pointer-events-none absolute start-4 top-1/2 -translate-y-1/2 text-neutral-400" aria-hidden="true" />
-            <Input
-              type="date"
-              className="min-h-[44px] w-full rounded-full border border-neutral-200/80 bg-white ps-11 pe-4 text-sm text-neutral-900 outline-none transition-colors focus:border-blue-500 focus:ring-2 focus:ring-blue-500/30"
-              disabled={mutation.isPending}
-            />
-          </div>
-        </AriaTextField>
+          disabled={mutation.isPending}
+          required
+        />
 
         <AriaTextField
           value={reason}

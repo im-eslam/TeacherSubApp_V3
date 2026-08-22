@@ -45,3 +45,25 @@ export function formatLongArabicDate(serviceDate: string): string {
     month: "long",
   });
 }
+
+export function formatDateAsDayMonthYear(serviceDate: string): string {
+  const [year, month, day] = serviceDate.split("-");
+  if (!year || !month || !day) return "";
+  return `${day}/${month}/${year}`;
+}
+
+export function parseDayMonthYear(value: string): string | null {
+  const match = value.trim().match(/^(\d{2})\/(\d{2})\/(\d{4})$/);
+  if (!match) return null;
+
+  const [, day, month, year] = match;
+  const candidate = `${year}-${month}-${day}`;
+  const parsed = new Date(`${candidate}T12:00:00`);
+  if (
+    Number.isNaN(parsed.getTime()) ||
+    toIsoDate(parsed) !== candidate
+  ) {
+    return null;
+  }
+  return candidate;
+}

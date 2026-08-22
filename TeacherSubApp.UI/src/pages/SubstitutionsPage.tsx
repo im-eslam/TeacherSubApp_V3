@@ -6,7 +6,7 @@ import {
 import { AbsenceCard } from "../features/substitutions/components/AbsenceCard";
 import { LogAbsenceModal } from "../features/substitutions/components/LogAbsenceModal";
 import { RecommendationModal } from "../features/substitutions/components/RecommendationModal";
-import { formatLongArabicDate } from "../features/substitutions/dateUtils";
+import { LocalizedDateInput } from "../features/substitutions/components/LocalizedDateInput";
 import { useSubstitutionsPage } from "../features/substitutions/hooks";
 
 export default function SubstitutionsPage() {
@@ -28,8 +28,6 @@ export default function SubstitutionsPage() {
     closeRecommendation,
   } = useSubstitutionsPage();
 
-  const formattedDate = formatLongArabicDate(activeDate);
-
   return (
     <div dir="rtl" className="flex min-h-full flex-col gap-6 p-6">
       <EntityPageHeader
@@ -40,25 +38,23 @@ export default function SubstitutionsPage() {
         isDisabled={teacherList.length === 0 && isInitialLoading}
       />
 
-      <div className="flex flex-col gap-3 rounded-3xl border border-blue-100 bg-blue-50/70 px-5 py-4 sm:flex-row sm:items-center sm:justify-between">
-        <div className="flex items-center gap-3">
-          <span className="flex h-10 w-10 items-center justify-center rounded-2xl bg-white text-blue-600 shadow-sm">
+      <div className="flex items-center justify-between gap-4 rounded-3xl border border-blue-100 bg-blue-50/70 px-5 py-4"
+>
+        <div className="flex min-w-0 items-center gap-3"
+>
+          <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl bg-white text-blue-600 shadow-sm">
             <CalendarDays size={19} />
           </span>
-          <div className="flex flex-col gap-1">
-            <p className="text-xs font-semibold text-blue-700">عرض التغطية ليوم</p>
-            <div className="flex items-center gap-2">
-              <input
-                type="date"
-                value={activeDate}
-                onChange={(event) => event.target.value && setActiveDate(event.target.value)}
-                className="min-h-[36px] rounded-full border border-blue-200/80 bg-white px-3 text-sm font-bold text-neutral-900 outline-none transition-colors focus:border-blue-500 focus:ring-2 focus:ring-blue-500/30"
-              />
-              <span className="text-sm font-bold text-neutral-900">{formattedDate}</span>
-            </div>
-          </div>
+          <LocalizedDateInput
+            key={activeDate}
+            label="تاريخ التغطية"
+            labelClassName="sr-only"
+            value={activeDate}
+            onChange={setActiveDate}
+          />
         </div>
-        <div className="flex items-center gap-2 text-xs font-semibold text-blue-700">
+        <div className="flex shrink-0 items-center gap-2 text-xs font-semibold text-blue-700"
+>
           <ShieldCheck size={16} />
           {substitutionList.length} حصص تم تعيين بديل لها
         </div>

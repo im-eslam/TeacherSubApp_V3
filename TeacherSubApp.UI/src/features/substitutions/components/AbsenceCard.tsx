@@ -92,12 +92,15 @@ export function AbsenceCard({
               {allCovered ? <ShieldCheck size={21} /> : <CircleAlert size={21} />}
             </span>
             <span className="min-w-0">
-              <span className="block truncate text-base font-bold text-neutral-900">
-                {absence.teacherName}
-              </span>
+                          <span className="block truncate text-sm font-semibold text-neutral-900">
+              {absence.teacherName}
+            </span>
+            {absence.reason && (
               <span className="mt-1 block truncate text-xs text-neutral-500">
-                غياب اليوم{absence.reason ? ` · ${absence.reason}` : ""}
+                {absence.reason}
               </span>
+            )}
+
             </span>
           </span>
           <span className="flex shrink-0 items-center gap-3">
