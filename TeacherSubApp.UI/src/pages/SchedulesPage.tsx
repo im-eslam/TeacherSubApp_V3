@@ -20,14 +20,14 @@ export default function SchedulesPage() {
         description="استعرض الجدول الأسبوعي لكل معلم أو فصل دراسي، أو استخدم المحرر المركزي لإجراء تعديلات جماعية (إضافة، تعديل، تبديل، حذف) في دفعة واحدة."
         addLabel="تعديل"
         onAdd={open}
-        isDisabled={false}
+        isDisabled={page.isError}
       />
 
       {page.isError && (
         <EntityErrorBanner
           error={page.error}
           onRetry={page.retry}
-          isRetrying={page.isLoading}
+          isRetrying={page.isRetrying}
         />
       )}
 
@@ -38,7 +38,7 @@ export default function SchedulesPage() {
           selectedId={page.selectedId}
           onSelectedIdChange={page.onSelectedIdChange}
           options={page.selectorOptions}
-          isDisabled={page.isSelectorLoading}
+          isDisabled={page.isSelectorLoading || page.isError}
         />
       </EntityToolbar>
 
@@ -46,7 +46,8 @@ export default function SchedulesPage() {
         slots={page.slots}
         viewMode={page.viewMode}
         isLoading={page.isLoading}
-        isFetching={page.isFetching}
+        isAwaitingData={page.isAwaitingData}
+        isError={page.isError}
         hasSelection={page.hasSelection}
       />
 

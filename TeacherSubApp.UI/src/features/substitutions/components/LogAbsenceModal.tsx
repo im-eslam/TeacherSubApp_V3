@@ -4,14 +4,16 @@ import toast from "react-hot-toast";
 import {
   Input,
   Label,
+  TextArea,
   TextField as AriaTextField,
 } from "react-aria-components";
 import { Button } from "../../../components/controls/Button";
 import { SearchableSelect } from "../../../components/controls/SearchableSelect";
 import { ModalShell } from "../../../components/modals/ModalShell";
 import { getErrorMessage } from "../../../lib/apiErrors";
-import { useCreateAbsence } from "../hooks";
 import { getTodayIsoDate } from "../dateUtils";
+import { useCreateAbsence } from "../hooks";
+import { useSubstitutionsPageStore } from "../store";
 import type { TeacherReadDto } from "../types";
 
 interface LogAbsenceModalProps {
@@ -29,6 +31,7 @@ export function LogAbsenceModal({
   const [absenceDate, setAbsenceDate] = useState(getTodayIsoDate);
   const [reason, setReason] = useState("");
   const mutation = useCreateAbsence();
+  const setActiveDate = useSubstitutionsPageStore((state) => state.setActiveDate);
 
   const teacherOptions = teachers.map((teacher) => ({
     value: String(teacher.id),
@@ -42,12 +45,16 @@ export function LogAbsenceModal({
     if (!canSubmit) return;
 
     try {
-      await mutation.mutateAsync({
+      const created = await mutation.mutateAsync({
         teacherId: Number(teacherId),
         absenceDate,
         reason: reason.trim() || null,
       });
       toast.success("تم تسجيل الغياب بنجاح");
+      // "Black hole" fix: jump the main page to whatever date this
+      // absence was logged for, so it's visible the moment the modal
+      // closes — even if that date isn't today.
+      setActiveDate(created.absenceDate);
       onClose();
     } catch (error) {
       toast.error(getErrorMessage(error));
@@ -100,11 +107,14 @@ export function LogAbsenceModal({
           onChange={setReason}
           className="flex flex-col gap-1.5"
         >
-          <Label className="text-xs font-medium text-neutral-500">ملاحظات <span className="font-normal text-neutral-400">(اختياري)</span></Label>
-          <Input
+          <Label className="text-xs font-medium text-neutral-500">
+            ملاحظات <span className="font-normal text-neutral-400">(اختياري)</span>
+          </Label>
+          <TextArea
+            rows={4}
             maxLength={500}
             placeholder="مثال: إجازة مرضية أو حالة طارئة"
-            className="min-h-[44px] w-full rounded-full border border-neutral-200/80 bg-white px-4 text-sm text-neutral-900 outline-none transition-colors placeholder:text-neutral-400 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/30"
+            className="min-h-[110px] w-full resize-none rounded-2xl border border-neutral-200/80 bg-white px-4 py-3 text-sm leading-relaxed text-neutral-900 outline-none transition-colors placeholder:text-neutral-400 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/30"
             disabled={mutation.isPending}
           />
         </AriaTextField>

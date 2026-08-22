@@ -51,6 +51,9 @@ export const substitutionsApi = {
       signal,
     ),
 
+  deleteAbsence: (id: number, signal?: AbortSignal): Promise<void> =>
+    apiClient.delete<void>(`/absences/${id}`, signal),
+
   getTeachers: (
     query: TeacherQuery = {},
     signal?: AbortSignal,

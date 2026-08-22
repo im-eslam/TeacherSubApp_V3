@@ -1,13 +1,10 @@
 import { memo, useMemo } from "react";
-import { CalendarDays, Loader2 } from "lucide-react";
+import { CalendarDays, ServerCrash } from "lucide-react";
 import { DAYS, PERIODS, eventColor } from "../constants";
 import type { ScheduleViewMode, WeeklyScheduleReadDto } from "../types";
 
 const STYLES = {
   wrapper: "relative flex flex-col gap-3",
-
-  fetchingBadge:
-    "absolute -top-3 start-1/2 -translate-x-1/2 z-10 inline-flex items-center gap-1.5 px-3 py-1 bg-white border border-neutral-200/60 rounded-full text-[11px] font-medium text-neutral-500 shadow-sm",
 
   scrollWrapper:
     "relative w-full overflow-auto rounded-2xl border border-neutral-200/80 bg-white",
@@ -40,8 +37,21 @@ const STYLES = {
     "flex flex-col items-center justify-center gap-3 py-16 text-center rounded-3xl border border-dashed border-neutral-200 bg-neutral-50/40",
   emptyIcon:
     "flex items-center justify-center w-12 h-12 rounded-full bg-neutral-100 text-neutral-400",
+  emptyIconError:
+    "flex items-center justify-center w-12 h-12 rounded-full bg-red-50 text-red-400",
   emptyTitle: "text-sm font-semibold text-neutral-600",
   emptySubtitle: "text-xs text-neutral-400 max-w-xs",
+
+  skeletonWrap:
+    "w-full overflow-hidden rounded-2xl border border-neutral-200/80 bg-white",
+  skeletonHeaderRow:
+    "flex gap-2 sm:gap-3 px-2 sm:px-3 py-3 sm:py-4 border-b border-neutral-200/80 bg-neutral-50",
+  skeletonHeaderCell:
+    "h-4 bg-neutral-200 rounded animate-pulse flex-1 first:max-w-24 sm:first:max-w-28",
+  skeletonRow:
+    "flex gap-2 sm:gap-3 p-1.5 sm:p-3 border-b border-neutral-100 last:border-b-0",
+  skeletonCell:
+    "h-20 sm:h-24 bg-neutral-200/70 rounded-xl animate-pulse flex-1 first:max-w-24 sm:first:max-w-28 first:!h-auto first:bg-neutral-100/80",
 };
 
 // ── Slot lookup ──
@@ -164,7 +174,8 @@ interface ScheduleGridProps {
   slots: WeeklyScheduleReadDto[];
   viewMode: ScheduleViewMode;
   isLoading: boolean;
-  isFetching: boolean;
+  isAwaitingData?: boolean;
+  isError: boolean;
   hasSelection: boolean;
 }
 
@@ -172,11 +183,13 @@ export const ScheduleGrid = memo(function ScheduleGrid({
   slots,
   viewMode,
   isLoading,
-  isFetching,
+  isAwaitingData,
+  isError,
   hasSelection,
 }: ScheduleGridProps) {
   const slotMap = useMemo(() => buildSlotMap(slots), [slots]);
 
+  // 1. No selection yet — nothing to fetch
   if (!hasSelection) {
     return (
       <div className={STYLES.emptyState}>
@@ -196,23 +209,46 @@ export const ScheduleGrid = memo(function ScheduleGrid({
     );
   }
 
-  if (isLoading) {
+  // 2. Loading state — skeleton matching the grid shape
+  if ((isLoading && isAwaitingData) || isLoading) {
+    return (
+      <div className={STYLES.skeletonWrap}>
+        <div className={STYLES.skeletonHeaderRow}>
+          {Array.from({ length: PERIODS.length + 1 }).map((_, i) => (
+            <div key={i} className={STYLES.skeletonHeaderCell} />
+          ))}
+        </div>
+        {DAYS.map((day) => (
+          <div key={day.value} className={STYLES.skeletonRow}>
+            {Array.from({ length: PERIODS.length + 1 }).map((_, i) => (
+              <div key={i} className={STYLES.skeletonCell} />
+            ))}
+          </div>
+        ))}
+      </div>
+    );
+  }
+  if (isAwaitingData) {
+    return null;
+  }
+
+  // 3. Empty + error — dedicated error state
+  if (slots.length === 0 && isError) {
     return (
       <div className={STYLES.emptyState}>
-        <Loader2 size={22} className="animate-spin text-neutral-400" />
+        <div className={STYLES.emptyIconError}>
+          <ServerCrash size={22} strokeWidth={1.75} />
+        </div>
+        <p className={STYLES.emptyTitle}>تعذّر تحميل الجدول</p>
+        <p className={STYLES.emptySubtitle}>
+          تحقق من اتصالك بالإنترنت أو حاول مرة أخرى.
+        </p>
       </div>
     );
   }
 
   return (
     <div className={STYLES.wrapper}>
-      {isFetching && !isLoading && (
-        <span className={STYLES.fetchingBadge}>
-          <Loader2 size={12} className="animate-spin" />
-          جارٍ التحديث...
-        </span>
-      )}
-
       <div className={STYLES.scrollWrapper}>
         <table className={STYLES.table}>
           <thead>

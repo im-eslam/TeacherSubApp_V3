@@ -99,3 +99,30 @@ export interface TeacherQuery {
   name?: string;
   subjectId?: number;
 }
+
+// ════════════════════════════════════════════════════════════
+// UI-only shapes (not returned by the API) used to identify
+// "which slot is currently being worked on" across the store,
+// hooks, and components.
+// ════════════════════════════════════════════════════════════
+
+/** Identifies a single uncovered/covered period belonging to an absence. */
+export interface SlotContext {
+  absenceId: number;
+  absentTeacherId: number;
+  weeklyScheduleId: number;
+  periodNumber: number;
+  serviceDate: string;
+}
+
+/**
+ * Human-readable mapping for the 5 recommendation tiers returned by the
+ * engine. `group` controls which visual bucket (accordion section) the
+ * tier renders in.
+ */
+export interface TierMeta {
+  tier: CandidateTier;
+  label: string;
+  sublabel: string;
+  group: "best" | "acceptable" | "lastResort";
+}

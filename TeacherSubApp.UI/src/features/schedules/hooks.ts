@@ -1,8 +1,14 @@
 import { useMemo } from "react";
-import { useMutation, useQuery, useQueryClient, keepPreviousData } from "@tanstack/react-query";
+import {
+  useMutation,
+  useQuery,
+  useQueryClient,
+  keepPreviousData,
+} from "@tanstack/react-query";
 import toast from "react-hot-toast";
 import { useTeachers } from "../teachers/hooks";
 import { useSchoolClasses } from "../classes/hooks";
+import { useDelayedLoading } from "../../lib/useDelayedLoading";
 import { schedulesApi } from "./api";
 import { useSchedulePageStore } from "./store";
 import type {
@@ -22,7 +28,10 @@ const scheduleKeys = {
 // Queries / mutation
 // ════════════════════════════════════════════════════════════
 
-export function useWeeklySchedule(query: WeeklyScheduleQuery, enabled: boolean) {
+export function useWeeklySchedule(
+  query: WeeklyScheduleQuery,
+  enabled: boolean,
+) {
   return useQuery({
     queryKey: scheduleKeys.list(query),
     queryFn: ({ signal }) => schedulesApi.getAll(query, signal),
@@ -65,8 +74,19 @@ export interface SelectorOption {
 export function useTeacherSelectorOptions(): {
   options: SelectorOption[];
   isLoading: boolean;
+  isError: boolean;
+  error: unknown;
+  isFetching: boolean;
+  refetch: () => unknown;
 } {
-  const { data: teachers = [], isLoading } = useTeachers();
+  const {
+    data: teachers = [],
+    isLoading,
+    isError,
+    error,
+    isFetching,
+    refetch,
+  } = useTeachers();
 
   const options = useMemo(() => {
     return [...teachers]
@@ -79,14 +99,25 @@ export function useTeacherSelectorOptions(): {
       }));
   }, [teachers]);
 
-  return { options, isLoading };
+  return { options, isLoading, isError, error, isFetching, refetch };
 }
 
 export function useClassSelectorOptions(): {
   options: SelectorOption[];
   isLoading: boolean;
+  isError: boolean;
+  error: unknown;
+  isFetching: boolean;
+  refetch: () => unknown;
 } {
-  const { data: classes = [], isLoading } = useSchoolClasses();
+  const {
+    data: classes = [],
+    isLoading,
+    isError,
+    error,
+    isFetching,
+    refetch,
+  } = useSchoolClasses();
 
   const options = useMemo(() => {
     return classes.map((schoolClass) => ({
@@ -95,7 +126,7 @@ export function useClassSelectorOptions(): {
     }));
   }, [classes]);
 
-  return { options, isLoading };
+  return { options, isLoading, isError, error, isFetching, refetch };
 }
 
 // ════════════════════════════════════════════════════════════
@@ -111,9 +142,10 @@ export interface SchedulePageViewModel {
   isSelectorLoading: boolean;
   slots: WeeklyScheduleReadDto[];
   isLoading: boolean;
-  isFetching: boolean;
+  isAwaitingData: boolean;
   isError: boolean;
   error: unknown;
+  isRetrying: boolean;
   retry: () => void;
   hasSelection: boolean;
 }
@@ -142,10 +174,27 @@ export function useSchedulesPage(): SchedulePageViewModel {
     data: slots = [],
     isLoading,
     isFetching,
-    isError,
-    error,
+    isPlaceholderData,
+    isError: scheduleIsError,
+    error: scheduleError,
     refetch,
   } = useWeeklySchedule(query, hasSelection);
+
+  const isError =
+    teacherOptions.isError || classOptions.isError || scheduleIsError;
+  const error = teacherOptions.error ?? classOptions.error ?? scheduleError;
+  const isRetrying =
+    teacherOptions.isFetching || classOptions.isFetching || isFetching;
+
+  const retry = () => {
+    void teacherOptions.refetch();
+    void classOptions.refetch();
+    void refetch();
+  };
+
+  const isSwitchingSelection = isFetching && isPlaceholderData;
+  const showLoader = useDelayedLoading(isLoading || isSwitchingSelection, 200);
+  const isAwaitingData = showLoader;
 
   return {
     viewMode,
@@ -154,12 +203,13 @@ export function useSchedulesPage(): SchedulePageViewModel {
     onSelectedIdChange: setSelectedId,
     selectorOptions,
     isSelectorLoading,
-    slots: hasSelection ? slots : [],
-    isLoading,
-    isFetching,
+    slots: hasSelection && !isSwitchingSelection ? slots : [],
+    isLoading: showLoader,
+    isAwaitingData,
     isError,
     error,
-    retry: refetch,
+    isRetrying,
+    retry,
     hasSelection,
   };
 }

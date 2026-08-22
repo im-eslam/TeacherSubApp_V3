@@ -32,3 +32,16 @@ export function toBackendDayOfWeek(date: Date): number {
 export function getBackendDayOfWeekOrNull(date: Date): number | null {
   return BACKEND_DAY_BY_JAVASCRIPT_DAY[date.getDay()] ?? null;
 }
+
+export function isWeekendIsoDate(serviceDate: string): boolean {
+  const day = new Date(`${serviceDate}T12:00:00`).getDay();
+  return day === 5 || day === 6;
+}
+
+export function formatLongArabicDate(serviceDate: string): string {
+  return new Date(`${serviceDate}T12:00:00`).toLocaleDateString("ar-EG", {
+    weekday: "long",
+    day: "numeric",
+    month: "long",
+  });
+}

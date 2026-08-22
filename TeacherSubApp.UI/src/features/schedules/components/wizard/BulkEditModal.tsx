@@ -7,10 +7,7 @@ import {
   ModalErrorBanner,
 } from "../../../../components/modals/ModalParts";
 import { getErrorMessage } from "../../../../lib/apiErrors";
-import {
-  useScheduleDraftStore,
-  type DraftOperation,
-} from "../../draftStore";
+import { useScheduleDraftStore, type DraftOperation } from "../../draftStore";
 import {
   useClassSelectorOptions,
   useTeacherSelectorOptions,
@@ -99,8 +96,17 @@ export function BulkEditModal({ isOpen, onClose }: BulkEditModalProps) {
   };
 
   return (
-    <ModalShell isOpen={isOpen} onOpenChange={handleClose} size="2xl" isBusy={isPending}>
-      <ModalHeader title="محرر الجدول المركزي" isBusy={isPending} onClose={handleClose} />
+    <ModalShell
+      isOpen={isOpen}
+      onOpenChange={handleClose}
+      size="2xl"
+      isBusy={isPending}
+    >
+      <ModalHeader
+        title="محرر الجدول المركزي"
+        isBusy={isPending}
+        onClose={handleClose}
+      />
       <StepIndicator current={step} />
 
       <ModalBody allowBodyOverflow={true}>
@@ -157,14 +163,8 @@ export function BulkEditModal({ isOpen, onClose }: BulkEditModalProps) {
       </ModalBody>
 
       <div className={STYLES.footer}>
-        <button
-          type="button"
-          onClick={handleClose}
-          disabled={isPending}
-          className={STYLES.cancelButton}
-        >
-          إلغاء
-        </button>
+        // Place Holder
+        <button></button>
 
         {step === 3 && (
           <div className="flex items-center gap-2">
