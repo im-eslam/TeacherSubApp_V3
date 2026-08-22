@@ -9,7 +9,6 @@ import {
 } from "lucide-react";
 import { Button, Form } from "react-aria-components";
 import { SearchableSelect } from "../../../components/controls/SearchableSelect";
-import { Select, type SelectOption } from "../../../components/controls/Select";
 import { ModalShell } from "../../../components/modals/ModalShell";
 import {
   ModalBody,
@@ -31,6 +30,8 @@ import type {
   SlotCoordinate,
   WeeklyScheduleReadDto,
 } from "../types";
+
+type SelectOption = { value: string; label: string };
 
 interface BulkEditModalProps {
   isOpen: boolean;
@@ -188,7 +189,7 @@ export function BulkEditModal({ isOpen, onClose }: BulkEditModalProps) {
   return (
     <ModalShell
       isOpen={isOpen}
-      size="full"
+      size="md"
       isBusy={editor.isSubmitting}
       onOpenChange={(open) => !open && close()}
     >
@@ -501,7 +502,6 @@ function EditFields({
           });
         }}
         placeholder="اختر المعلم، اليوم، والحصة للتعيين المطلوب تعديله"
-        aria-label="التعيين المطلوب تعديله"
       />
       {selectedSlot && (
         <p className="rounded-xl bg-emerald-50 px-3 py-2 text-xs text-emerald-800">
@@ -536,7 +536,6 @@ function DeleteFields({
         slots={slots}
         onChange={(id) => onPatch({ targetSlotId: id })}
         placeholder="اختر المعلم، اليوم، والحصة للتعيين المطلوب حذفه"
-        aria-label="التعيين المطلوب حذفه"
       />
       <div className="flex items-start gap-2 rounded-xl border border-red-100 bg-red-50 px-3 py-3 text-xs leading-relaxed text-red-700">
         <Trash2 size={15} className="mt-0.5 shrink-0" />
@@ -564,7 +563,6 @@ function SwapFields({
         slots={slots}
         onChange={(id) => onPatch({ slotA: coordinateFromId(slots, id) })}
         placeholder="الموضع الأول: اختر معلماً ثم اليوم والحصة"
-        aria-label="الموضع الأول"
       />
       <div className="flex items-center gap-2 text-sm font-medium text-neutral-600">
         <ArrowRightLeft size={16} />
@@ -575,7 +573,6 @@ function SwapFields({
         slots={slots}
         onChange={(id) => onPatch({ slotB: coordinateFromId(slots, id) })}
         placeholder="الموضع الثاني: اختر معلماً ثم اليوم والحصة"
-        aria-label="الموضع الثاني"
       />
       <p className="text-xs leading-relaxed text-neutral-400">
         التبديل يعتمد على موضعين موجودين في الجدول، ولا يسمح بتحديد الموضع نفسه مرتين.
@@ -589,13 +586,11 @@ function ExistingSlotPicker({
   slots,
   onChange,
   placeholder,
-  "aria-label": ariaLabel,
 }: {
   value: number | null;
   slots: WeeklyScheduleReadDto[];
   onChange: (id: number | null) => void;
   placeholder: string;
-  "aria-label": string;
 }) {
   const selectedSlot = slots.find((slot) => slot.id === value);
   const [teacherId, setTeacherId] = useState<number | null>(selectedSlot?.teacherId ?? null);
@@ -629,7 +624,7 @@ function ExistingSlotPicker({
 
   return (
     <div className="grid gap-3 sm:grid-cols-3">
-      <Select
+      <SearchableSelect
         value={teacherId === null ? "" : String(teacherId)}
         onChange={(nextValue) => {
           setTeacherId(Number(nextValue));
@@ -638,10 +633,9 @@ function ExistingSlotPicker({
         }}
         options={teacherOptions}
         placeholder="المعلم"
-        aria-label={`${ariaLabel} — المعلم`}
         disabled={slots.length === 0}
       />
-      <Select
+      <SearchableSelect
         value={dayOfWeek === null ? "" : String(dayOfWeek)}
         onChange={(nextValue) => {
           setDayOfWeek(Number(nextValue));
@@ -649,10 +643,9 @@ function ExistingSlotPicker({
         }}
         options={dayOptions}
         placeholder="اليوم"
-        aria-label={`${ariaLabel} — اليوم`}
         disabled={teacherId === null || dayOptions.length === 0}
       />
-      <Select
+      <SearchableSelect
         value={value === null ? "" : String(value)}
         onChange={(nextValue) => {
           const slot = slots.find(
@@ -665,7 +658,6 @@ function ExistingSlotPicker({
         }}
         options={periodOptions}
         placeholder="الحصة"
-        aria-label={`${ariaLabel} — الحصة`}
         disabled={dayOfWeek === null || periodOptions.length === 0}
       />
       <p className="sm:col-span-3 text-xs leading-relaxed text-neutral-400">
@@ -686,19 +678,17 @@ function CoordinateFields({
 }) {
   return (
     <div className="grid grid-cols-2 gap-3">
-      <Select
+      <SearchableSelect
         value={String(dayOfWeek ?? "")}
         onChange={(value) => onChange({ dayOfWeek: Number(value), periodNumber: periodNumber ?? 1 })}
         options={DAY_OPTIONS}
         placeholder="اليوم"
-        aria-label="اليوم"
       />
-      <Select
+      <SearchableSelect
         value={String(periodNumber ?? "")}
         onChange={(value) => onChange({ dayOfWeek: dayOfWeek ?? 1, periodNumber: Number(value) })}
         options={PERIOD_OPTIONS}
         placeholder="الحصة"
-        aria-label="الحصة"
       />
     </div>
   );
@@ -719,19 +709,17 @@ function ContentFields({
 }) {
   return (
     <div className="grid grid-cols-2 gap-3">
-      <Select
+      <SearchableSelect
         value={toNullableValue(classId)}
         onChange={(value) => onChange({ classId: toNullableId(value), eventId })}
         options={classOptions}
         placeholder="الفصل"
-        aria-label="الفصل"
       />
-      <Select
+      <SearchableSelect
         value={toNullableValue(eventId)}
         onChange={(value) => onChange({ classId, eventId: toNullableId(value) })}
         options={eventOptions}
         placeholder="الحدث"
-        aria-label="الحدث"
       />
     </div>
   );

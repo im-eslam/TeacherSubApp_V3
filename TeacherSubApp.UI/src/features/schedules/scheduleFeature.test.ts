@@ -6,7 +6,11 @@ import {
 } from "./api";
 import { buildScheduleMatrix } from "./lib/grid";
 import { isScheduleDraftValid } from "./lib/validation";
-import { draftsToBulkRequest, findDraftConflict } from "./store";
+import {
+  draftsToBulkRequest,
+  findDraftConflict,
+  useScheduleDraftStore,
+} from "./store";
 import type { ScheduleDraft, WeeklyScheduleReadDto } from "./types";
 
 const slots: WeeklyScheduleReadDto[] = [
@@ -174,6 +178,24 @@ describe("Weekly Schedule contract helpers", () => {
     expect(matrix[0][1]).toEqual([slots[0]]);
     expect(matrix[2][4]).toEqual([slots[1]]);
     expect(matrix[4][6]).toEqual([]);
+  });
+
+  it("moves to review immediately after adding a valid operation", () => {
+    useScheduleDraftStore.getState().reset();
+    useScheduleDraftStore.getState().startOperation("add");
+    useScheduleDraftStore.getState().updateCurrentDraft({
+      teacherId: 2,
+      dayOfWeek: 2,
+      periodNumber: 4,
+      classId: 4,
+      eventId: null,
+    });
+
+    expect(useScheduleDraftStore.getState().currentStep).toBe("details");
+    expect(useScheduleDraftStore.getState().addCurrentToDraft()).toEqual({ ok: true });
+    expect(useScheduleDraftStore.getState().currentStep).toBe("review");
+    expect(useScheduleDraftStore.getState().stagedEdits).toHaveLength(1);
+    useScheduleDraftStore.getState().reset();
   });
 
   it("validates operation-specific content and occupied targets", () => {
