@@ -207,7 +207,7 @@ export const useScheduleDraftStore = create<ScheduleDraftStore>((set, get) => ({
       stagedEdits: [...stagedEdits, currentDraft],
       currentOperation: null,
       currentDraft: null,
-      currentStep: "operation",
+      currentStep: "review",
     });
     return { ok: true };
   },

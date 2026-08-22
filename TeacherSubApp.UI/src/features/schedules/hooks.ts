@@ -19,7 +19,15 @@ import type {
 const scheduleKeys = {
   all: ["weeklySchedules"] as const,
   list: (query: WeeklyScheduleQuery) =>
-    [...scheduleKeys.all, "list", query] as const,
+    [
+      ...scheduleKeys.all,
+      "list",
+      query.teacherId ?? null,
+      query.classId ?? null,
+      query.eventId ?? null,
+      query.dayOfWeek ?? null,
+      query.periodNumber ?? null,
+    ] as const,
   detail: (id: number) => [...scheduleKeys.all, "detail", id] as const,
 };
 
@@ -93,6 +101,7 @@ export function useWeeklySchedules(
     queryKey: scheduleKeys.list(query),
     queryFn: ({ signal }) => weeklySchedulesApi.getAll(query, signal),
     enabled,
+    placeholderData: (previousData) => previousData,
   });
 }
 
