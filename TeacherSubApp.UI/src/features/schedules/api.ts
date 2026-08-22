@@ -19,11 +19,11 @@ function appendQueryParam(
 
 export function buildScheduleQueryString(query: WeeklyScheduleQuery = {}) {
   const params = new URLSearchParams();
-  appendQueryParam(params, "teacherId", query.teacherId);
-  appendQueryParam(params, "classId", query.classId);
-  appendQueryParam(params, "eventId", query.eventId);
-  appendQueryParam(params, "dayOfWeek", query.dayOfWeek);
-  appendQueryParam(params, "periodNumber", query.periodNumber);
+  appendQueryParam(params, "TeacherId", query.teacherId);
+  appendQueryParam(params, "ClassId", query.classId);
+  appendQueryParam(params, "EventId", query.eventId);
+  appendQueryParam(params, "DayOfWeek", query.dayOfWeek);
+  appendQueryParam(params, "PeriodNumber", query.periodNumber);
   const value = params.toString();
   return value ? `?${value}` : "";
 }
@@ -101,7 +101,7 @@ export const weeklySchedulesApi = {
     slotA: SlotCoordinate,
     slotB: SlotCoordinate,
   ): Promise<void> {
-    const request: WeeklyScheduleSwapEntry = { SlotA: slotA, SlotB: slotB };
+    const request: WeeklyScheduleSwapEntry = { slotA, slotB };
     return apiClient.post<void, WeeklyScheduleSwapEntry>(
       "/schedules/swap",
       request,
@@ -120,5 +120,5 @@ export function toScheduleUpdateEntry(
   id: number,
   payload: WeeklyScheduleWriteDto,
 ): WeeklyScheduleUpdateEntry {
-  return { Id: id, Payload: payload };
+  return { id, payload };
 }

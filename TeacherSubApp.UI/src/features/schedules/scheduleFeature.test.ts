@@ -65,26 +65,26 @@ describe("Weekly Schedule contract helpers", () => {
         dayOfWeek: 3,
         periodNumber: 5,
       }),
-    ).toBe("?teacherId=2&classId=4&eventId=7&dayOfWeek=3&periodNumber=5");
+    ).toBe("?TeacherId=2&ClassId=4&EventId=7&DayOfWeek=3&PeriodNumber=5");
   });
 
-  it("uses the exact C# update entry member names", () => {
+  it("uses the exact Swagger update entry member names", () => {
     expect(
       toScheduleUpdateEntry(11, {
-        TeacherId: 2,
-        DayOfWeek: 1,
-        PeriodNumber: 2,
-        ClassId: 4,
-        EventId: null,
+        teacherId: 2,
+        dayOfWeek: 1,
+        periodNumber: 2,
+        classId: 4,
+        eventId: null,
       }),
     ).toEqual({
-      Id: 11,
-      Payload: {
-        TeacherId: 2,
-        DayOfWeek: 1,
-        PeriodNumber: 2,
-        ClassId: 4,
-        EventId: null,
+      id: 11,
+      payload: {
+        teacherId: 2,
+        dayOfWeek: 1,
+        periodNumber: 2,
+        classId: 4,
+        eventId: null,
       },
     });
   });
@@ -114,38 +114,38 @@ describe("Weekly Schedule contract helpers", () => {
       {
         id: "swap",
         operation: "swap",
-        slotA: { TeacherId: 2, DayOfWeek: 1, PeriodNumber: 2 },
-        slotB: { TeacherId: 3, DayOfWeek: 4, PeriodNumber: 6 },
+        slotA: { teacherId: 2, dayOfWeek: 1, periodNumber: 2 },
+        slotB: { teacherId: 3, dayOfWeek: 4, periodNumber: 6 },
       },
     ];
 
     expect(draftsToBulkRequest(drafts)).toEqual({
-      Creates: [
+      creates: [
         {
-          TeacherId: 2,
-          DayOfWeek: 2,
-          PeriodNumber: 4,
-          ClassId: 4,
-          EventId: null,
+          teacherId: 2,
+          dayOfWeek: 2,
+          periodNumber: 4,
+          classId: 4,
+          eventId: null,
         },
       ],
-      Updates: [
+      updates: [
         {
-          Id: 11,
-          Payload: {
-            TeacherId: 2,
-            DayOfWeek: 1,
-            PeriodNumber: 2,
-            ClassId: null,
-            EventId: 7,
+          id: 11,
+          payload: {
+            teacherId: 2,
+            dayOfWeek: 1,
+            periodNumber: 2,
+            classId: null,
+            eventId: 7,
           },
         },
       ],
-      Deletes: [12],
-      Swaps: [
+      deletes: [12],
+      swaps: [
         {
-          SlotA: { TeacherId: 2, DayOfWeek: 1, PeriodNumber: 2 },
-          SlotB: { TeacherId: 3, DayOfWeek: 4, PeriodNumber: 6 },
+          slotA: { teacherId: 2, dayOfWeek: 1, periodNumber: 2 },
+          slotB: { teacherId: 3, dayOfWeek: 4, periodNumber: 6 },
         },
       ],
     });
@@ -250,8 +250,8 @@ describe("Weekly Schedule contract helpers", () => {
       isScheduleDraftValid({ id: "delete-valid", operation: "delete", targetSlotId: 11 }, slots),
     ).toBe(true);
 
-    const firstCoordinate = { TeacherId: 2, DayOfWeek: 1, PeriodNumber: 2 };
-    const secondCoordinate = { TeacherId: 2, DayOfWeek: 3, PeriodNumber: 5 };
+    const firstCoordinate = { teacherId: 2, dayOfWeek: 1, periodNumber: 2 };
+    const secondCoordinate = { teacherId: 2, dayOfWeek: 3, periodNumber: 5 };
     expect(
       isScheduleDraftValid(
         { id: "same", operation: "swap", slotA: firstCoordinate, slotB: firstCoordinate },

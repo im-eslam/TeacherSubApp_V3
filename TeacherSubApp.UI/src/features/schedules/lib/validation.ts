@@ -2,18 +2,18 @@ import type { ScheduleDraft } from "../types";
 import type { WeeklyScheduleReadDto } from "../types";
 
 function coordinateKey(coordinate: {
-  TeacherId: number;
-  DayOfWeek: number;
-  PeriodNumber: number;
+  teacherId: number;
+  dayOfWeek: number;
+  periodNumber: number;
 }) {
-  return `${coordinate.TeacherId}:${coordinate.DayOfWeek}:${coordinate.PeriodNumber}`;
+  return `${coordinate.teacherId}:${coordinate.dayOfWeek}:${coordinate.periodNumber}`;
 }
 
 function slotCoordinate(slot: WeeklyScheduleReadDto) {
   return {
-    TeacherId: slot.teacherId,
-    DayOfWeek: slot.dayOfWeek,
-    PeriodNumber: slot.periodNumber,
+    teacherId: slot.teacherId,
+    dayOfWeek: slot.dayOfWeek,
+    periodNumber: slot.periodNumber,
   };
 }
 

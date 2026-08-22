@@ -19,34 +19,34 @@ export interface WeeklyScheduleQuery {
 }
 
 export interface WeeklyScheduleWriteDto {
-  TeacherId: number;
-  DayOfWeek: number;
-  PeriodNumber: number;
-  ClassId: number | null;
-  EventId: number | null;
+  teacherId: number;
+  dayOfWeek: number;
+  periodNumber: number;
+  classId: number | null;
+  eventId: number | null;
 }
 
 export interface WeeklyScheduleUpdateEntry {
-  Id: number;
-  Payload: WeeklyScheduleWriteDto;
+  id: number;
+  payload: WeeklyScheduleWriteDto;
 }
 
 export interface SlotCoordinate {
-  TeacherId: number;
-  DayOfWeek: number;
-  PeriodNumber: number;
+  teacherId: number;
+  dayOfWeek: number;
+  periodNumber: number;
 }
 
 export interface WeeklyScheduleSwapEntry {
-  SlotA: SlotCoordinate;
-  SlotB: SlotCoordinate;
+  slotA: SlotCoordinate;
+  slotB: SlotCoordinate;
 }
 
 export interface WeeklyScheduleBulkEditRequest {
-  Creates: WeeklyScheduleWriteDto[];
-  Updates: WeeklyScheduleUpdateEntry[];
-  Deletes: number[];
-  Swaps: WeeklyScheduleSwapEntry[];
+  creates: WeeklyScheduleWriteDto[];
+  updates: WeeklyScheduleUpdateEntry[];
+  deletes: number[];
+  swaps: WeeklyScheduleSwapEntry[];
 }
 
 export type ScheduleEditOperation = "add" | "edit" | "swap" | "delete";
