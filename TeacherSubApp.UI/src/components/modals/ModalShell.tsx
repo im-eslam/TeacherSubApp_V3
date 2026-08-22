@@ -25,6 +25,7 @@ const STYLES = {
     ].join(" "),
     md: "max-w-md",
     xl: "max-w-3xl",
+    full: "max-w-[min(96vw,1200px)]",
   },
 };
 
@@ -35,7 +36,7 @@ const STYLES = {
 interface ModalShellProps extends Omit<ModalOverlayProps, "children"> {
   children: ReactNode;
   isBusy?: boolean;
-  size?: "md" | "xl";
+  size?: "md" | "xl" | "full";
 }
 
 export function ModalShell({
