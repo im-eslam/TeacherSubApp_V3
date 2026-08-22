@@ -1,6 +1,10 @@
 import { describe, expect, it } from "vitest";
-import { buildScheduleQueryString, toScheduleUpdateEntry } from "./api";
-import { indexSlotsByCoordinate, scheduleCoordinateKey } from "./lib/grid";
+import {
+  buildScheduleQueryString,
+  normalizeScheduleRecord,
+  toScheduleUpdateEntry,
+} from "./api";
+import { buildScheduleMatrix } from "./lib/grid";
 import { isScheduleDraftValid } from "./lib/validation";
 import { draftsToBulkRequest, findDraftConflict } from "./store";
 import type { ScheduleDraft, WeeklyScheduleReadDto } from "./types";
@@ -31,6 +35,23 @@ const slots: WeeklyScheduleReadDto[] = [
 ];
 
 describe("Weekly Schedule contract helpers", () => {
+  it("normalizes the backend response casing into the canonical read model", () => {
+    expect(
+      normalizeScheduleRecord({
+        Id: 11,
+        TeacherId: 2,
+        TeacherName: "أحمد علي",
+        DayOfWeek: 1,
+        PeriodNumber: 2,
+        ClassId: 4,
+        ClassDisplayName: "الصف الأول",
+        EventId: null,
+        EventName: null,
+      }),
+    ).toEqual(slots[0]);
+    expect(normalizeScheduleRecord(slots[1])).toEqual(slots[1]);
+  });
+
   it("serializes all supported backend query parameters", () => {
     expect(
       buildScheduleQueryString({
@@ -146,11 +167,13 @@ describe("Weekly Schedule contract helpers", () => {
     expect(findDraftConflict(second, [first])).toBe("2:1:2");
   });
 
-  it("indexes occupied records by day and period while preserving empty coordinates", () => {
-    const indexed = indexSlotsByCoordinate(slots);
-    expect(indexed.get(scheduleCoordinateKey(1, 2))).toEqual([slots[0]]);
-    expect(indexed.get(scheduleCoordinateKey(3, 5))).toEqual([slots[1]]);
-    expect(indexed.has(scheduleCoordinateKey(5, 7))).toBe(false);
+  it("maps one-based backend coordinates into the fixed five-by-seven matrix", () => {
+    const matrix = buildScheduleMatrix(slots);
+    expect(matrix).toHaveLength(5);
+    expect(matrix[0]).toHaveLength(7);
+    expect(matrix[0][1]).toEqual([slots[0]]);
+    expect(matrix[2][4]).toEqual([slots[1]]);
+    expect(matrix[4][6]).toEqual([]);
   });
 
   it("validates operation-specific content and occupied targets", () => {

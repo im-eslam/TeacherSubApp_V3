@@ -1,8 +1,9 @@
 import { lazy, Suspense, useState } from "react";
-import { CalendarDays, CalendarRange, Loader2, Pencil } from "lucide-react";
-import { Button } from "../components/controls/Button";
+import { CalendarDays, CalendarRange, Loader2 } from "lucide-react";
 import {
   EntityErrorBanner,
+  EntityPageHeader,
+  EntityToolbar,
 } from "../components/layout/EntityPageLayout";
 import { useSchedulePage, type ScheduleViewMode } from "../features/schedules/hooks";
 import { ScheduleGrid } from "../features/schedules/components/ScheduleGrid";
@@ -20,25 +21,13 @@ export default function SchedulePage() {
 
   return (
     <div className="flex min-h-full flex-col gap-6 p-6">
-      <header className="flex flex-col justify-between gap-4 sm:flex-row sm:items-start">
-        <div>
-          <h1 className="text-2xl font-bold tracking-tight text-neutral-900">
-            الجدول الأسبوعي
-          </h1>
-          <p className="mt-1 max-w-2xl text-sm leading-relaxed text-neutral-500">
-            اعرض جدول المعلمين والفصول في مصفوفة أسبوعية واضحة، ثم جهّز تعديلات
-            كاملة للجدول واحفظها دفعة واحدة من المحرر المركزي.
-          </p>
-        </div>
-        <Button
-          variant="primary"
-          onPress={() => setIsEditorOpen(true)}
-          isDisabled={viewModel.isError}
-        >
-          <Pencil size={16} strokeWidth={2.5} />
-          تعديل الجدول بالكامل
-        </Button>
-      </header>
+      <EntityPageHeader
+        title="الجدول الأسبوعي"
+        description="اعرض جدول المعلمين والفصول في مصفوفة أسبوعية واضحة، ثم جهّز تعديلات كاملة للجدول واحفظها دفعة واحدة من المحرر المركزي."
+        addLabel="تعديل الجدول بالكامل"
+        onAdd={() => setIsEditorOpen(true)}
+        isDisabled={viewModel.isError}
+      />
 
       {viewModel.isError && (
         <EntityErrorBanner
@@ -48,17 +37,19 @@ export default function SchedulePage() {
         />
       )}
 
-      <ScheduleToolbar
-        viewMode={viewModel.viewMode}
-        teacherOptions={viewModel.teacherOptions}
-        classOptions={viewModel.classOptions}
-        selectedTeacherId={viewModel.selectedTeacherId}
-        selectedClassId={viewModel.selectedClassId}
-        onViewModeChange={viewModel.onViewModeChange}
-        onTeacherChange={viewModel.onTeacherChange}
-        onClassChange={viewModel.onClassChange}
-        isDisabled={viewModel.isError}
-      />
+      <EntityToolbar>
+        <ScheduleToolbar
+          viewMode={viewModel.viewMode}
+          teacherOptions={viewModel.teacherOptions}
+          classOptions={viewModel.classOptions}
+          selectedTeacherId={viewModel.selectedTeacherId}
+          selectedClassId={viewModel.selectedClassId}
+          onViewModeChange={viewModel.onViewModeChange}
+          onTeacherChange={viewModel.onTeacherChange}
+          onClassChange={viewModel.onClassChange}
+          isDisabled={viewModel.isError}
+        />
+      </EntityToolbar>
 
       {viewModel.isAwaitingSelection ? (
         <ScheduleEmptyPrompt viewMode={viewModel.viewMode} />

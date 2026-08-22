@@ -28,22 +28,52 @@ export function buildScheduleQueryString(query: WeeklyScheduleQuery = {}) {
   return value ? `?${value}` : "";
 }
 
+type RawScheduleRecord = Record<string, unknown>;
+
+function valueOf(raw: RawScheduleRecord, camelName: string, pascalName: string) {
+  return raw[camelName] ?? raw[pascalName];
+}
+
+export function normalizeScheduleRecord(raw: unknown): WeeklyScheduleReadDto {
+  const record = raw as RawScheduleRecord;
+  return {
+    id: Number(valueOf(record, "id", "Id")),
+    teacherId: Number(valueOf(record, "teacherId", "TeacherId")),
+    teacherName: String(valueOf(record, "teacherName", "TeacherName") ?? ""),
+    dayOfWeek: Number(valueOf(record, "dayOfWeek", "DayOfWeek")),
+    periodNumber: Number(valueOf(record, "periodNumber", "PeriodNumber")),
+    classId: (valueOf(record, "classId", "ClassId") as number | null | undefined) ?? null,
+    classDisplayName:
+      (valueOf(record, "classDisplayName", "ClassDisplayName") as string | null | undefined) ?? null,
+    eventId: (valueOf(record, "eventId", "EventId") as number | null | undefined) ?? null,
+    eventName:
+      (valueOf(record, "eventName", "EventName") as string | null | undefined) ?? null,
+  };
+}
+
+export function normalizeScheduleRecords(response: unknown): WeeklyScheduleReadDto[] {
+  if (!Array.isArray(response)) return [];
+  return response.map((record) => normalizeScheduleRecord(record as RawScheduleRecord));
+}
+
 export const weeklySchedulesApi = {
-  getAll(
+  async getAll(
     query: WeeklyScheduleQuery = {},
     signal?: AbortSignal,
   ): Promise<WeeklyScheduleReadDto[]> {
-    return apiClient.get<WeeklyScheduleReadDto[]>(
+    const response = await apiClient.get<unknown>(
       `/schedules${buildScheduleQueryString(query)}`,
       signal,
     );
+    return normalizeScheduleRecords(response);
   },
 
-  getById(
+  async getById(
     id: number,
     signal?: AbortSignal,
   ): Promise<WeeklyScheduleReadDto> {
-    return apiClient.get<WeeklyScheduleReadDto>(`/schedules/${id}`, signal);
+    const response = await apiClient.get<RawScheduleRecord>(`/schedules/${id}`, signal);
+    return normalizeScheduleRecord(response);
   },
 
   create(dto: WeeklyScheduleWriteDto): Promise<WeeklyScheduleReadDto> {
