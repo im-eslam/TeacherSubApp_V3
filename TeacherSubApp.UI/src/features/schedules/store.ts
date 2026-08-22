@@ -47,14 +47,14 @@ export function createDraft(operation: ScheduleEditOperation): ScheduleDraft {
 }
 
 export function coordinateKey(coordinate: SlotCoordinate) {
-  return `${coordinate.TeacherId}:${coordinate.DayOfWeek}:${coordinate.PeriodNumber}`;
+  return `${coordinate.teacherId}:${coordinate.dayOfWeek}:${coordinate.periodNumber}`;
 }
 
 export function slotCoordinate(slot: WeeklyScheduleReadDto): SlotCoordinate {
   return {
-    TeacherId: slot.teacherId,
-    DayOfWeek: slot.dayOfWeek,
-    PeriodNumber: slot.periodNumber,
+    teacherId: slot.teacherId,
+    dayOfWeek: slot.dayOfWeek,
+    periodNumber: slot.periodNumber,
   };
 }
 
@@ -65,9 +65,9 @@ function draftCoordinates(draft: ScheduleDraft): SlotCoordinate[] {
       draft.periodNumber !== null
       ? [
           {
-            TeacherId: draft.teacherId,
-            DayOfWeek: draft.dayOfWeek,
-            PeriodNumber: draft.periodNumber,
+            teacherId: draft.teacherId,
+            dayOfWeek: draft.dayOfWeek,
+            periodNumber: draft.periodNumber,
           },
         ]
       : [];
@@ -102,10 +102,10 @@ export function draftsToBulkRequest(
   drafts: ScheduleDraft[],
 ): WeeklyScheduleBulkEditRequest {
   const request: WeeklyScheduleBulkEditRequest = {
-    Creates: [],
-    Updates: [],
-    Deletes: [],
-    Swaps: [],
+    creates: [],
+    updates: [],
+    deletes: [],
+    swaps: [],
   };
 
   for (const draft of drafts) {
@@ -116,12 +116,12 @@ export function draftsToBulkRequest(
         draft.periodNumber !== null &&
         (draft.classId !== null || draft.eventId !== null)
       ) {
-        request.Creates.push({
-          TeacherId: draft.teacherId,
-          DayOfWeek: draft.dayOfWeek,
-          PeriodNumber: draft.periodNumber,
-          ClassId: draft.classId,
-          EventId: draft.eventId,
+        request.creates.push({
+          teacherId: draft.teacherId,
+          dayOfWeek: draft.dayOfWeek,
+          periodNumber: draft.periodNumber,
+          classId: draft.classId,
+          eventId: draft.eventId,
         });
       }
       continue;
@@ -135,14 +135,14 @@ export function draftsToBulkRequest(
         draft.periodNumber !== null &&
         (draft.classId !== null || draft.eventId !== null)
       ) {
-        request.Updates.push({
-          Id: draft.targetSlotId,
-          Payload: {
-            TeacherId: draft.teacherId,
-            DayOfWeek: draft.dayOfWeek,
-            PeriodNumber: draft.periodNumber,
-            ClassId: draft.classId,
-            EventId: draft.eventId,
+        request.updates.push({
+          id: draft.targetSlotId,
+          payload: {
+            teacherId: draft.teacherId,
+            dayOfWeek: draft.dayOfWeek,
+            periodNumber: draft.periodNumber,
+            classId: draft.classId,
+            eventId: draft.eventId,
           },
         });
       }
@@ -150,12 +150,12 @@ export function draftsToBulkRequest(
     }
 
     if (draft.operation === "delete") {
-      if (draft.targetSlotId !== null) request.Deletes.push(draft.targetSlotId);
+      if (draft.targetSlotId !== null) request.deletes.push(draft.targetSlotId);
       continue;
     }
 
     if (draft.slotA !== null && draft.slotB !== null) {
-      request.Swaps.push({ SlotA: draft.slotA, SlotB: draft.slotB });
+      request.swaps.push({ slotA: draft.slotA, slotB: draft.slotB });
     }
   }
 

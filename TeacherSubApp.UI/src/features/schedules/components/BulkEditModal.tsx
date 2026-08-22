@@ -878,18 +878,18 @@ function slotIdFromCoordinate(
 
 function slotCoordinate(slot: WeeklyScheduleReadDto): SlotCoordinate {
   return {
-    TeacherId: slot.teacherId,
-    DayOfWeek: slot.dayOfWeek,
-    PeriodNumber: slot.periodNumber,
+    teacherId: slot.teacherId,
+    dayOfWeek: slot.dayOfWeek,
+    periodNumber: slot.periodNumber,
   };
 }
 
 function coordinateKey(coordinate: SlotCoordinate) {
-  return `${coordinate.TeacherId}:${coordinate.DayOfWeek}:${coordinate.PeriodNumber}`;
+  return `${coordinate.teacherId}:${coordinate.dayOfWeek}:${coordinate.periodNumber}`;
 }
 
 function coordinateText(coordinate: SlotCoordinate) {
-  return `${coordinate.TeacherId} — ${dayName(coordinate.DayOfWeek)}، الحصة ${coordinate.PeriodNumber}`;
+  return `${coordinate.teacherId} — ${dayName(coordinate.dayOfWeek)}، الحصة ${coordinate.periodNumber}`;
 }
 
 function contentText(className: string | undefined, eventName: string | undefined) {
