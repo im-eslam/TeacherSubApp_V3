@@ -77,3 +77,19 @@ export interface ScheduleEditorState {
   slot: WeeklyScheduleReadDto | null;
   content: ScheduleEditorContent;
 }
+
+export type ScheduleEditMode = "create" | "update" | "delete" | "swap";
+
+export interface ScheduleDraftRow {
+  id: string;
+  mode: ScheduleEditMode;
+  slotId: string;
+  teacherId: string;
+  dayOfWeek: string;
+  periodNumber: string;
+  classId: string;
+  eventId: string;
+  targetTeacherId: string;
+  targetDayOfWeek: string;
+  targetPeriodNumber: string;
+}
