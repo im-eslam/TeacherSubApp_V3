@@ -116,9 +116,6 @@ export interface SchedulePageViewModel {
   isError: boolean;
   error: unknown;
   retry: () => void;
-  editorOpen: boolean;
-  openEditor: () => void;
-  closeEditor: () => void;
   allSlots: WeeklyScheduleReadDto[];
   isAllSlotsLoading: boolean;
   teachers: Awaited<ReturnType<typeof useTeachers>>["data"] extends infer T
@@ -285,8 +282,6 @@ export function useWeeklyScheduleEditDraft(baseSlots: WeeklyScheduleReadDto[]) {
 export function useSchedulePage(): SchedulePageViewModel {
   const [viewMode, setViewMode] = useState<ScheduleViewMode>("teacher");
   const [selectedId, setSelectedId] = useState("");
-  const [editorOpen, setEditorOpen] = useState(false);
-
   const { data: teachers = [] } = useTeachers();
   const { data: classes = [] } = useSchoolClasses();
   const { data: events = [] } = useEventKeys();
@@ -320,7 +315,7 @@ export function useSchedulePage(): SchedulePageViewModel {
   const selectedSchedule = useWeeklySchedules(selectedQuery, {
     enabled: selectedId !== "",
   });
-  const allSchedule = useWeeklySchedules({}, { enabled: editorOpen });
+  const allSchedule = useWeeklySchedules({}, { enabled: true });
   const bulkEdit = useBulkEditWeeklySchedules();
 
   return {
@@ -338,9 +333,6 @@ export function useSchedulePage(): SchedulePageViewModel {
     isError: selectedSchedule.isError,
     error: selectedSchedule.error,
     retry: selectedSchedule.refetch,
-    editorOpen,
-    openEditor: () => setEditorOpen(true),
-    closeEditor: () => setEditorOpen(false),
     allSlots: allSchedule.data ?? [],
     isAllSlotsLoading: allSchedule.isLoading,
     teachers,
