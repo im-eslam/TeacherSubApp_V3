@@ -25,6 +25,7 @@ const STYLES = {
     ].join(" "),
     md: "max-w-md",
     xl: "max-w-3xl",
+    "2xl": "max-w-4xl",
     full: "max-w-[min(96vw,1200px)]",
   },
 };
@@ -36,7 +37,7 @@ const STYLES = {
 interface ModalShellProps extends Omit<ModalOverlayProps, "children"> {
   children: ReactNode;
   isBusy?: boolean;
-  size?: "md" | "xl" | "full";
+  size?: "md" | "xl" | "2xl" | "full";
 }
 
 export function ModalShell({
@@ -60,9 +61,7 @@ export function ModalShell({
       isDismissable={!isBusy}
       className={STYLES.overlay}
     >
-      <AriaModal
-        className={[STYLES.modal.base, STYLES.modal[size]].join(" ")}
-      >
+      <AriaModal className={[STYLES.modal.base, STYLES.modal[size]].join(" ")}>
         <Dialog
           className="outline-none flex flex-col max-h-[90vh] overflow-visible"
           dir="rtl"

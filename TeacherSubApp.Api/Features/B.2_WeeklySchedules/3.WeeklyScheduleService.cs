@@ -201,6 +201,7 @@ namespace TeacherSubApp.Api.Features.WeeklySchedules
         {
             return _db.WeeklySchedules
                 .Include(ws => ws.Teacher)
+                    .ThenInclude(t => t.Subject)
                 .Include(ws => ws.SchoolClass)
                 .Include(ws => ws.EventKey)
                 .FirstOrDefaultAsync(ws => ws.Id == id && ws.DeletedAt == null);
@@ -288,6 +289,7 @@ namespace TeacherSubApp.Api.Features.WeeklySchedules
             if (schedule.Teacher == null || schedule.Teacher.Id != schedule.TeacherId)
             {
                 schedule.Teacher = (await _db.Teachers
+                    .Include(t => t.Subject)
                     .AsNoTracking()
                     .FirstOrDefaultAsync(t => t.Id == schedule.TeacherId))!;
             }

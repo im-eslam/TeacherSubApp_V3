@@ -5,8 +5,7 @@ import SubjectsPage from "./pages/SubjectsPage";
 import EventsPage from "./pages/EventsPage";
 import TeachersPage from "./pages/TeachersPage";
 import ClassesPage from "./pages/ClassesPage";
-
-// import SchedulePage from "./pages/SchedulePage";
+import SchedulesPage from "./pages/SchedulesPage.tsx";
 
 const router = createBrowserRouter([
   {
@@ -18,7 +17,7 @@ const router = createBrowserRouter([
       { path: "resources/Teachers", element: <TeachersPage /> },
       { path: "resources/Classes", element: <ClassesPage /> },
 
-      // { path: "schedule", element: <SchedulePage /> },
+      { path: "schedule", element: <SchedulesPage /> },
     ],
   },
 ]);

@@ -1,5 +1,5 @@
 import { useState, useRef, useMemo, useEffect } from "react";
-import { ChevronDown, Search, Check } from "lucide-react";
+import { ChevronDown, Search, Check, X } from "lucide-react";
 import { useOnClickOutside } from "../../lib/useOnClickOutside";
 import { isFilterActive } from "../../lib/useFilterState";
 
@@ -32,11 +32,17 @@ const STYLES = {
   chevronIdle: "text-neutral-400",
   chevronActive: "text-blue-500",
 
-  dropdown: [
-    "absolute top-full z-50 w-full mt-2 bg-white border border-neutral-200/80 rounded-xl",
+  clearButton:
+    "shrink-0 ms-2 flex items-center justify-center w-5 h-5 rounded-full text-neutral-400 hover:text-neutral-700 hover:bg-neutral-100 transition-colors",
+
+  // Split dropdown styles to handle dynamic placement
+  dropdownBase: [
+    "absolute z-50 w-full bg-white border border-neutral-200/80 rounded-xl",
     "overflow-hidden p-1 shadow-lg",
     "animate-in fade-in zoom-in-95 duration-150",
   ].join(" "),
+  dropdownBottom: "top-full mt-2 origin-top",
+  dropdownTop: "bottom-full mb-2 origin-bottom",
 
   searchWrapper: "p-1.5 border-b border-neutral-100",
   searchInputWrapper: "relative flex items-center",
@@ -101,6 +107,17 @@ const STYLES = {
 //   placeholder="اختر المدرس"
 //   disabled
 // />
+//
+// Allow the user to clear a selection back to "none"
+//
+// <SearchableSelect
+//   value={classId}
+//   onChange={setClassId}
+//   options={classOptions}
+//   placeholder="بدون صف"
+//   clearable
+//   clearLabel="بدون صف"
+// />
 // ════════════════════════════════════════════════════════════
 
 interface Option {
@@ -116,6 +133,8 @@ export interface SearchableSelectProps {
   disabled?: boolean;
   isFilter?: boolean;
   className?: string;
+  clearable?: boolean;
+  clearLabel?: string;
 }
 
 export function SearchableSelect({
@@ -126,10 +145,13 @@ export function SearchableSelect({
   disabled = false,
   isFilter = false,
   className = "",
+  clearable = false,
+  clearLabel,
 }: SearchableSelectProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [highlightedIndex, setHighlightedIndex] = useState(0);
+  const [placement, setPlacement] = useState<"bottom" | "top">("bottom");
 
   const containerRef = useRef<HTMLDivElement>(null);
   const searchInputRef = useRef<HTMLInputElement>(null);
@@ -145,6 +167,20 @@ export function SearchableSelect({
       opt.label.toLowerCase().includes(searchQuery.toLowerCase()),
     );
   }, [options, searchQuery]);
+
+  useEffect(() => {
+    if (isOpen && containerRef.current) {
+      const rect = containerRef.current.getBoundingClientRect();
+      const spaceBelow = window.innerHeight - rect.bottom;
+      const estimatedDropdownHeight = 320;
+
+      if (spaceBelow < estimatedDropdownHeight && rect.top > spaceBelow) {
+        setPlacement("top");
+      } else {
+        setPlacement("bottom");
+      }
+    }
+  }, [isOpen]);
 
   useEffect(() => {
     if (isOpen) {
@@ -178,6 +214,11 @@ export function SearchableSelect({
 
   const handleSelect = (selectedValue: string) => {
     onChange(selectedValue);
+    setIsOpen(false);
+  };
+
+  const handleClear = () => {
+    onChange("");
     setIsOpen(false);
   };
 
@@ -238,6 +279,20 @@ export function SearchableSelect({
             <span className={STYLES.placeholder}>{placeholder}</span>
           )}
         </span>
+        {clearable && selectedOption && !disabled && (
+          <span
+            role="button"
+            tabIndex={-1}
+            onClick={(e) => {
+              e.stopPropagation();
+              handleClear();
+            }}
+            className={STYLES.clearButton}
+            aria-label={clearLabel ?? placeholder}
+          >
+            <X size={12} strokeWidth={2.5} />
+          </span>
+        )}
         <ChevronDown
           size={16}
           strokeWidth={2}
@@ -250,7 +305,13 @@ export function SearchableSelect({
       </button>
 
       {isOpen && (
-        <div className={STYLES.dropdown} dir="rtl">
+        <div
+          className={[
+            STYLES.dropdownBase,
+            placement === "top" ? STYLES.dropdownTop : STYLES.dropdownBottom,
+          ].join(" ")}
+          dir="rtl"
+        >
           <div className={STYLES.searchWrapper}>
             <div className={STYLES.searchInputWrapper}>
               <Search size={14} className={STYLES.searchIcon} />
