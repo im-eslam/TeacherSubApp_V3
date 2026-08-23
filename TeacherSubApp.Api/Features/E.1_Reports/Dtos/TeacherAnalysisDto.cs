@@ -1,8 +1,5 @@
 namespace TeacherSubApp.Api.Features.Reports.Dtos
 {
-    /// <summary>
-    /// AverageActualWeeklyLoad uses the current weekly schedule for every bucket, so historical values can shift after schedule edits.
-    /// </summary>
     public sealed record TeacherAnalysisDto(
         int TeacherId,
         string TeacherName,

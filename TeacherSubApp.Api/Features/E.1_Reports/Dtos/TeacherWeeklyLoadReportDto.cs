@@ -1,8 +1,5 @@
 namespace TeacherSubApp.Api.Features.Reports.Dtos
 {
-    /// <summary>
-    /// BaseWeeklyLoad reflects the teacher's current weekly schedule and can therefore change retroactively for past weeks.
-    /// </summary>
     public sealed record TeacherWeeklyLoadReportDto(
         int TeacherId,
         string TeacherName,
