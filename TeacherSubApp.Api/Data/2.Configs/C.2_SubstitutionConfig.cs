@@ -2,7 +2,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using TeacherSubApp.Api.Data.Models;
 
-namespace TeacherSubApp.Api.Data.Configurations
+namespace TeacherSubApp.Api.Data.Configs
 {
     public class C2_SubstitutionConfig : IEntityTypeConfiguration<Substitution>
     {
