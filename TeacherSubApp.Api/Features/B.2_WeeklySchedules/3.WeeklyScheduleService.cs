@@ -284,14 +284,21 @@ namespace TeacherSubApp.Api.Features.WeeklySchedules
             return schedule;
         }
 
+        private readonly Dictionary<int, Teacher> _teacherCache = new();
+
         protected async Task _LoadNavigationsAsync(WeeklySchedule schedule)
         {
             if (schedule.Teacher == null || schedule.Teacher.Id != schedule.TeacherId)
             {
-                schedule.Teacher = (await _db.Teachers
-                    .Include(t => t.Subject)
-                    .AsNoTracking()
-                    .FirstOrDefaultAsync(t => t.Id == schedule.TeacherId))!;
+                if (!_teacherCache.TryGetValue(schedule.TeacherId, out var teacher))
+                {
+                    teacher = (await _db.Teachers
+                        .Include(t => t.Subject)
+                        .AsNoTracking()
+                        .FirstOrDefaultAsync(t => t.Id == schedule.TeacherId))!;
+                    _teacherCache[schedule.TeacherId] = teacher;
+                }
+                schedule.Teacher = teacher;
             }
 
             if (!schedule.ClassId.HasValue)
