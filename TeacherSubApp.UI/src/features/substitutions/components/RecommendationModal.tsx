@@ -219,7 +219,7 @@ export function RecommendationModal({
         isBusy={isBusy}
         onClose={onClose}
       />
-      <ModalBody allowBodyOverflow>
+      <ModalBody className="min-h-0 flex-1">
         <div className="flex items-start justify-between gap-4 rounded-2xl bg-neutral-50 px-4 py-3">
           <div>
             <p className="text-sm font-bold text-neutral-900">الحصة {slot.periodNumber}</p>
@@ -276,8 +276,8 @@ export function RecommendationModal({
 
         <div className="flex flex-col gap-3">
           <TierSection tier={1} candidates={byTier[1]} isDisabled={isBusy} currentTeacherId={existingSubstitution?.substituteTeacherId} onSelect={handleSelect} defaultOpen />
-          <TierSection tier={2} candidates={byTier[2]} isDisabled={isBusy} currentTeacherId={existingSubstitution?.substituteTeacherId} onSelect={handleSelect} defaultOpen />
-          <TierSection tier={3} candidates={byTier[3]} isDisabled={isBusy} currentTeacherId={existingSubstitution?.substituteTeacherId} onSelect={handleSelect} defaultOpen />
+          <TierSection tier={2} candidates={byTier[2]} isDisabled={isBusy} currentTeacherId={existingSubstitution?.substituteTeacherId} onSelect={handleSelect} defaultOpen={false} />
+          <TierSection tier={3} candidates={byTier[3]} isDisabled={isBusy} currentTeacherId={existingSubstitution?.substituteTeacherId} onSelect={handleSelect} defaultOpen={false} />
         </div>
 
         {hasLastResort && (

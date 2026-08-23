@@ -98,7 +98,7 @@ export function DatePicker({
                 {(date) => (
                   <CalendarCell
                     date={date}
-                    className="flex h-8 w-8 items-center justify-center rounded-full text-xs text-neutral-700 outline-none hover:bg-blue-50 focus-visible:ring-2 focus-visible:ring-blue-500/30 selected:bg-blue-600 selected:text-white"
+                    className="flex h-8 w-8 items-center justify-center rounded-full text-xs text-neutral-700 outline-none hover:bg-blue-50 focus-visible:ring-2 focus-visible:ring-blue-500/30 data-[selected]:bg-blue-600 data-[selected]:font-bold data-[selected]:text-white data-[today]:ring-1 data-[today]:ring-blue-300"
                   />
                 )}
               </CalendarGridBody>

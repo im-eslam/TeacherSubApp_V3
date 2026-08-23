@@ -30,10 +30,19 @@ export function LogAbsenceModal({
   const mutation = useCreateAbsence();
   const setActiveDate = useSubstitutionsPageStore((state) => state.setActiveDate);
 
-  const teacherOptions = teachers.map((teacher) => ({
-    value: String(teacher.id),
-    label: `${teacher.name} — ${teacher.subjectName ?? "بلا مادة"}`,
-  }));
+  const teacherOptions = [...teachers]
+    .sort((left, right) => {
+      const leftSubject = left.subjectName ?? "\uffff";
+      const rightSubject = right.subjectName ?? "\uffff";
+      return (
+        leftSubject.localeCompare(rightSubject, "ar") ||
+        left.name.localeCompare(right.name, "ar")
+      );
+    })
+    .map((teacher) => ({
+      value: String(teacher.id),
+      label: `${teacher.name} — ${teacher.subjectName ?? "بلا مادة"}`,
+    }));
 
   const handleSubmit = async () => {
     const created = await mutation.mutateAsync({
