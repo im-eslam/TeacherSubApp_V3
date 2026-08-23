@@ -12,6 +12,7 @@ using TeacherSubApp.Api.Features.Substitutions;
 using TeacherSubApp.Api.Features.TeacherAbsences;
 using TeacherSubApp.Api.Features.Teachers;
 using TeacherSubApp.Api.Features.WeeklySchedules;
+using TeacherSubApp.Api.Features.Reports;
 
 namespace TeacherSubApp.Api.Common.Extensions
 {
@@ -53,6 +54,7 @@ namespace TeacherSubApp.Api.Common.Extensions
             services.AddScoped<ISubstitutionService, SubstitutionService>();
 
             services.AddScoped<ISubstituteMatchingService, SubstituteMatchingService>();
+            services.AddScoped<IReportService, ReportService>();
 
             return services;
         }
