@@ -279,6 +279,96 @@ export function useCreateSubstitution() {
 // View-model hook — everything the page needs, wired together
 // ════════════════════════════════════════════════════════════
 
+export function useUpdateSubstitution() {
+  const queryClient = useQueryClient();
+
+  return useMutation<
+    SubstitutionReadDto,
+    unknown,
+    { id: number; dto: SubstitutionWriteDto & { optimisticName: string; optimisticSubject: string } },
+    CreateSubstitutionContext
+  >({
+    mutationFn: ({ id, dto }) =>
+      substitutionsApi.updateSubstitution(id, {
+        absenceId: dto.absenceId,
+        weeklyScheduleId: dto.weeklyScheduleId,
+        substituteTeacherId: dto.substituteTeacherId,
+        serviceDate: dto.serviceDate,
+        isAlgorithmMatch: dto.isAlgorithmMatch,
+      }),
+    onMutate: async ({ id, dto }) => {
+      const assignmentsQueryKey = substitutionKeys.assignments({
+        fromDate: dto.serviceDate,
+        toDate: dto.serviceDate,
+      });
+      await queryClient.cancelQueries({ queryKey: assignmentsQueryKey });
+      const previousAssignments =
+        queryClient.getQueryData<SubstitutionReadDto[]>(assignmentsQueryKey);
+      const optimisticEntry: SubstitutionReadDto = {
+        id,
+        absenceId: dto.absenceId,
+        weeklyScheduleId: dto.weeklyScheduleId,
+        substituteTeacherId: dto.substituteTeacherId,
+        serviceDate: dto.serviceDate,
+        isAlgorithmMatch: dto.isAlgorithmMatch,
+        absentTeacherNameAtTimeOfService: "",
+        absentTeacherSubjectAtTimeOfService: "",
+        substituteTeacherNameAtTimeOfService: dto.optimisticName,
+        substituteTeacherSubjectAtTimeOfService: dto.optimisticSubject,
+        classNameAtTimeOfService: "",
+        periodNumberAtTimeOfService: 0,
+      };
+      queryClient.setQueryData<SubstitutionReadDto[]>(
+        assignmentsQueryKey,
+        (current) => [
+          ...(current ?? []).filter((item) => item.id !== id),
+          optimisticEntry,
+        ],
+      );
+      return { assignmentsQueryKey, previousAssignments };
+    },
+    onError: (_error, _variables, context) => {
+      if (context) queryClient.setQueryData(context.assignmentsQueryKey, context.previousAssignments);
+    },
+    onSettled: () => {
+      queryClient.invalidateQueries({ queryKey: substitutionKeys.all });
+    },
+  });
+}
+
+export function useUnassignSubstitution() {
+  const queryClient = useQueryClient();
+
+  return useMutation<
+    void,
+    unknown,
+    { id: number; serviceDate: string },
+    CreateSubstitutionContext
+  >({
+    mutationFn: ({ id }) => substitutionsApi.deleteSubstitution(id),
+    onMutate: async ({ id, serviceDate }) => {
+      const assignmentsQueryKey = substitutionKeys.assignments({
+        fromDate: serviceDate,
+        toDate: serviceDate,
+      });
+      await queryClient.cancelQueries({ queryKey: assignmentsQueryKey });
+      const previousAssignments =
+        queryClient.getQueryData<SubstitutionReadDto[]>(assignmentsQueryKey);
+      queryClient.setQueryData<SubstitutionReadDto[]>(
+        assignmentsQueryKey,
+        (current) => (current ?? []).filter((item) => item.id !== id),
+      );
+      return { assignmentsQueryKey, previousAssignments };
+    },
+    onError: (_error, _variables, context) => {
+      if (context) queryClient.setQueryData(context.assignmentsQueryKey, context.previousAssignments);
+    },
+    onSettled: () => {
+      queryClient.invalidateQueries({ queryKey: substitutionKeys.all });
+    },
+  });
+}
+
 export function useSubstitutionsPage() {
   const activeDate = useSubstitutionsPageStore((state) => state.activeDate);
   const setActiveDate = useSubstitutionsPageStore(
@@ -330,8 +420,10 @@ export function useSubstitutionsPage() {
     teacherList: teachers.data ?? [],
 
     isInitialLoading,
+    isBlocked: isInitialLoading || isError,
     isError,
     error,
+    isSubstitutionsLoading: substitutions.isLoading,
     isRetrying:
       absences.isFetching || substitutions.isFetching || teachers.isFetching,
     retry,

@@ -119,4 +119,18 @@ export const substitutionsApi = {
       dto,
       signal,
     ),
+
+  updateSubstitution: (
+    id: number,
+    dto: SubstitutionWriteDto,
+    signal?: AbortSignal,
+  ): Promise<SubstitutionReadDto> =>
+    apiClient.put<SubstitutionReadDto, SubstitutionWriteDto>(
+      `/substitutions/${id}`,
+      dto,
+      signal,
+    ),
+
+  deleteSubstitution: (id: number, signal?: AbortSignal): Promise<void> =>
+    apiClient.delete<void>(`/substitutions/${id}`, signal),
 };
