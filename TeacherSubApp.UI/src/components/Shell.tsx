@@ -37,7 +37,11 @@ interface CollapseGroupConfig {
 
 const MAIN_LINKS: NavLinkConfig[] = [
   { label: "جدول الحصص", path: "/schedule", Icon: CalendarDays },
-  { label: "إدارة الغياب والاحتياط", path: "/substitutions", Icon: ClipboardList },
+  {
+    label: "إدارة الغياب والاحتياط",
+    path: "/substitutions",
+    Icon: ClipboardList,
+  },
   { label: "التقارير", path: "/reports", Icon: FileSpreadsheet },
 ];
 
@@ -76,7 +80,7 @@ const STYLES = {
 
   // Sidebar panel
   sidebar:
-    "flex flex-col w-64 shrink-0 m-3 me-0 p-3 bg-white border border-neutral-200/60 rounded-3xl overflow-y-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden",
+    "flex flex-col w-[230px] shrink-0 m-3 me-0 p-3 bg-white border border-neutral-200/60 rounded-3xl overflow-y-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden",
 
   // School header card at the top of the sidebar
   schoolCard:
@@ -223,8 +227,8 @@ export default function Layout() {
         {/* School header */}
         <div className={STYLES.schoolCard}>
           <div className="flex flex-col min-w-0">
-            <span className={STYLES.schoolName}>مدرسة الفرقان الأهلية</span>
-            <span className={STYLES.schoolSub}>إدارة الإحتياط والحصص</span>
+            <span className={STYLES.schoolName}>مدرسة الفرقان</span>
+            <span className={STYLES.schoolSub}>إدارة الإحتياط</span>
           </div>
           <div className={STYLES.schoolLogo}>
             <img

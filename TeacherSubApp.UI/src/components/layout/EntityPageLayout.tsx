@@ -6,7 +6,7 @@ import { getErrorMessage } from "../../lib/apiErrors";
 const STYLES = {
   headerRow: "flex flex-col sm:flex-row sm:items-start justify-between gap-4",
   headerText: "flex flex-col gap-1",
-  title: "text-2xl font-bold tracking-tight text-neutral-900",
+  title: "text-xl font-bold tracking-tight text-neutral-900",
   subtitle: "text-sm text-neutral-500 font-medium",
   description: "text-sm text-neutral-500 leading-relaxed max-w-2xl mt-1",
 
@@ -16,7 +16,7 @@ const STYLES = {
   errorRetryButton:
     "flex items-center gap-1.5 px-4 py-2 ms-auto text-xs font-medium text-neutral-700 bg-white border border-neutral-200 rounded-full hover:bg-neutral-50 transition-all disabled:opacity-50 shadow-sm",
 
-  toolbar: "flex flex-wrap items-center gap-3",
+  toolbar: "flex flex-wrap items-end gap-3",
 };
 
 // ════════════════════════════════════════════════════════════

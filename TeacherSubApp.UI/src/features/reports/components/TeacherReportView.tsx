@@ -11,7 +11,10 @@ import {
 import { DatePicker } from "../../../components/controls/DatePicker";
 import { SearchableSelect } from "../../../components/controls/SearchableSelect";
 import { Button } from "../../../components/controls/Button";
-import { EntityErrorBanner } from "../../../components/layout/EntityPageLayout";
+import {
+  EntityErrorBanner,
+  EntityToolbar,
+} from "../../../components/layout/EntityPageLayout";
 import { formatDateAsDayMonthYear } from "../../substitutions/dateUtils";
 import { useReportsPage } from "../hooks";
 import { LedgerTable } from "./LedgerTable";
@@ -26,46 +29,42 @@ interface TeacherReportViewProps {
 export function TeacherReportView({ vm }: TeacherReportViewProps) {
   return (
     <div className="flex flex-col gap-6">
-      <div className="flex flex-col gap-4 rounded-3xl border border-neutral-200/80 bg-white p-5 shadow-sm">
-        <div className="flex flex-wrap items-end gap-4">
-          <div className="flex min-w-[220px] flex-1 flex-col gap-1.5">
-            <span className="text-xs font-medium text-neutral-500">المعلم</span>
-            <SearchableSelect
-              value={vm.teacherId ? String(vm.teacherId) : ""}
-              onChange={(value) =>
-                vm.setTeacherId(value ? Number(value) : null)
-              }
-              options={vm.teacherOptions}
-              placeholder="اختر معلماً لعرض تقريره"
-              disabled={vm.isTeachersLoading}
-            />
-          </div>
-
-          <DatePicker
-            label="من تاريخ"
-            value={vm.teacherFromDate}
-            onChange={vm.setTeacherFromDate}
+      <EntityToolbar>
+        <div className="flex min-w-[220px] flex-1 flex-col gap-1.5">
+          <span className="text-xs font-medium text-neutral-500">المعلم</span>
+          <SearchableSelect
+            value={vm.teacherId ? String(vm.teacherId) : ""}
+            onChange={(value) => vm.setTeacherId(value ? Number(value) : null)}
+            options={vm.teacherOptions}
+            placeholder="اختر معلماً لعرض تقريره"
+            disabled={vm.isTeachersLoading}
           />
-          <DatePicker
-            label="إلى تاريخ"
-            value={vm.teacherToDate}
-            onChange={vm.setTeacherToDate}
-          />
-
-          {(vm.teacherFromDate || vm.teacherToDate) && (
-            <Button variant="quiet" onPress={vm.clearTeacherRange}>
-              <CalendarRange size={16} strokeWidth={2.5} />
-              إلغاء الفترة
-            </Button>
-          )}
         </div>
 
-        {vm.dateRangeInvalid && (
-          <p className="text-xs font-medium text-red-600">
-            لا يمكن أن يكون تاريخ البداية بعد تاريخ النهاية.
-          </p>
+        <DatePicker
+          label="من تاريخ"
+          value={vm.teacherFromDate}
+          onChange={vm.setTeacherFromDate}
+        />
+        <DatePicker
+          label="إلى تاريخ"
+          value={vm.teacherToDate}
+          onChange={vm.setTeacherToDate}
+        />
+
+        {(vm.teacherFromDate || vm.teacherToDate) && (
+          <Button variant="quiet" onPress={vm.clearTeacherRange}>
+            <CalendarRange size={16} strokeWidth={2.5} />
+            إلغاء الفترة
+          </Button>
         )}
-      </div>
+      </EntityToolbar>
+
+      {vm.dateRangeInvalid && (
+        <p className="text-xs font-medium text-red-600">
+          لا يمكن أن يكون تاريخ البداية بعد تاريخ النهاية.
+        </p>
+      )}
 
       {!vm.hasSelectedTeacher && (
         <div className="flex flex-col items-center justify-center rounded-3xl border border-dashed border-neutral-200 bg-neutral-50/60 px-6 py-16 text-center">
@@ -91,7 +90,7 @@ export function TeacherReportView({ vm }: TeacherReportViewProps) {
       )}
 
       {vm.hasSelectedTeacher && vm.isTeacherReportLoading && (
-        <div className="flex items-center justify-center gap-3 rounded-3xl border border-neutral-200 bg-white py-16 text-sm text-neutral-500 shadow-sm">
+        <div className="flex items-center justify-center gap-3 rounded-3xl border border-neutral-200 bg-white py-16 text-sm text-neutral-500">
           <Loader2 size={19} className="animate-spin" /> جارٍ تجهيز التقرير...
         </div>
       )}
@@ -101,21 +100,6 @@ export function TeacherReportView({ vm }: TeacherReportViewProps) {
         !vm.isTeacherReportError &&
         vm.teacherReport && (
           <>
-            <div className="flex flex-wrap items-center gap-3 rounded-3xl border border-blue-100 bg-blue-50/70 px-5 py-4">
-              <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl bg-white text-blue-600 shadow-sm">
-                <ShieldCheck size={19} />
-              </span>
-              <div className="min-w-0">
-                <p className="truncate text-sm font-bold text-neutral-900">
-                  {vm.teacherReport.teacherName}
-                </p>
-                <p className="text-xs font-medium text-neutral-500">
-                  {vm.teacherReport.subjectName ?? "بلا مادة"}
-                  {vm.teacherReport.isSupervisor && " · مشرف"}
-                </p>
-              </div>
-            </div>
-
             <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5">
               <StatCard
                 icon={Layers}
@@ -218,20 +202,6 @@ export function TeacherReportView({ vm }: TeacherReportViewProps) {
                     id: "absentTeacherNameAtTimeOfService",
                     label: "غطى بدلاً عن",
                     renderCell: (item) => item.absentTeacherNameAtTimeOfService,
-                  },
-                  {
-                    id: "isAlgorithmMatch",
-                    label: "المصدر",
-                    renderCell: (item) =>
-                      item.isAlgorithmMatch ? (
-                        <span className="rounded-full border border-blue-200 bg-blue-50 px-2.5 py-1 text-xs font-bold text-blue-700">
-                          ترشيح النظام
-                        </span>
-                      ) : (
-                        <span className="rounded-full border border-neutral-200 bg-neutral-100 px-2.5 py-1 text-xs font-bold text-neutral-600">
-                          اختيار يدوي
-                        </span>
-                      ),
                   },
                 ]}
               />

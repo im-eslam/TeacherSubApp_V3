@@ -1,7 +1,8 @@
-import { CalendarDays, Loader2, ShieldCheck } from "lucide-react";
+import { Loader2, ShieldCheck } from "lucide-react";
 import {
   EntityErrorBanner,
   EntityPageHeader,
+  EntityToolbar,
 } from "../components/layout/EntityPageLayout";
 import { AbsenceCard } from "../features/substitutions/components/AbsenceCard";
 import { LogAbsenceModal } from "../features/substitutions/components/LogAbsenceModal";
@@ -40,24 +41,18 @@ export default function SubstitutionsPage() {
         isDisabled={isBlocked || teacherList.length === 0}
       />
 
-      <div className="flex items-center justify-between gap-4 rounded-3xl border border-blue-100 bg-blue-50/70 px-5 py-4">
-        <div className="flex min-w-0 items-center gap-3">
-          <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl bg-white text-blue-600 shadow-sm">
-            <CalendarDays size={19} />
-          </span>
-          <DatePicker
-            key={activeDate}
-            label="تاريخ التغطية"
-            labelClassName="sr-only"
-            value={activeDate}
-            onChange={setActiveDate}
-          />
-        </div>
-        <div className="flex shrink-0 items-center gap-2 text-xs font-semibold text-blue-700">
-          <ShieldCheck size={16} />
+      <EntityToolbar>
+        <DatePicker
+          key={activeDate}
+          label=""
+          value={activeDate}
+          onChange={setActiveDate}
+        />
+        <div className="flex items-center gap-2 self-center text-xs font-semibold text-blue-700">
+          <ShieldCheck size={15} />
           {substitutionList.length} حصص تم تعيين بديل لها
         </div>
-      </div>
+      </EntityToolbar>
 
       {isError && (
         <EntityErrorBanner

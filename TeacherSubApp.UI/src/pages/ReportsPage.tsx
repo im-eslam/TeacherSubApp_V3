@@ -12,8 +12,8 @@ export default function ReportsPage() {
       <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
         <EntityPageHeaderPlain
           title="التقارير"
-          subtitle="نظرة تحليلية على الغياب والتغطية"
-          description="اطّلع على تقرير يومي لغياب اليوم وحالة تغطيته، أو تقرير مفصّل لكل معلم يوضح سجل غيابه وتغطياته وتحليل حمله الأسبوعي."
+          subtitle=""
+          description="اطّلع على تقرير يومي لغياب اليوم وحالة تغطيته، أو تقرير مفصّل لكل معلم."
         />
 
         <SegmentedToggle

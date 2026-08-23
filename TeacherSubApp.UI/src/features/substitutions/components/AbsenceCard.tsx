@@ -1,5 +1,12 @@
 import { useMemo, useState } from "react";
-import { CircleAlert, ChevronDown, Loader2, ShieldCheck, Trash2 } from "lucide-react";
+import {
+  ArrowLeft,
+  CircleAlert,
+  ChevronDown,
+  Loader2,
+  ShieldCheck,
+  Trash2,
+} from "lucide-react";
 import { Button } from "../../../components/controls/Button";
 import { getErrorMessage } from "../../../lib/apiErrors";
 import { isWeekendIsoDate } from "../dateUtils";
@@ -30,16 +37,18 @@ export function AbsenceCard({
   );
   const deleteMutation = useDeleteAbsence();
 
-  const { data: schedules = [], isLoading, isError } = useDailySchedule(
-    absence.teacherId,
-    serviceDate,
-    isExpanded,
-  );
+  const {
+    data: schedules = [],
+    isLoading,
+    isError,
+  } = useDailySchedule(absence.teacherId, serviceDate, isExpanded);
 
   const classSlots = useMemo(
     () =>
       schedules
-        .filter((schedule) => schedule.classId !== null && schedule.classDisplayName)
+        .filter(
+          (schedule) => schedule.classId !== null && schedule.classDisplayName,
+        )
         .sort((a, b) => a.periodNumber - b.periodNumber),
     [schedules],
   );
@@ -57,7 +66,9 @@ export function AbsenceCard({
   const isRowLoading = isLoading || isSubstitutionsLoading;
 
   const coveredCount = classSlots.filter((slot) =>
-    coveredSlots.some((substitution) => substitution.weeklyScheduleId === slot.id),
+    coveredSlots.some(
+      (substitution) => substitution.weeklyScheduleId === slot.id,
+    ),
   ).length;
   const totalCount = classSlots.length;
   const allCovered = totalCount > 0 && coveredCount === totalCount;
@@ -76,38 +87,42 @@ export function AbsenceCard({
     <section
       className={`overflow-hidden rounded-3xl border bg-white shadow-sm transition-shadow ${isExpanded ? "border-blue-200 shadow-md" : "border-neutral-200/70"}`}
     >
-      <div className="flex w-full items-center gap-2 px-5 py-5">
+      <div className="flex w-full items-center gap-2 px-4 py-3.5">
         <button
           type="button"
           onClick={() => setIsExpanded((current) => !current)}
           aria-expanded={isExpanded}
-          className="flex min-w-0 flex-1 items-center justify-between gap-4 text-start outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-blue-500/30"
+          className="flex min-w-0 flex-1 items-center justify-between gap-3 text-start outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-blue-500/30"
         >
-          <span className="flex min-w-0 items-center gap-3">
+          <span className="flex min-w-0 items-center gap-2.5">
             <span
-              className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl ${allCovered ? "bg-emerald-100 text-emerald-700" : "bg-red-100 text-red-600"}`}
+              className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-xl ${allCovered ? "bg-emerald-100 text-emerald-700" : "bg-red-100 text-red-600"}`}
             >
-              {allCovered ? <ShieldCheck size={21} /> : <CircleAlert size={21} />}
+              {allCovered ? (
+                <ShieldCheck size={18} />
+              ) : (
+                <CircleAlert size={18} />
+              )}
             </span>
             <span className="min-w-0">
-              <span className="flex flex-wrap items-center gap-2">
-                <span className="truncate text-sm font-semibold text-neutral-900">
+              <span className="flex min-w-0 flex-wrap items-baseline gap-x-2 gap-y-0.5">
+                <span className="min-w-0 break-words text-sm font-semibold text-neutral-900">
                   {absence.teacherName}
                 </span>
-                <span className="rounded-full border border-blue-200 bg-blue-50 px-2.5 py-1 text-xs font-bold text-blue-800">
+                <span className="min-w-0 break-words rounded-full border border-blue-200 bg-blue-50 px-2 py-0.5 text-xs font-bold text-blue-800">
                   {teacherSubject ?? "بلا مادة"}
                 </span>
               </span>
               {absence.reason && (
-                <span className="mt-1 block truncate text-xs font-medium text-neutral-500">
+                <span className="mt-0.5 block break-words text-xs font-medium text-neutral-500">
                   {absence.reason}
                 </span>
               )}
             </span>
           </span>
-          <span className="flex shrink-0 items-center gap-3">
+          <span className="flex shrink-0 items-center gap-2">
             <span
-              className={`rounded-full px-3 py-1.5 text-xs font-bold ${allCovered ? "bg-emerald-100 text-emerald-700" : "bg-red-100 text-red-600"}`}
+              className={`rounded-full px-2.5 py-1 text-xs font-bold ${allCovered ? "bg-emerald-100 text-emerald-700" : "bg-red-100 text-red-600"}`}
             >
               {coveredCount}/{totalCount || "—"} حصص مغطاة
             </span>
@@ -155,22 +170,31 @@ export function AbsenceCard({
       </div>
 
       {deleteError && (
-        <div className="mx-5 mb-4 rounded-xl border border-red-100 bg-red-50 px-4 py-3 text-xs leading-relaxed text-red-700" role="alert">
+        <div
+          className="mx-5 mb-4 rounded-xl border border-red-100 bg-red-50 px-4 py-3 text-xs leading-relaxed text-red-700"
+          role="alert"
+        >
           {deleteError}
         </div>
       )}
 
       {isExpanded && (
-        <div className="border-t border-neutral-100 bg-neutral-50/50 px-5 py-5">
+        <div className="border-t border-neutral-100 bg-neutral-50/50 px-4 py-4">
           {isWeekendIsoDate(serviceDate) && (
             <div className="rounded-2xl border border-amber-100 bg-amber-50 px-4 py-4 text-sm text-amber-700">
               لا توجد حصص مدرسية مجدولة في عطلة نهاية الأسبوع.
             </div>
           )}
           {isRowLoading && (
-            <div className="flex flex-col gap-3" aria-label="جارٍ تحميل بيانات الحصص">
+            <div
+              className="flex flex-col gap-3"
+              aria-label="جارٍ تحميل بيانات الحصص"
+            >
               {[1, 2, 3].map((skeleton) => (
-                <div key={skeleton} className="flex items-center justify-between rounded-2xl border border-neutral-200 bg-white px-4 py-3.5 shadow-sm">
+                <div
+                  key={skeleton}
+                  className="flex items-center justify-between rounded-2xl border border-neutral-200 bg-white px-4 py-3.5 shadow-sm"
+                >
                   <div className="flex items-center gap-4">
                     <span className="h-10 w-10 animate-pulse rounded-xl bg-neutral-200" />
                     <span className="flex flex-col gap-2">
@@ -184,17 +208,23 @@ export function AbsenceCard({
             </div>
           )}
           {isError && (
-            <div className="rounded-2xl border border-red-100 bg-red-50 px-4 py-4 text-sm text-red-700" role="alert">
+            <div
+              className="rounded-2xl border border-red-100 bg-red-50 px-4 py-4 text-sm text-red-700"
+              role="alert"
+            >
               تعذر تحميل جدول المعلم لهذا اليوم.
             </div>
           )}
-          {!isRowLoading && !isError && !isWeekendIsoDate(serviceDate) && classSlots.length === 0 && (
-            <div className="rounded-2xl border border-neutral-200 bg-white px-4 py-10 text-center text-sm text-neutral-500">
-              لا توجد حصص مسجلة لهذا المعلم اليوم.
-            </div>
-          )}
+          {!isRowLoading &&
+            !isError &&
+            !isWeekendIsoDate(serviceDate) &&
+            classSlots.length === 0 && (
+              <div className="rounded-2xl border border-neutral-200 bg-white px-4 py-10 text-center text-sm text-neutral-500">
+                لا توجد حصص مسجلة لهذا المعلم اليوم.
+              </div>
+            )}
           {!isRowLoading && !isError && classSlots.length > 0 && (
-            <div className="flex flex-col gap-3">
+            <div className="flex flex-col gap-2">
               {classSlots.map((slot) => {
                 const substitution = coveredSlots.find(
                   (item) => item.weeklyScheduleId === slot.id,
@@ -202,38 +232,48 @@ export function AbsenceCard({
                 return (
                   <div
                     key={slot.id}
-                    className={`grid grid-cols-[auto_1fr_auto] items-center gap-3 rounded-2xl border-s-4 px-3 py-3 shadow-sm ${substitution ? "border-s-emerald-500 border-neutral-200 bg-emerald-50/70" : "border-s-red-500 border-red-100 bg-red-50/70"}`}
+                    className={`flex items-center gap-3 rounded-xl border-s-4 px-2.5 py-2.5 shadow-sm ${substitution ? "border-s-emerald-500 border-neutral-200 bg-emerald-50/70" : "border-s-red-500 border-red-100 bg-red-50/70"}`}
                   >
-                    <div className="contents">
-                      <span
-                        className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-xl text-sm font-bold ${substitution ? "bg-emerald-100 text-emerald-700" : "bg-red-100 text-red-700"}`}
-                      >
-                        {slot.periodNumber}
-                      </span>
-                      <div className="min-w-0">
-                        <div className="flex flex-wrap items-center gap-2">
-                          <p className="text-sm font-bold text-neutral-900">الحصة {slot.periodNumber}</p>
-                          <span className="rounded-full border border-neutral-200 bg-white px-2.5 py-1 text-xs font-bold text-neutral-800 shadow-sm">
-                            {slot.classDisplayName}
-                          </span>
-                        </div>
-                        {substitution && (
-                          <div className="mt-2">
-                            <p className="text-base font-bold text-neutral-900">
-                              {substitution.substituteTeacherNameAtTimeOfService}
-                            </p>
-                            <p className="mt-0.5 text-sm font-medium text-neutral-700">
-                              {substitution.substituteTeacherSubjectAtTimeOfService || "بلا مادة"}
-                            </p>
-                          </div>
-                        )}
+                    <span
+                      className={`flex h-8 w-8 shrink-0 items-center justify-center self-center rounded-lg text-sm font-bold ${substitution ? "bg-emerald-100 text-emerald-700" : "bg-red-100 text-red-700"}`}
+                    >
+                      {slot.periodNumber}
+                    </span>
+                    <div className="flex min-w-0 flex-1 flex-wrap items-center gap-x-4 gap-y-2">
+                      <div className="flex min-w-0 flex-wrap items-center gap-x-3 gap-y-1">
+                        <p className="break-words text-sm font-bold text-neutral-900">
+                          الحصة {slot.periodNumber}
+                        </p>
+                        <span className="min-w-0 break-words rounded-full border border-neutral-200 bg-white px-2 py-0.5 text-xs font-bold text-neutral-800 shadow-sm">
+                          {slot.classDisplayName}
+                        </span>
                       </div>
+                      {substitution && (
+                        <>
+                          <ArrowLeft
+                            size={16}
+                            className="shrink-0 text-neutral-400"
+                            aria-hidden="true"
+                          />
+                          <div className="flex min-w-0 flex-wrap items-baseline gap-x-3 gap-y-1">
+                            <p className="min-w-0 break-words text-sm font-bold text-neutral-900">
+                              {
+                                substitution.substituteTeacherNameAtTimeOfService
+                              }
+                            </p>
+                            <span className="min-w-0 break-words text-xs font-medium text-neutral-700">
+                              {substitution.substituteTeacherSubjectAtTimeOfService ||
+                                "بلا مادة"}
+                            </span>
+                          </div>
+                        </>
+                      )}
                     </div>
                     <Button
                       type="button"
                       variant={substitution ? "quiet" : "primary"}
                       onPress={() =>
-                                                openRecommendation({
+                        openRecommendation({
                           absenceId: absence.id,
                           absentTeacherId: absence.teacherId,
                           weeklyScheduleId: slot.id,
@@ -241,9 +281,12 @@ export function AbsenceCard({
                           serviceDate,
                           substitution,
                         })
-
                       }
-                      className={substitution ? "shrink-0 px-3 py-2 text-emerald-800 hover:bg-emerald-100" : "shrink-0 px-3 py-2"}
+                      className={
+                        substitution
+                          ? "shrink-0 px-3 py-2 text-emerald-800 hover:bg-emerald-100"
+                          : "shrink-0 px-3 py-2"
+                      }
                     >
                       {substitution ? "تعديل" : "اختيار بديل"}
                     </Button>

@@ -67,6 +67,22 @@ export function useReportsPage() {
 
   const teachers = useTeachers();
 
+  // Sorted by subject then name (Arabic locale) — same convention used in
+  // LogAbsenceModal's teacher picker.
+  const teacherOptions = [...(teachers.data ?? [])]
+    .sort((left, right) => {
+      const leftSubject = left.subjectName ?? "\uffff";
+      const rightSubject = right.subjectName ?? "\uffff";
+      return (
+        leftSubject.localeCompare(rightSubject, "ar") ||
+        left.name.localeCompare(right.name, "ar")
+      );
+    })
+    .map((teacher) => ({
+      value: String(teacher.id),
+      label: `${teacher.name} — ${teacher.subjectName ?? "بلا مادة"}`,
+    }));
+
   const dailyReport = useDailyReport(dailyDate);
 
   const teacherReportQuery: TeacherReportQuery = {
@@ -86,11 +102,8 @@ export function useReportsPage() {
     activeView,
     setActiveView,
 
-    // Teachers list for the teacher-picker
-    teacherOptions: (teachers.data ?? []).map((teacher) => ({
-      value: String(teacher.id),
-      label: teacher.name,
-    })),
+    // Teachers list for the teacher-picker (sorted by subject, then name)
+    teacherOptions,
     isTeachersLoading: teachers.isLoading,
 
     // Daily report tab
