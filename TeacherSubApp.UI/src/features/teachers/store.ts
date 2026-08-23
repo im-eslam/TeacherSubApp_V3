@@ -34,7 +34,7 @@ const INITIAL_FILTERS = {
   subjectFilter: ALL_VALUE,
   roleFilter: ALL_VALUE,
   sortDescriptor: {
-    column: "name",
+    column: "subjectName",
     direction: "ascending",
   } as SortDescriptor,
 };

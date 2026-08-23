@@ -59,15 +59,22 @@ export const TIER_GROUP_STYLES = {
   },
 } as const;
 
-export const TIER_2_AND_3_STYLES = {
+export const TIER_2_STYLES = {
+  card: "border-amber-200 bg-amber-50/70 hover:border-amber-400 hover:bg-amber-50",
+  badge: "bg-amber-100 text-amber-700",
+  avatar: "bg-amber-100 text-amber-700",
+} as const;
+
+export const TIER_3_STYLES = {
   card: "border-blue-200 bg-blue-50/70 hover:border-blue-400 hover:bg-blue-50",
   badge: "bg-blue-100 text-blue-700",
   avatar: "bg-blue-100 text-blue-700",
 } as const;
 
-/** Resolves the visual bucket for a tier, keeping tiers 2 & 3 on the spec's Blue accent. */
+/** Resolves the visual bucket for a tier while preserving the five backend categories. */
 export function tierStyles(tier: CandidateTier) {
   const meta = TIER_META[tier];
-  if (tier === 2 || tier === 3) return TIER_2_AND_3_STYLES;
+  if (tier === 2) return TIER_2_STYLES;
+  if (tier === 3) return TIER_3_STYLES;
   return TIER_GROUP_STYLES[meta.group];
 }

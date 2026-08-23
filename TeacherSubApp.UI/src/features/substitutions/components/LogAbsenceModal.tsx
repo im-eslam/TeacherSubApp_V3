@@ -1,17 +1,14 @@
 import { useState } from "react";
-import { X } from "lucide-react";
 import toast from "react-hot-toast";
 import {
   Label,
   TextArea,
   TextField as AriaTextField,
 } from "react-aria-components";
-import { Button } from "../../../components/controls/Button";
+import { DatePicker } from "../../../components/controls/DatePicker";
 import { SearchableSelect } from "../../../components/controls/SearchableSelect";
-import { ModalShell } from "../../../components/modals/ModalShell";
-import { getErrorMessage } from "../../../lib/apiErrors";
+import { EntityCreateModal } from "../../../components/modals/EntityCreateModal";
 import { getTodayIsoDate } from "../dateUtils";
-import { LocalizedDateInput } from "./LocalizedDateInput";
 import { useCreateAbsence } from "../hooks";
 import { useSubstitutionsPageStore } from "../store";
 import type { TeacherReadDto } from "../types";
@@ -38,87 +35,59 @@ export function LogAbsenceModal({
     label: `${teacher.name} — ${teacher.subjectName ?? "بلا مادة"}`,
   }));
 
-  const canSubmit = teacherId !== "" && absenceDate !== "" && !mutation.isPending;
-
-  const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
-    event.preventDefault();
-    if (!canSubmit) return;
-
-    try {
-      const created = await mutation.mutateAsync({
-        teacherId: Number(teacherId),
-        absenceDate,
-        reason: reason.trim() || null,
-      });
-      toast.success("تم تسجيل الغياب بنجاح");
-      // "Black hole" fix: jump the main page to whatever date this
-      // absence was logged for, so it's visible the moment the modal
-      // closes — even if that date isn't today.
-      setActiveDate(created.absenceDate);
-      onClose();
-    } catch (error) {
-      toast.error(getErrorMessage(error));
-    }
+  const handleSubmit = async () => {
+    const created = await mutation.mutateAsync({
+      teacherId: Number(teacherId),
+      absenceDate,
+      reason: reason.trim() || null,
+    });
+    setActiveDate(created.absenceDate);
+    toast.success("تم تسجيل الغياب بنجاح");
   };
 
   return (
-    <ModalShell isOpen={isOpen} onOpenChange={(open) => !open && onClose()} isBusy={mutation.isPending} size="md">
-      <div className="flex items-center justify-between border-b border-neutral-100 px-6 py-5">
-        <div>
-          <h2 className="text-lg font-bold text-neutral-900">تسجيل غياب</h2>
-          <p className="mt-1 text-xs text-neutral-500">أضف غياب المعلم ليظهر فوراً في مركز إدارة الاحتياط.</p>
-        </div>
-        <Button variant="quiet" aria-label="إغلاق" onPress={onClose} isDisabled={mutation.isPending}>
-          <X size={18} />
-        </Button>
+    <EntityCreateModal
+      isOpen={isOpen}
+      title="تسجيل غياب"
+      submitLabel="حفظ الغياب"
+      submittingLabel="جارٍ الحفظ..."
+      submitDisabled={teacherId === "" || absenceDate === ""}
+      onClose={onClose}
+      onSubmit={handleSubmit}
+      allowBodyOverflow
+    >
+      <div className="flex flex-col gap-1.5">
+        <Label className="text-xs font-medium text-neutral-500">المعلم</Label>
+        <SearchableSelect
+          value={teacherId}
+          onChange={setTeacherId}
+          options={teacherOptions}
+          placeholder="اختر المعلم الغائب"
+        />
       </div>
 
-      <form onSubmit={handleSubmit} className="flex flex-col gap-5 overflow-y-auto px-6 py-6">
-        <div className="flex flex-col gap-1.5">
-          <Label className="text-xs font-medium text-neutral-500">المعلم</Label>
-          <SearchableSelect
-            value={teacherId}
-            onChange={setTeacherId}
-            options={teacherOptions}
-            placeholder="اختر المعلم الغائب"
-            disabled={mutation.isPending}
-          />
-        </div>
+      <DatePicker
+        label="التاريخ"
+        value={absenceDate}
+        onChange={setAbsenceDate}
+        required
+      />
 
-        <LocalizedDateInput
-          label="التاريخ"
-          value={absenceDate}
-          onChange={setAbsenceDate}
-          disabled={mutation.isPending}
-          required
+      <AriaTextField
+        value={reason}
+        onChange={setReason}
+        className="flex flex-col gap-1.5"
+      >
+        <Label className="text-xs font-medium text-neutral-500">
+          ملاحظات <span className="font-normal text-neutral-400">(اختياري)</span>
+        </Label>
+        <TextArea
+          rows={4}
+          maxLength={500}
+          placeholder="مثال: إجازة مرضية أو حالة طارئة"
+          className="min-h-[110px] w-full resize-none rounded-2xl border border-neutral-200/80 bg-white px-4 py-3 text-sm leading-relaxed text-neutral-900 outline-none transition-colors placeholder:text-neutral-400 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/30"
         />
-
-        <AriaTextField
-          value={reason}
-          onChange={setReason}
-          className="flex flex-col gap-1.5"
-        >
-          <Label className="text-xs font-medium text-neutral-500">
-            ملاحظات <span className="font-normal text-neutral-400">(اختياري)</span>
-          </Label>
-          <TextArea
-            rows={4}
-            maxLength={500}
-            placeholder="مثال: إجازة مرضية أو حالة طارئة"
-            className="min-h-[110px] w-full resize-none rounded-2xl border border-neutral-200/80 bg-white px-4 py-3 text-sm leading-relaxed text-neutral-900 outline-none transition-colors placeholder:text-neutral-400 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/30"
-            disabled={mutation.isPending}
-          />
-        </AriaTextField>
-
-        <div className="flex items-center justify-end gap-3 border-t border-neutral-100 pt-5">
-          <Button variant="quiet" type="button" onPress={onClose} isDisabled={mutation.isPending}>
-            إلغاء
-          </Button>
-          <Button type="submit" variant="primary" isDisabled={!canSubmit}>
-            {mutation.isPending ? "جارٍ الحفظ..." : "حفظ الغياب"}
-          </Button>
-        </div>
-      </form>
-    </ModalShell>
+      </AriaTextField>
+    </EntityCreateModal>
   );
 }

@@ -113,6 +113,7 @@ export interface SlotContext {
   weeklyScheduleId: number;
   periodNumber: number;
   serviceDate: string;
+  substitution?: SubstitutionReadDto;
 }
 
 /**

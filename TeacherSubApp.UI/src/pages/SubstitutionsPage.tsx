@@ -6,7 +6,7 @@ import {
 import { AbsenceCard } from "../features/substitutions/components/AbsenceCard";
 import { LogAbsenceModal } from "../features/substitutions/components/LogAbsenceModal";
 import { RecommendationModal } from "../features/substitutions/components/RecommendationModal";
-import { LocalizedDateInput } from "../features/substitutions/components/LocalizedDateInput";
+import { DatePicker } from "../components/controls/DatePicker";
 import { useSubstitutionsPage } from "../features/substitutions/hooks";
 
 export default function SubstitutionsPage() {
@@ -17,6 +17,8 @@ export default function SubstitutionsPage() {
     substitutionList,
     teacherList,
     isInitialLoading,
+    isBlocked,
+    isSubstitutionsLoading,
     isError,
     error,
     isRetrying,
@@ -35,7 +37,7 @@ export default function SubstitutionsPage() {
         description="مركز القيادة لإدارة غياب اليوم وتغطية الحصص بسرعة ووضوح. النظام يقترح أفضل بديل، وأنت تؤكد الاختيار."
         addLabel="تسجيل غياب"
         onAdd={openLogAbsence}
-        isDisabled={teacherList.length === 0 && isInitialLoading}
+        isDisabled={isBlocked || teacherList.length === 0}
       />
 
       <div className="flex items-center justify-between gap-4 rounded-3xl border border-blue-100 bg-blue-50/70 px-5 py-4"
@@ -45,7 +47,7 @@ export default function SubstitutionsPage() {
           <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl bg-white text-blue-600 shadow-sm">
             <CalendarDays size={19} />
           </span>
-          <LocalizedDateInput
+          <DatePicker
             key={activeDate}
             label="تاريخ التغطية"
             labelClassName="sr-only"
@@ -90,6 +92,11 @@ export default function SubstitutionsPage() {
               absence={absence}
               serviceDate={activeDate}
               substitutions={substitutionList}
+              isSubstitutionsLoading={isSubstitutionsLoading}
+              teacherSubject={
+                teacherList.find((teacher) => teacher.id === absence.teacherId)
+                  ?.subjectName ?? null
+              }
             />
           ))}
         </div>
