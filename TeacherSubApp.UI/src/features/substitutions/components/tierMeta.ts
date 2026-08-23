@@ -1,18 +1,10 @@
 import type { CandidateTier, TierMeta } from "../types";
 
-// ════════════════════════════════════════════════════════════
-// Tier mapping
-// ════════════════════════════════════════════════════════════
-// Maps the 5 raw tiers the recommendation engine returns to the
-// human-readable categories from the UX spec, plus which accordion
-// group ("best" / "acceptable" / "lastResort") each renders under.
-// ════════════════════════════════════════════════════════════
-
 export const TIER_META: Record<CandidateTier, TierMeta> = {
   1: {
     tier: 1,
     label: "الأفضل تطابقاً",
-    sublabel: "نفس المادة ومتفرغ الآن",
+    sublabel: "متفرغ الأن",
     group: "best",
   },
   2: {
@@ -23,7 +15,7 @@ export const TIER_META: Record<CandidateTier, TierMeta> = {
   },
   3: {
     tier: 3,
-    label: "معلم مساعد",
+    label: "معلم دعم",
     sublabel: "تدريس مشترك بالحصة",
     group: "acceptable",
   },
@@ -71,7 +63,6 @@ export const TIER_3_STYLES = {
   avatar: "bg-blue-100 text-blue-700",
 } as const;
 
-/** Resolves the visual bucket for a tier while preserving the five backend categories. */
 export function tierStyles(tier: CandidateTier) {
   const meta = TIER_META[tier];
   if (tier === 2) return TIER_2_STYLES;
