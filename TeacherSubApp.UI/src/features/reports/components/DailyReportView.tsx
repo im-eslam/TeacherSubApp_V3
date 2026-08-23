@@ -5,6 +5,9 @@ import { ReportsToolbar } from "./ReportsToolbar";
 import { DatePicker } from "../../../components/controls/DatePicker";
 import type { AbsentTeacherDto } from "../types";
 import { useReportsPage } from "../hooks";
+import { downloadDailyReportPdf } from "../lib/printDailyReport";
+import logoImage from "../../../assets/logo.png";
+import { useState } from "react";
 
 type ReportsPageViewModel = ReturnType<typeof useReportsPage>;
 
@@ -27,9 +30,28 @@ const STYLES = {
 };
 
 export function DailyReportView({ vm }: DailyReportViewProps) {
+  const [isExporting, setIsExporting] = useState(false);
+
+  const handlePrint = async () => {
+    if (vm.dailyReport && !isExporting) {
+      setIsExporting(true);
+      try {
+        await downloadDailyReportPdf(
+          vm.dailyReport,
+          "مدرسة الفرقان الأهلية",
+          logoImage,
+        );
+      } catch (error) {
+        console.error("Failed to generate PDF:", error);
+      } finally {
+        setIsExporting(false);
+      }
+    }
+  };
+
   return (
     <div className="flex flex-col gap-4">
-      <ReportsToolbar onPrint={() => {}}>
+      <ReportsToolbar onPrint={handlePrint}>
         <DatePicker
           key={vm.dailyDate}
           label=""
