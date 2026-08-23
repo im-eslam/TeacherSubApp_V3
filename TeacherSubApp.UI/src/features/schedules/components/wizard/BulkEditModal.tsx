@@ -163,7 +163,6 @@ export function BulkEditModal({ isOpen, onClose }: BulkEditModalProps) {
       </ModalBody>
 
       <div className={STYLES.footer}>
-        // Place Holder
         <button></button>
 
         {step === 3 && (
