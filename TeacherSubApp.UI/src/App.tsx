@@ -8,6 +8,7 @@ import ClassesPage from "./pages/ClassesPage";
 import SchedulesPage from "./pages/SchedulesPage.tsx";
 import SubstitutionsPage from "./pages/SubstitutionsPage";
 import SettingsPage from "./pages/SettingsPage";
+import ReportsPage from "./pages/ReportsPage.tsx";
 
 const router = createBrowserRouter([
   {
@@ -21,6 +22,8 @@ const router = createBrowserRouter([
 
       { path: "schedule", element: <SchedulesPage /> },
       { path: "substitutions", element: <SubstitutionsPage /> },
+      { path: "reports", element: <ReportsPage /> },
+
       { path: "settings", element: <SettingsPage /> },
     ],
   },

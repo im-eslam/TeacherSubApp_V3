@@ -5,6 +5,7 @@ using TeacherSubApp.Api.Common.Exceptions;
 using TeacherSubApp.Api.Common.Results;
 using TeacherSubApp.Api.Data;
 using TeacherSubApp.Api.Features.EventKeys;
+using TeacherSubApp.Api.Features.Reports;
 using TeacherSubApp.Api.Features.SchoolClasses;
 using TeacherSubApp.Api.Features.Subjects;
 using TeacherSubApp.Api.Features.SubstituteMatching;
@@ -53,6 +54,7 @@ namespace TeacherSubApp.Api.Common.Extensions
             services.AddScoped<ISubstitutionService, SubstitutionService>();
 
             services.AddScoped<ISubstituteMatchingService, SubstituteMatchingService>();
+            services.AddScoped<IReportService, ReportService>();
 
             return services;
         }

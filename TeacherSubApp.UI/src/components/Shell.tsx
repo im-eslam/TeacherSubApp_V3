@@ -2,10 +2,9 @@ import { useState, useCallback } from "react";
 import { NavLink, Outlet, useLocation } from "react-router-dom";
 import type { LucideIcon } from "lucide-react";
 import {
-  LayoutDashboard,
   CalendarDays,
   ClipboardList,
-  Bell,
+  FileSpreadsheet,
   Users,
   BookOpen,
   School,
@@ -37,10 +36,9 @@ interface CollapseGroupConfig {
 // ── Main Pages  ─────────────────────────────────────────
 
 const MAIN_LINKS: NavLinkConfig[] = [
-  { label: "لوحة التحكم", path: "/dashboard", Icon: LayoutDashboard },
   { label: "جدول الحصص", path: "/schedule", Icon: CalendarDays },
   { label: "إدارة الغياب والاحتياط", path: "/substitutions", Icon: ClipboardList },
-  { label: "الإشعارات", path: "/notifications", Icon: Bell },
+  { label: "التقارير", path: "/reports", Icon: FileSpreadsheet },
 ];
 
 // ── Collapse Menus ──────────────────────────────────────
