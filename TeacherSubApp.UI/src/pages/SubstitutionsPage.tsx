@@ -40,10 +40,8 @@ export default function SubstitutionsPage() {
         isDisabled={isBlocked || teacherList.length === 0}
       />
 
-      <div className="flex items-center justify-between gap-4 rounded-3xl border border-blue-100 bg-blue-50/70 px-5 py-4"
->
-        <div className="flex min-w-0 items-center gap-3"
->
+      <div className="flex items-center justify-between gap-4 rounded-3xl border border-blue-100 bg-blue-50/70 px-5 py-4">
+        <div className="flex min-w-0 items-center gap-3">
           <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl bg-white text-blue-600 shadow-sm">
             <CalendarDays size={19} />
           </span>
@@ -55,20 +53,24 @@ export default function SubstitutionsPage() {
             onChange={setActiveDate}
           />
         </div>
-        <div className="flex shrink-0 items-center gap-2 text-xs font-semibold text-blue-700"
->
+        <div className="flex shrink-0 items-center gap-2 text-xs font-semibold text-blue-700">
           <ShieldCheck size={16} />
           {substitutionList.length} حصص تم تعيين بديل لها
         </div>
       </div>
 
       {isError && (
-        <EntityErrorBanner error={error} onRetry={retry} isRetrying={isRetrying} />
+        <EntityErrorBanner
+          error={error}
+          onRetry={retry}
+          isRetrying={isRetrying}
+        />
       )}
 
       {isInitialLoading && absenceList.length === 0 && (
         <div className="flex items-center justify-center gap-3 rounded-3xl border border-neutral-200 bg-white py-16 text-sm text-neutral-500 shadow-sm">
-          <Loader2 size={19} className="animate-spin" /> جارٍ تجهيز مركز التغطية...
+          <Loader2 size={19} className="animate-spin" /> جارٍ تجهيز مركز
+          التغطية...
         </div>
       )}
 
@@ -77,9 +79,12 @@ export default function SubstitutionsPage() {
           <span className="flex h-14 w-14 items-center justify-center rounded-full bg-emerald-100 text-emerald-700">
             <ShieldCheck size={27} />
           </span>
-          <h2 className="mt-4 text-base font-bold text-neutral-900">لا يوجد غياب مسجل في هذا اليوم</h2>
+          <h2 className="mt-4 text-base font-bold text-neutral-900">
+            لا يوجد غياب مسجل في هذا اليوم
+          </h2>
           <p className="mt-2 max-w-md text-sm leading-6 text-neutral-500">
-            كل الحصص تسير وفق الجدول. عند تسجيل غياب سيظهر المعلم هنا لتبدأ تغطية حصصه.
+            كل الحصص تسير وفق الجدول. عند تسجيل غياب سيظهر المعلم هنا لتبدأ
+            تغطية حصصه.
           </p>
         </div>
       )}

@@ -16,7 +16,11 @@ import {
   useUpdateSubstitution,
 } from "../hooks";
 import { TIER_META, tierStyles } from "./tierMeta";
-import type { CandidateTier, SlotContext, SubstituteCandidateDto } from "../types";
+import type {
+  CandidateTier,
+  SlotContext,
+  SubstituteCandidateDto,
+} from "../types";
 
 interface RecommendationModalProps {
   isOpen: boolean;
@@ -70,7 +74,9 @@ function CandidateCard({
           </span>
         )}
         <span className="flex flex-col items-end gap-1">
-          <span className={`rounded-full px-2 py-1 text-[10px] font-bold ${styles.badge}`}>
+          <span
+            className={`rounded-full px-2 py-1 text-[10px] font-bold ${styles.badge}`}
+          >
             {meta.label}
           </span>
           <span className="text-[11px] font-semibold text-neutral-600">
@@ -110,15 +116,25 @@ function TierSection({
         className="flex w-full items-center justify-between gap-3 rounded-xl px-2 py-1.5 text-start outline-none focus-visible:ring-2 focus-visible:ring-blue-500/30"
       >
         <span className="flex min-w-0 items-center gap-3">
-          <span className={`h-2.5 w-2.5 shrink-0 rounded-full ${tier === 1 ? "bg-emerald-500" : tier === 2 ? "bg-amber-500" : tier === 3 ? "bg-blue-500" : tier === 4 ? "bg-orange-500" : "bg-neutral-500"}`} />
+          <span
+            className={`h-2.5 w-2.5 shrink-0 rounded-full ${tier === 1 ? "bg-emerald-500" : tier === 2 ? "bg-amber-500" : tier === 3 ? "bg-blue-500" : tier === 4 ? "bg-orange-500" : "bg-neutral-500"}`}
+          />
           <span className="min-w-0">
-            <span className="block text-sm font-bold text-neutral-900">{meta.label}</span>
-            <span className="mt-0.5 block truncate text-xs text-neutral-500">{meta.sublabel}</span>
+            <span className="block text-sm font-bold text-neutral-900">
+              {meta.label}
+            </span>
+            <span className="mt-0.5 block truncate text-xs text-neutral-500">
+              {meta.sublabel}
+            </span>
           </span>
         </span>
         <span className="flex shrink-0 items-center gap-2 text-xs text-neutral-400">
           {candidates.length} خيارات
-          <ChevronDown size={16} className={`transition-transform ${isOpen ? "rotate-180" : ""}`} aria-hidden="true" />
+          <ChevronDown
+            size={16}
+            className={`transition-transform ${isOpen ? "rotate-180" : ""}`}
+            aria-hidden="true"
+          />
         </span>
       </button>
       {isOpen && (
@@ -158,10 +174,22 @@ export function RecommendationModal({
   const createMutation = useCreateSubstitution();
   const updateMutation = useUpdateSubstitution();
   const unassignMutation = useUnassignSubstitution();
-  const isBusy = createMutation.isPending || updateMutation.isPending || unassignMutation.isPending;
-  const candidates = useMemo(() => recommendations.data ?? [], [recommendations.data]);
+  const isBusy =
+    createMutation.isPending ||
+    updateMutation.isPending ||
+    unassignMutation.isPending;
+  const candidates = useMemo(
+    () => recommendations.data ?? [],
+    [recommendations.data],
+  );
   const byTier = useMemo(() => {
-    const groups: Record<CandidateTier, SubstituteCandidateDto[]> = { 1: [], 2: [], 3: [], 4: [], 5: [] };
+    const groups: Record<CandidateTier, SubstituteCandidateDto[]> = {
+      1: [],
+      2: [],
+      3: [],
+      4: [],
+      5: [],
+    };
     for (const candidate of candidates) groups[candidate.tier].push(candidate);
     return groups;
   }, [candidates]);
@@ -185,7 +213,11 @@ export function RecommendationModal({
       } else {
         await createMutation.mutateAsync(dto);
       }
-      toast.success(existingSubstitution ? "تم تعديل البديل بنجاح" : "تم تعيين البديل بنجاح");
+      toast.success(
+        existingSubstitution
+          ? "تم تعديل البديل بنجاح"
+          : "تم تعيين البديل بنجاح",
+      );
       onClose();
     } catch (submissionError) {
       setError(submissionError);
@@ -220,18 +252,26 @@ export function RecommendationModal({
         onClose={onClose}
       />
       <ModalBody className="min-h-0 flex-1">
-        <div className="flex items-start justify-between gap-4 rounded-2xl bg-neutral-50 px-4 py-3">
+        {/* <div className="flex items-start justify-between gap-4 rounded-2xl bg-neutral-50 px-4 py-3">
           <div>
-            <p className="text-sm font-bold text-neutral-900">الحصة {slot.periodNumber}</p>
-            <p className="mt-1 text-xs text-neutral-500">تظهر الفئات مرتبة من الأنسب إلى الحل الأخير.</p>
+            <p className="text-sm font-bold text-neutral-900">
+              الحصة {slot.periodNumber}
+            </p>
+            <p className="mt-1 text-xs text-neutral-500">
+              تظهر الفئات مرتبة من الأنسب إلى الحل الأخير.
+            </p>
           </div>
           {existingSubstitution && (
             <div className="text-end">
-              <p className="text-xs font-semibold text-neutral-500">البديل الحالي</p>
-              <p className="mt-1 text-sm font-bold text-emerald-700">{existingSubstitution.substituteTeacherNameAtTimeOfService}</p>
+              <p className="text-xs font-semibold text-neutral-500">
+                البديل الحالي
+              </p>
+              <p className="mt-1 text-sm font-bold text-emerald-700">
+                {existingSubstitution.substituteTeacherNameAtTimeOfService}
+              </p>
             </div>
           )}
-        </div>
+        </div> */}
 
         {error != null && <ModalErrorBanner message={getErrorMessage(error)} />}
 
@@ -239,7 +279,9 @@ export function RecommendationModal({
           <div className="rounded-2xl border border-red-100 bg-red-50/70 px-4 py-3">
             {!confirmingUnassign ? (
               <div className="flex items-center justify-between gap-3">
-                <p className="text-xs text-red-700">هل تريد إلغاء تعيين البديل وترك الحصة دون تغطية؟</p>
+                <p className="text-xs text-red-700">
+                  هل تريد إلغاء تعيين البديل وترك الحصة دون تغطية؟
+                </p>
                 <Button
                   type="button"
                   variant="quiet"
@@ -252,10 +294,28 @@ export function RecommendationModal({
               </div>
             ) : (
               <div className="flex items-center justify-between gap-3">
-                <p className="flex items-center gap-2 text-xs font-semibold text-red-700"><ShieldAlert size={15} /> تأكيد إلغاء التعيين؟</p>
+                <p className="flex items-center gap-2 text-xs font-semibold text-red-700">
+                  <ShieldAlert size={15} /> تأكيد إلغاء التعيين؟
+                </p>
                 <span className="flex shrink-0 items-center gap-2">
-                  <Button type="button" variant="destructive" onPress={handleUnassign} isDisabled={isBusy} className="px-3 py-2 text-xs">نعم، إلغاء</Button>
-                  <Button type="button" variant="quiet" onPress={() => setConfirmingUnassign(false)} isDisabled={isBusy} className="px-3 py-2 text-xs">تراجع</Button>
+                  <Button
+                    type="button"
+                    variant="destructive"
+                    onPress={handleUnassign}
+                    isDisabled={isBusy}
+                    className="px-3 py-2 text-xs"
+                  >
+                    نعم، إلغاء
+                  </Button>
+                  <Button
+                    type="button"
+                    variant="quiet"
+                    onPress={() => setConfirmingUnassign(false)}
+                    isDisabled={isBusy}
+                    className="px-3 py-2 text-xs"
+                  >
+                    تراجع
+                  </Button>
                 </span>
               </div>
             )}
@@ -264,35 +324,81 @@ export function RecommendationModal({
 
         {recommendations.isLoading && (
           <div className="flex items-center justify-center gap-3 rounded-2xl bg-neutral-50 py-10 text-sm text-neutral-500">
-            <Loader2 size={18} className="animate-spin" /> جارٍ تحليل أفضل البدائل...
+            <Loader2 size={18} className="animate-spin" /> جارٍ تحليل أفضل
+            البدائل...
           </div>
         )}
         {recommendations.isError && (
           <ModalErrorBanner message={getErrorMessage(recommendations.error)} />
         )}
-        {!recommendations.isLoading && !recommendations.isError && candidates.length === 0 && (
-          <div className="rounded-2xl border border-neutral-200 bg-neutral-50 px-4 py-10 text-center text-sm text-neutral-500">لا يوجد معلمون متاحون لهذه الحصة حالياً.</div>
-        )}
+        {!recommendations.isLoading &&
+          !recommendations.isError &&
+          candidates.length === 0 && (
+            <div className="rounded-2xl border border-neutral-200 bg-neutral-50 px-4 py-10 text-center text-sm text-neutral-500">
+              لا يوجد معلمون متاحون لهذه الحصة حالياً.
+            </div>
+          )}
 
         <div className="flex flex-col gap-3">
-          <TierSection tier={1} candidates={byTier[1]} isDisabled={isBusy} currentTeacherId={existingSubstitution?.substituteTeacherId} onSelect={handleSelect} defaultOpen />
-          <TierSection tier={2} candidates={byTier[2]} isDisabled={isBusy} currentTeacherId={existingSubstitution?.substituteTeacherId} onSelect={handleSelect} defaultOpen={false} />
-          <TierSection tier={3} candidates={byTier[3]} isDisabled={isBusy} currentTeacherId={existingSubstitution?.substituteTeacherId} onSelect={handleSelect} defaultOpen={false} />
+          <TierSection
+            tier={1}
+            candidates={byTier[1]}
+            isDisabled={isBusy}
+            currentTeacherId={existingSubstitution?.substituteTeacherId}
+            onSelect={handleSelect}
+            defaultOpen
+          />
+          <TierSection
+            tier={2}
+            candidates={byTier[2]}
+            isDisabled={isBusy}
+            currentTeacherId={existingSubstitution?.substituteTeacherId}
+            onSelect={handleSelect}
+            defaultOpen={false}
+          />
+          <TierSection
+            tier={3}
+            candidates={byTier[3]}
+            isDisabled={isBusy}
+            currentTeacherId={existingSubstitution?.substituteTeacherId}
+            onSelect={handleSelect}
+            defaultOpen={false}
+          />
         </div>
 
         {hasLastResort && (
           <details className="rounded-2xl border border-neutral-200 bg-neutral-50 p-3">
             <summary className="flex cursor-pointer list-none items-center justify-between text-sm font-semibold text-neutral-600 outline-none focus-visible:ring-2 focus-visible:ring-blue-500/30">
-              <span className="flex items-center gap-2"><ShieldAlert size={15} className="text-red-500" /> عرض الخيارات غير المحبذة</span>
-              <span className="text-xs font-normal text-neutral-400">{byTier[4].length + byTier[5].length} خيارات</span>
+              <span className="flex items-center gap-2">
+                <ShieldAlert size={15} className="text-red-500" /> عرض الخيارات
+                غير المحبذة
+              </span>
+              <span className="text-xs font-normal text-neutral-400">
+                {byTier[4].length + byTier[5].length} خيارات
+              </span>
             </summary>
             <div className="mt-3 flex flex-col gap-3 border-t border-neutral-200 pt-3">
-              <TierSection tier={4} candidates={byTier[4]} isDisabled={isBusy} currentTeacherId={existingSubstitution?.substituteTeacherId} onSelect={handleSelect} defaultOpen={false} />
-              <TierSection tier={5} candidates={byTier[5]} isDisabled={isBusy} currentTeacherId={existingSubstitution?.substituteTeacherId} onSelect={handleSelect} defaultOpen={false} />
+              <TierSection
+                tier={4}
+                candidates={byTier[4]}
+                isDisabled={isBusy}
+                currentTeacherId={existingSubstitution?.substituteTeacherId}
+                onSelect={handleSelect}
+                defaultOpen={false}
+              />
+              <TierSection
+                tier={5}
+                candidates={byTier[5]}
+                isDisabled={isBusy}
+                currentTeacherId={existingSubstitution?.substituteTeacherId}
+                onSelect={handleSelect}
+                defaultOpen={false}
+              />
             </div>
           </details>
         )}
       </ModalBody>
+      <div className="flex items-center justify-end gap-2 px-6 py-4 border-t border-neutral-200/60 bg-neutral-50/50 shrink-0 rounded-b-3xl"></div>
     </ModalShell>
   );
 }
