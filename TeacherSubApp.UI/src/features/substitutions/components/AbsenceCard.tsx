@@ -1,12 +1,5 @@
 import { useMemo, useState } from "react";
-import {
-  ChevronDown,
-  CircleAlert,
-  Clock3,
-  Loader2,
-  ShieldCheck,
-  Trash2,
-} from "lucide-react";
+import { CircleAlert, ChevronDown, Loader2, ShieldCheck, Trash2 } from "lucide-react";
 import { Button } from "../../../components/controls/Button";
 import { getErrorMessage } from "../../../lib/apiErrors";
 import { isWeekendIsoDate } from "../dateUtils";
@@ -97,13 +90,19 @@ export function AbsenceCard({
               {allCovered ? <ShieldCheck size={21} /> : <CircleAlert size={21} />}
             </span>
             <span className="min-w-0">
-              <span className="block truncate text-sm font-semibold text-neutral-900">
-                {absence.teacherName}
+              <span className="flex flex-wrap items-center gap-2">
+                <span className="truncate text-sm font-semibold text-neutral-900">
+                  {absence.teacherName}
+                </span>
+                <span className="rounded-full border border-blue-200 bg-blue-50 px-2.5 py-1 text-xs font-bold text-blue-800">
+                  {teacherSubject ?? "بلا مادة"}
+                </span>
               </span>
-              <span className="mt-1 block truncate text-xs font-medium text-neutral-500">
-                {teacherSubject ?? "بلا مادة"}
-                {absence.reason ? ` · ${absence.reason}` : ""}
-              </span>
+              {absence.reason && (
+                <span className="mt-1 block truncate text-xs font-medium text-neutral-500">
+                  {absence.reason}
+                </span>
+              )}
             </span>
           </span>
           <span className="flex shrink-0 items-center gap-3">
@@ -211,18 +210,19 @@ export function AbsenceCard({
                       >
                         {slot.periodNumber}
                       </span>
-                      <div>
-                        <p className="text-sm font-bold text-neutral-900">الحصة {slot.periodNumber}</p>
-                        <p className="mt-1 flex items-center gap-1.5 text-xs text-neutral-500">
-                          <Clock3 size={13} />
-                          {slot.classDisplayName}
-                        </p>
+                      <div className="min-w-0">
+                        <div className="flex flex-wrap items-center gap-2">
+                          <p className="text-sm font-bold text-neutral-900">الحصة {slot.periodNumber}</p>
+                          <span className="rounded-full border border-neutral-200 bg-white px-2.5 py-1 text-xs font-bold text-neutral-800 shadow-sm">
+                            {slot.classDisplayName}
+                          </span>
+                        </div>
                         {substitution && (
                           <div className="mt-2">
-                            <p className="text-sm font-bold text-emerald-800">
+                            <p className="text-base font-bold text-neutral-900">
                               {substitution.substituteTeacherNameAtTimeOfService}
                             </p>
-                            <p className="mt-0.5 text-sm font-medium text-emerald-700">
+                            <p className="mt-0.5 text-sm font-medium text-neutral-700">
                               {substitution.substituteTeacherSubjectAtTimeOfService || "بلا مادة"}
                             </p>
                           </div>

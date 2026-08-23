@@ -63,16 +63,21 @@ export function ModalHeader({ title, isBusy, onClose }: ModalHeaderProps) {
 interface ModalBodyProps {
   children: ReactNode;
   allowBodyOverflow?: boolean;
+  className?: string;
 }
 
 export function ModalBody({
   children,
   allowBodyOverflow = false,
+  className,
 }: ModalBodyProps) {
   const bodyStyles = [
     "px-6 py-6 flex flex-col gap-4",
     allowBodyOverflow ? "overflow-visible" : "overflow-y-auto",
-  ].join(" ");
+    className,
+  ]
+    .filter(Boolean)
+    .join(" ");
 
   return <div className={bodyStyles}>{children}</div>;
 }
