@@ -3,11 +3,13 @@ import type { FormEvent, ReactNode } from "react";
 import { AlertCircle, CheckCircle2, Loader2, Save, SlidersHorizontal } from "lucide-react";
 import { Button } from "../components/controls/Button";
 import { NumberField, type NumericFieldValue } from "../components/controls/NumberField";
+import { SegmentedToggle } from "../components/controls/SegmentedToggle";
 import {
   EntityErrorBanner,
   EntityPageHeaderPlain,
 } from "../components/layout/EntityPageLayout";
 import { ModalErrorBanner } from "../components/modals/ModalParts";
+import { ParameterInfo } from "../features/settings/components/ParameterInfo";
 import { getErrorMessage } from "../lib/apiErrors";
 import { useSettingsPage } from "../features/settings/hooks";
 import {
@@ -26,53 +28,75 @@ type EditableSettings = {
   [K in keyof AlgorithmSettingsDto]: AlgorithmSettingsDto[K] | "";
 };
 
-const WEIGHT_META: Record<WeightField, { label: string; helper: string }> = {
+const WEIGHT_META: Record<WeightField, { label: string; explanation: string; lowerEffect: string; higherEffect: string }> = {
   subjectMatchWeight: {
     label: "تطابق المادة",
-    helper: "يرفع أولوية المعلمين الذين يدرّسون المادة نفسها.",
+    explanation: "يقيس مدى تطابق مادة المعلم البديل مع مادة المعلم الغائب.",
+    lowerEffect: "يصبح التطابق أقل تأثيراً مقارنة بباقي المعايير.",
+    higherEffect: "تظهر أولوية أكبر للمعلمين الذين يدرّسون المادة نفسها.",
   },
   weeklyLoadWeight: {
     label: "العبء الأسبوعي",
-    helper: "يفضل المعلمين ذوي العبء الأسبوعي الأقل.",
+    explanation: "يقارن عدد الحصص الأسبوعية للمعلمين عند اختيار البديل.",
+    lowerEffect: "يضعف أثر العدالة في توزيع الحمل الأسبوعي.",
+    higherEffect: "يفضل المعلمين ذوي الحمل الأسبوعي الأقل.",
   },
   dailyLoadWeight: {
     label: "العبء اليومي",
-    helper: "يفضل المعلمين الذين لديهم حصص أقل خلال اليوم.",
+    explanation: "يوازن عدد الحصص التي يؤديها المعلم في يوم التغطية.",
+    lowerEffect: "يمكن اختيار معلم لديه حصص أكثر في اليوم.",
+    higherEffect: "يفضل المعلمين الأقل انشغالاً خلال اليوم.",
   },
   standbyWeight: {
     label: "المناوبة",
-    helper: "يرفع أولوية المعلمين الموجودين في المناوبة.",
+    explanation: "يعطي اعتباراً لحالة المعلم الموجود في مناوبة الاحتياط.",
+    lowerEffect: "تصبح المناوبة عاملاً ثانوياً في الترشيح.",
+    higherEffect: "ترتفع أولوية المعلمين الموجودين في المناوبة.",
   },
   subbedYesterdayWeight: {
     label: "التغطية في اليوم السابق",
-    helper: "يساعد على موازنة توزيع التغطيات بين المعلمين.",
+    explanation: "يراعي ما إذا كان المعلم قد غطى حصة في اليوم السابق.",
+    lowerEffect: "يقل تأثير توزيع التغطيات السابقة على الاختيار.",
+    higherEffect: "يزداد أثر موازنة التغطيات وعدم تحميل المعلم نفسه باستمرار.",
   },
   consecutiveClassWeight: {
     label: "الحصص المتتالية",
-    helper: "يزيد أثر تجنب تكليف المعلم بحصص متتالية.",
+    explanation: "يراعي وجود حصص متتالية للمعلم قبل حصة التغطية.",
+    lowerEffect: "قد يتم ترشيح معلم لديه حصص متتابعة.",
+    higherEffect: "يزداد تجنب تكليف المعلم بحصص متتالية.",
   },
   earlyLeaveWeight: {
     label: "الخروج المبكر",
-    helper: "يراعي حالة الخروج المبكر عند ترشيح البديل.",
+    explanation: "يراعي قدرة المعلم على الاستمرار في المدرسة حتى نهاية اليوم.",
+    lowerEffect: "يقل أثر حالة الخروج المبكر في الترتيب.",
+    higherEffect: "يتم استبعاد أو تأخير المعلمين الذين لديهم خروج مبكر بشكل أكبر.",
   },
 };
 
-const THRESHOLD_META: Record<ThresholdField, { label: string; helper: string }> = {
+const THRESHOLD_META: Record<ThresholdField, { label: string; explanation: string; lowerEffect: string; higherEffect: string }> = {
   overtimeThreshold: {
     label: "حد العمل الإضافي",
-    helper: "عدد الحصص الأسبوعية الذي يبدأ بعده احتساب العمل الإضافي.",
+    explanation: "يحدد بداية اعتبار الحمل الأسبوعي عملاً إضافياً.",
+    lowerEffect: "يبدأ احتساب العمل الإضافي عند عدد حصص أقل.",
+    higherEffect: "يسمح بعدد حصص أسبوعية أكبر قبل احتساب العمل الإضافي.",
   },
   lowLoadThreshold: {
     label: "حد العبء المنخفض",
-    helper: "الحد الذي يعتبر عنده العبء الأسبوعي منخفضاً.",
+    explanation: "يحدد الحد الأعلى الذي يعد معه الحمل الأسبوعي منخفضاً.",
+    lowerEffect: "تصبح فئة الحمل المنخفض أضيق.",
+    higherEffect: "يدخل عدد أكبر من المعلمين ضمن فئة الحمل المنخفض.",
   },
   dailyLoadThreshold: {
     label: "حد العبء اليومي",
-    helper: "الحد الأعلى للحصص اليومية عند تقييم الحمل.",
+    explanation: "يحدد الحد اليومي المستخدم في تقييم انشغال المعلم.",
+    lowerEffect: "يصبح المعلم مشغولاً عند عدد حصص يومية أقل.",
+    higherEffect: "يتطلب الأمر حصصاً يومية أكثر لاعتبار المعلم عالي الحمل.",
   },
   restPeriodBreak: {
     label: "فاصل الراحة",
-    helper: "عدد الفترات المطلوبة منذ آخر حصة قبل الترشيح.",
+    explanation: "يحدد عدد الفترات التي يفضل وجودها منذ آخر حصة للمعلم.",
+    lowerEffect: "يمكن ترشيح المعلم بعد فاصل أقصر.",
+    higherEffect: "تزداد فترة الراحة المطلوبة قبل ترشيح المعلم.",
   },
 };
 
@@ -128,16 +152,23 @@ function AlgorithmSettingsForm({
   saveError,
   onSave,
   onResetSaveError,
+  loadError,
+  onRetry,
+  isRetrying,
 }: {
   initialSettings: AlgorithmSettingsDto;
   isSaving: boolean;
   saveError: unknown;
   onSave: (settings: AlgorithmSettingsDto) => Promise<void>;
   onResetSaveError: () => void;
+  loadError: unknown;
+  onRetry: () => void;
+  isRetrying: boolean;
 }) {
   const [form, setForm] = useState<EditableSettings>(() =>
     toEditableSettings(initialSettings),
   );
+  const [activeSection, setActiveSection] = useState("algorithm");
 
   const totalWeight = useMemo(
     () =>
@@ -176,8 +207,40 @@ function AlgorithmSettingsForm({
   };
 
   return (
-    <form onSubmit={handleSubmit} className="flex flex-col gap-5">
-      <fieldset disabled={isSaving} className="contents">
+    <form id="algorithm-settings-form" onSubmit={handleSubmit} className="flex flex-col gap-5">
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+        <EntityPageHeaderPlain
+          title="الإعدادات"
+          subtitle="خوارزمية الاستبدال"
+          description="اضبط أوزان المعايير والعتبات التي يستخدمها النظام لترشيح أفضل بديل للحصص الغائبة."
+        />
+        <Button
+          type="submit"
+          variant="primary"
+          isDisabled={!canSave}
+          className="shrink-0"
+        >
+          {isSaving ? <Loader2 size={17} className="animate-spin" /> : <Save size={17} />}
+          {isSaving ? "جارٍ الحفظ..." : "حفظ الإعدادات"}
+        </Button>
+      </div>
+
+      {loadError != null && (
+        <EntityErrorBanner error={loadError} onRetry={onRetry} isRetrying={isRetrying} />
+      )}
+
+      <div className="flex items-center justify-end rounded-2xl border border-neutral-200/70 bg-neutral-50/70 p-2">
+        <SegmentedToggle
+          value={activeSection}
+          onChange={setActiveSection}
+          options={[{ value: "algorithm", label: "خوارزمية الاستبدال" }]}
+          isDisabled={isSaving}
+          aria-label="أقسام الإعدادات"
+        />
+      </div>
+
+      {activeSection === "algorithm" && (
+        <fieldset disabled={isSaving} className="contents">
         <SettingsSection
           title="أوزان المعايير"
           description="توزيع تأثيرات خوارزمية الترشيح. يجب أن يساوي مجموع الأوزان 100."
@@ -195,7 +258,7 @@ function AlgorithmSettingsForm({
                   step={limits.step}
                   min={limits.min}
                   max={limits.max}
-                  helperText={meta.helper}
+                  info={<ParameterInfo {...meta} />}
                 />
               );
             })}
@@ -238,29 +301,22 @@ function AlgorithmSettingsForm({
                   step={limits.step}
                   min={limits.min}
                   max={limits.max}
-                  helperText={`${meta.helper} النطاق المسموح: ${limits.min}–${limits.max}.`}
+                  helperText={`النطاق المسموح: ${limits.min}–${limits.max}.`}
+                  info={<ParameterInfo {...meta} />}
                 />
               );
             })}
           </div>
         </SettingsSection>
-      </fieldset>
+        </fieldset>
+      )}
 
       {saveError != null && <ModalErrorBanner message={getErrorMessage(saveError)} />}
 
-      <div className="flex flex-col gap-3 rounded-3xl border border-neutral-200/70 bg-neutral-50/70 p-4 sm:flex-row sm:items-center sm:justify-between sm:px-5">
+      <div className="rounded-3xl border border-neutral-200/70 bg-neutral-50/70 p-4 sm:px-5">
         <p className="text-xs leading-relaxed text-neutral-500">
           تُعاد قراءة القيم من الخادم بعد الحفظ للتأكد من تطبيق الإعدادات الفعلية.
         </p>
-        <Button
-          type="submit"
-          variant="primary"
-          isDisabled={!canSave}
-          className="shrink-0"
-        >
-          {isSaving ? <Loader2 size={17} className="animate-spin" /> : <Save size={17} />}
-          {isSaving ? "جارٍ الحفظ..." : "حفظ الإعدادات"}
-        </Button>
       </div>
     </form>
   );
@@ -281,13 +337,17 @@ export default function SettingsPage() {
 
   return (
     <div dir="rtl" className="flex min-h-full flex-col gap-6 p-6">
-      <EntityPageHeaderPlain
-        title="الإعدادات"
-        subtitle="خوارزمية الاستبدال"
-        description="اضبط أوزان المعايير والعتبات التي يستخدمها النظام لترشيح أفضل بديل للحصص الغائبة."
-      />
+      {!settings && (
+        <EntityPageHeaderPlain
+          title="الإعدادات"
+          subtitle="خوارزمية الاستبدال"
+          description="اضبط أوزان المعايير والعتبات التي يستخدمها النظام لترشيح أفضل بديل للحصص الغائبة."
+        />
+      )}
 
-      {isError && <EntityErrorBanner error={error} onRetry={retry} isRetrying={isLoading} />}
+      {!settings && isError && (
+        <EntityErrorBanner error={error} onRetry={retry} isRetrying={isLoading} />
+      )}
 
       {isLoading && !settings && (
         <div className="grid gap-5" aria-label="جارٍ تحميل إعدادات خوارزمية الاستبدال">
@@ -321,6 +381,9 @@ export default function SettingsPage() {
           saveError={saveError}
           onSave={save}
           onResetSaveError={resetSaveError}
+          loadError={isError ? error : null}
+          onRetry={retry}
+          isRetrying={isLoading}
         />
       )}
     </div>
