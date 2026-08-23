@@ -8,3 +8,44 @@
     cursor: pointer;
   }
 }
+
+@media print {
+  body {
+    background: white !important;
+  }
+
+  .reports-page:not(.reports-daily-active) {
+    display: none !important;
+  }
+
+  .reports-page.reports-daily-active {
+    min-height: auto !important;
+    padding: 0 !important;
+  }
+
+  .reports-page-chrome,
+  .reports-page-chrome * {
+    display: none !important;
+  }
+
+  .reports-printable-daily {
+    color: black !important;
+  }
+
+  .reports-printable-daily .shadow-sm,
+  .reports-printable-daily .shadow-md,
+  .reports-printable-daily .bg-white {
+    box-shadow: none !important;
+    background: white !important;
+  }
+
+  .reports-printable-daily .daily-report-absence {
+    break-inside: avoid;
+    page-break-inside: avoid;
+    border-color: #d4d4d4 !important;
+  }
+
+  .reports-printable-daily .daily-report-absence > div {
+    break-inside: avoid;
+  }
+}

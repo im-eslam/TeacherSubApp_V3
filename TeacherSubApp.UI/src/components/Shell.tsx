@@ -13,6 +13,7 @@ import {
   Settings,
   ChevronDown,
   LayoutPanelTop,
+  FileBarChart2,
 } from "lucide-react";
 import schoolLogo from "../assets/logo.png";
 
@@ -40,6 +41,7 @@ const MAIN_LINKS: NavLinkConfig[] = [
   { label: "لوحة التحكم", path: "/dashboard", Icon: LayoutDashboard },
   { label: "جدول الحصص", path: "/schedule", Icon: CalendarDays },
   { label: "إدارة الغياب والاحتياط", path: "/substitutions", Icon: ClipboardList },
+  { label: "التقارير والتحليلات", path: "/reports", Icon: FileBarChart2 },
   { label: "الإشعارات", path: "/notifications", Icon: Bell },
 ];
 

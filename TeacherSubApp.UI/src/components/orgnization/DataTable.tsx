@@ -170,7 +170,7 @@ export interface DataTableConfig<T> {
   columns: DataTableColumn<T>[];
   emptyState: DataTableEmptyState;
   errorState?: DataTableErrorState;
-  actionsColumnLabel: string;
+  actionsColumnLabel?: string;
 }
 
 // ── Sort Icon ──
@@ -206,7 +206,7 @@ function SortIcon({
 interface DataTableProps<T> {
   config: DataTableConfig<T>;
   data: DataTableData<T>;
-  actions: DataTableActions<T>;
+  actions?: DataTableActions<T>;
   sortDescriptor?: SortDescriptor;
   onSortChange?: (descriptor: SortDescriptor) => void;
   "aria-label"?: string;
@@ -228,14 +228,15 @@ export function DataTable<T>({
           {config.columns.map((col) => (
             <div key={col.id} className={STYLES.skeletonHeaderCell} />
           ))}
-          <div className={`${STYLES.skeletonHeaderCell} max-w-16`} />
+          {actions && <div className={`${STYLES.skeletonHeaderCell} max-w-16`} />}
         </div>
         {Array.from({ length: 6 }).map((_, i) => (
-          <div key={i} className={STYLES.skeletonRow}>
+                      <div key={i} className={STYLES.skeletonRow}>
+
             {config.columns.map((col) => (
               <div key={col.id} className={STYLES.skeletonCell} />
             ))}
-            <div className={`${STYLES.skeletonCell} max-w-16`} />
+            {actions && <div className={`${STYLES.skeletonCell} max-w-16`} />}
           </div>
         ))}
       </div>
@@ -285,7 +286,7 @@ export function DataTable<T>({
           <p className={STYLES.emptySubtitle}>
             {isFiltered ? emptyState.subtitleFiltered : emptyState.subtitle}
           </p>
-          {!isFiltered && (
+          {!isFiltered && actions && (
             <button
               type="button"
               onClick={actions.onAdd}
@@ -334,12 +335,14 @@ export function DataTable<T>({
               </div>
             </Column>
           ))}
-          <Column
-            id="__actions"
-            className={`${STYLES.column} ${STYLES.columnActions}`}
-          >
-            {config.actionsColumnLabel}
-          </Column>
+          {actions && (
+            <Column
+              id="__actions"
+              className={`${STYLES.column} ${STYLES.columnActions}`}
+            >
+              {config.actionsColumnLabel}
+            </Column>
+          )}
         </TableHeader>
 
         <TableBody items={data.items}>
@@ -364,26 +367,28 @@ export function DataTable<T>({
                 );
               })}
 
-              <Cell className={STYLES.cellActions}>
-                <div className={STYLES.actionsGroup}>
-                  <Button
-                    type="button"
-                    onPress={() => actions.onEdit(item)}
-                    aria-label="تعديل"
-                    className={STYLES.actionEdit}
-                  >
-                    <Pencil size={15} strokeWidth={2} />
-                  </Button>
-                  <Button
-                    type="button"
-                    onPress={() => actions.onDelete(item)}
-                    aria-label="حذف"
-                    className={STYLES.actionDelete}
-                  >
-                    <Trash2 size={15} strokeWidth={2} />
-                  </Button>
-                </div>
-              </Cell>
+              {actions && (
+                <Cell className={STYLES.cellActions}>
+                  <div className={STYLES.actionsGroup}>
+                    <Button
+                      type="button"
+                      onPress={() => actions.onEdit(item)}
+                      aria-label="تعديل"
+                      className={STYLES.actionEdit}
+                    >
+                      <Pencil size={15} strokeWidth={2} />
+                    </Button>
+                    <Button
+                      type="button"
+                      onPress={() => actions.onDelete(item)}
+                      aria-label="حذف"
+                      className={STYLES.actionDelete}
+                    >
+                      <Trash2 size={15} strokeWidth={2} />
+                    </Button>
+                  </div>
+                </Cell>
+              )}
             </Row>
           )}
         </TableBody>
