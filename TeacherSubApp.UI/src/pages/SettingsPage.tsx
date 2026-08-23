@@ -1,8 +1,17 @@
 import { useMemo, useState } from "react";
 import type { FormEvent, ReactNode } from "react";
-import { AlertCircle, CheckCircle2, Loader2, Save, SlidersHorizontal } from "lucide-react";
+import {
+  AlertCircle,
+  CheckCircle2,
+  Loader2,
+  Save,
+  SlidersHorizontal,
+} from "lucide-react";
 import { Button } from "../components/controls/Button";
-import { NumberField, type NumericFieldValue } from "../components/controls/NumberField";
+import {
+  NumberField,
+  type NumericFieldValue,
+} from "../components/controls/NumberField";
 import { SegmentedToggle } from "../components/controls/SegmentedToggle";
 import {
   EntityErrorBanner,
@@ -28,7 +37,15 @@ type EditableSettings = {
   [K in keyof AlgorithmSettingsDto]: AlgorithmSettingsDto[K] | "";
 };
 
-const WEIGHT_META: Record<WeightField, { label: string; explanation: string; lowerEffect: string; higherEffect: string }> = {
+const WEIGHT_META: Record<
+  WeightField,
+  {
+    label: string;
+    explanation: string;
+    lowerEffect: string;
+    higherEffect: string;
+  }
+> = {
   subjectMatchWeight: {
     label: "تطابق المادة",
     explanation: "يقيس مدى تطابق مادة المعلم البديل مع مادة المعلم الغائب.",
@@ -69,11 +86,20 @@ const WEIGHT_META: Record<WeightField, { label: string; explanation: string; low
     label: "الخروج المبكر",
     explanation: "يراعي قدرة المعلم على الاستمرار في المدرسة حتى نهاية اليوم.",
     lowerEffect: "يقل أثر حالة الخروج المبكر في الترتيب.",
-    higherEffect: "يتم استبعاد أو تأخير المعلمين الذين لديهم خروج مبكر بشكل أكبر.",
+    higherEffect:
+      "يتم استبعاد أو تأخير المعلمين الذين لديهم خروج مبكر بشكل أكبر.",
   },
 };
 
-const THRESHOLD_META: Record<ThresholdField, { label: string; explanation: string; lowerEffect: string; higherEffect: string }> = {
+const THRESHOLD_META: Record<
+  ThresholdField,
+  {
+    label: string;
+    explanation: string;
+    lowerEffect: string;
+    higherEffect: string;
+  }
+> = {
   overtimeThreshold: {
     label: "حد العمل الإضافي",
     explanation: "يحدد بداية اعتبار الحمل الأسبوعي عملاً إضافياً.",
@@ -138,7 +164,9 @@ function SettingsSection({
         </span>
         <div>
           <h2 className="text-base font-bold text-neutral-900">{title}</h2>
-          <p className="mt-1 text-xs leading-relaxed text-neutral-500">{description}</p>
+          <p className="mt-1 text-xs leading-relaxed text-neutral-500">
+            {description}
+          </p>
         </div>
       </div>
       {children}
@@ -173,7 +201,8 @@ function AlgorithmSettingsForm({
   const totalWeight = useMemo(
     () =>
       WEIGHT_FIELDS.reduce(
-        (total, field) => total + (typeof form[field] === "number" ? form[field] : 0),
+        (total, field) =>
+          total + (typeof form[field] === "number" ? form[field] : 0),
         0,
       ),
     [form],
@@ -207,7 +236,11 @@ function AlgorithmSettingsForm({
   };
 
   return (
-    <form id="algorithm-settings-form" onSubmit={handleSubmit} className="flex flex-col gap-5">
+    <form
+      id="algorithm-settings-form"
+      onSubmit={handleSubmit}
+      className="flex flex-col gap-5"
+    >
       <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
         <EntityPageHeaderPlain
           title="الإعدادات"
@@ -220,13 +253,21 @@ function AlgorithmSettingsForm({
           isDisabled={!canSave}
           className="shrink-0"
         >
-          {isSaving ? <Loader2 size={17} className="animate-spin" /> : <Save size={17} />}
+          {isSaving ? (
+            <Loader2 size={17} className="animate-spin" />
+          ) : (
+            <Save size={17} />
+          )}
           {isSaving ? "جارٍ الحفظ..." : "حفظ الإعدادات"}
         </Button>
       </div>
 
       {loadError != null && (
-        <EntityErrorBanner error={loadError} onRetry={onRetry} isRetrying={isRetrying} />
+        <EntityErrorBanner
+          error={loadError}
+          onRetry={onRetry}
+          isRetrying={isRetrying}
+        />
       )}
 
       <div className="flex items-center justify-end rounded-2xl border border-neutral-200/70 bg-neutral-50/70 p-2">
@@ -241,83 +282,83 @@ function AlgorithmSettingsForm({
 
       {activeSection === "algorithm" && (
         <fieldset disabled={isSaving} className="contents">
-        <SettingsSection
-          title="أوزان المعايير"
-          description="توزيع تأثيرات خوارزمية الترشيح. يجب أن يساوي مجموع الأوزان 100."
-        >
-          <div className="grid gap-x-5 gap-y-5 md:grid-cols-2">
-            {WEIGHT_FIELDS.map((field) => {
-              const meta = WEIGHT_META[field];
-              const limits = SETTINGS_LIMITS[field];
-              return (
-                <NumberField
-                  key={field}
-                  label={meta.label}
-                  value={form[field]}
-                  onChange={(value) => updateField(field, value)}
-                  step={limits.step}
-                  min={limits.min}
-                  max={limits.max}
-                  info={<ParameterInfo {...meta} />}
-                />
-              );
-            })}
-          </div>
-
-          <div
-            className={`mt-6 flex items-center justify-between gap-3 rounded-2xl border px-4 py-3 ${isWeightTotalValid ? "border-emerald-200 bg-emerald-50 text-emerald-800" : "border-amber-200 bg-amber-50 text-amber-800"}`}
-            role="status"
-            aria-live="polite"
+          <SettingsSection
+            title="أوزان المعايير"
+            description="توزيع تأثيرات خوارزمية الترشيح. يجب أن يساوي مجموع الأوزان 100."
           >
-            <span className="flex items-center gap-2 text-sm font-bold">
-              {isWeightTotalValid ? <CheckCircle2 size={18} /> : <AlertCircle size={18} />}
-              مجموع الأوزان
-            </span>
-            <span className="text-base font-bold tabular-nums">
-              {totalWeight.toFixed(2)} / 100
-            </span>
-          </div>
-          {!isWeightTotalValid && (
-            <p className="mt-2 text-xs text-amber-700">
-              عدّل الأوزان حتى يصبح المجموع 100 مع سماحية ±0.1 قبل الحفظ.
-            </p>
-          )}
-        </SettingsSection>
+            <div className="grid gap-x-5 gap-y-5 md:grid-cols-2">
+              {WEIGHT_FIELDS.map((field) => {
+                const meta = WEIGHT_META[field];
+                const limits = SETTINGS_LIMITS[field];
+                return (
+                  <NumberField
+                    key={field}
+                    label={meta.label}
+                    value={form[field]}
+                    onChange={(value) => updateField(field, value)}
+                    step={limits.step}
+                    min={limits.min}
+                    max={limits.max}
+                    info={<ParameterInfo {...meta} />}
+                  />
+                );
+              })}
+            </div>
 
-        <SettingsSection
-          title="حدود وعتبات"
-          description="قيم مستقلة تضبط متى تعتبر الحصة أو المعلم مناسباً للترشيح."
-        >
-          <div className="grid gap-x-5 gap-y-5 md:grid-cols-2">
-            {THRESHOLD_FIELDS.map((field) => {
-              const meta = THRESHOLD_META[field];
-              const limits = SETTINGS_LIMITS[field];
-              return (
-                <NumberField
-                  key={field}
-                  label={meta.label}
-                  value={form[field]}
-                  onChange={(value) => updateField(field, value)}
-                  step={limits.step}
-                  min={limits.min}
-                  max={limits.max}
-                  helperText={`النطاق المسموح: ${limits.min}–${limits.max}.`}
-                  info={<ParameterInfo {...meta} />}
-                />
-              );
-            })}
-          </div>
-        </SettingsSection>
+            <div
+              className={`mt-6 flex items-center justify-between gap-3 rounded-2xl border px-4 py-3 ${isWeightTotalValid ? "border-emerald-200 bg-emerald-50 text-emerald-800" : "border-amber-200 bg-amber-50 text-amber-800"}`}
+              role="status"
+              aria-live="polite"
+            >
+              <span className="flex items-center gap-2 text-sm font-bold">
+                {isWeightTotalValid ? (
+                  <CheckCircle2 size={18} />
+                ) : (
+                  <AlertCircle size={18} />
+                )}
+                مجموع الأوزان
+              </span>
+              <span className="text-base font-bold tabular-nums">
+                {totalWeight.toFixed(2)} / 100
+              </span>
+            </div>
+            {!isWeightTotalValid && (
+              <p className="mt-2 text-xs text-amber-700">
+                عدّل الأوزان حتى يصبح المجموع 100 مع سماحية ±0.1 قبل الحفظ.
+              </p>
+            )}
+          </SettingsSection>
+
+          <SettingsSection
+            title="حدود وعتبات"
+            description="قيم مستقلة تضبط متى تعتبر الحصة أو المعلم مناسباً للترشيح."
+          >
+            <div className="grid gap-x-5 gap-y-5 md:grid-cols-2">
+              {THRESHOLD_FIELDS.map((field) => {
+                const meta = THRESHOLD_META[field];
+                const limits = SETTINGS_LIMITS[field];
+                return (
+                  <NumberField
+                    key={field}
+                    label={meta.label}
+                    value={form[field]}
+                    onChange={(value) => updateField(field, value)}
+                    step={limits.step}
+                    min={limits.min}
+                    max={limits.max}
+                    helperText={`النطاق المسموح: ${limits.min}–${limits.max}.`}
+                    info={<ParameterInfo {...meta} />}
+                  />
+                );
+              })}
+            </div>
+          </SettingsSection>
         </fieldset>
       )}
 
-      {saveError != null && <ModalErrorBanner message={getErrorMessage(saveError)} />}
-
-      <div className="rounded-3xl border border-neutral-200/70 bg-neutral-50/70 p-4 sm:px-5">
-        <p className="text-xs leading-relaxed text-neutral-500">
-          تُعاد قراءة القيم من الخادم بعد الحفظ للتأكد من تطبيق الإعدادات الفعلية.
-        </p>
-      </div>
+      {saveError != null && (
+        <ModalErrorBanner message={getErrorMessage(saveError)} />
+      )}
     </form>
   );
 }
@@ -346,13 +387,23 @@ export default function SettingsPage() {
       )}
 
       {!settings && isError && (
-        <EntityErrorBanner error={error} onRetry={retry} isRetrying={isLoading} />
+        <EntityErrorBanner
+          error={error}
+          onRetry={retry}
+          isRetrying={isLoading}
+        />
       )}
 
       {isLoading && !settings && (
-        <div className="grid gap-5" aria-label="جارٍ تحميل إعدادات خوارزمية الاستبدال">
+        <div
+          className="grid gap-5"
+          aria-label="جارٍ تحميل إعدادات خوارزمية الاستبدال"
+        >
           {[1, 2].map((skeleton) => (
-            <div key={skeleton} className="rounded-3xl border border-neutral-200/70 bg-white p-6 shadow-sm">
+            <div
+              key={skeleton}
+              className="rounded-3xl border border-neutral-200/70 bg-white p-6 shadow-sm"
+            >
               <div className="mb-6 h-5 w-44 animate-pulse rounded-full bg-neutral-200" />
               <div className="grid gap-5 md:grid-cols-2">
                 {[1, 2, 3, 4].map((field) => (
