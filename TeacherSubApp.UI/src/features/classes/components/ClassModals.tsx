@@ -1,52 +1,17 @@
 import { useState } from "react";
 import { CalendarX, AlertCircle } from "lucide-react";
-import {
-  Input,
-  Label,
-  TextField as AriaTextField,
-} from "react-aria-components";
 import { EntityCreateModal } from "../../../components/modals/EntityCreateModal";
 import { EntityUpdateModal } from "../../../components/modals/EntityUpdateModal";
 import { EntityDeleteModal } from "../../../components/modals/EntityDeleteModal";
+import { NumberField } from "../../../components/controls/NumberField";
 import { TextField } from "../../../components/controls/TextField";
 import type { SchoolClassReadDto, SchoolClassWriteDto } from "../types";
-
-const NUMBER_FIELD_STYLES = {
-  root: "flex flex-col",
-  label: "block text-xs font-medium text-neutral-500 mb-1.5",
-  input:
-    "w-full px-4 py-2.5 min-h-[44px] text-sm text-neutral-900 bg-white border border-neutral-200/80 rounded-full placeholder:text-neutral-400 outline-none transition-colors duration-150 hover:border-blue-300 focus:ring-2 focus:ring-blue-500/30 focus:border-blue-500 disabled:opacity-50 disabled:cursor-not-allowed",
-};
 
 // ════════════════════════════════════════════════════════════
 // Shared: Grade / Section fields (must be provided together, or both empty)
 // ════════════════════════════════════════════════════════════
 
 type NullableNumberInput = number | "";
-
-interface NumberFieldProps {
-  label: string;
-  value: NullableNumberInput;
-  onChange: (value: string) => void;
-}
-
-function NumberField({ label, value, onChange }: NumberFieldProps) {
-  return (
-    <AriaTextField
-      value={value === "" ? "" : String(value)}
-      onChange={onChange}
-      className={NUMBER_FIELD_STYLES.root}
-    >
-      <Label className={NUMBER_FIELD_STYLES.label}>{label}</Label>
-      <Input
-        type="number"
-        step="1"
-        inputMode="numeric"
-        className={NUMBER_FIELD_STYLES.input}
-      />
-    </AriaTextField>
-  );
-}
 
 interface GradeSectionFieldsProps {
   grade: NullableNumberInput;
